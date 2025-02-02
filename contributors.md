@@ -1,4 +1,4 @@
 Tran Minh Nhat Pham, 
-Tran Tien phu, 
+Tien Phu Tran, 
 Ricardo Prieto, 
 Son Nguyen
