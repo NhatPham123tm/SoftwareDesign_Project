@@ -25,6 +25,8 @@ run:
 az account get-access-token --resource https://ossrdbms-aad.database.windows.net
 
 ## Step 3: Run the Django Development Server
+change user in setting.py
+then run
 python manage.py runserver
 or
 python3 manage.py runserver
