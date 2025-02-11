@@ -84,7 +84,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'tpham69@CougarNet.UH.EDU',
+        'USER': 'snguye83@cougarnet.uh.edu',
         'PASSWORD': get_azure_access_token(),  # Use Azure access token
         'HOST': 'troisrivieres.postgres.database.azure.com',
         'PORT': '5432',
