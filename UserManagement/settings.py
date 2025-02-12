@@ -12,22 +12,14 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
-import requests
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Get an access token dynamically
-def get_azure_access_token():
-    response = os.popen("az account get-access-token --resource https://ossrdbms-aad.database.windows.net").read()
-    token = response.split('"accessToken": "')[1].split('"')[0]  # Extract token
-    return token
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-7i7%pli@-9$ffud+4v@a)b+vol%y7951b+#j@u4@43kni(ko#9'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -44,8 +36,26 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users.apps.UsersConfig',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'social_django', 
 ]
 
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',   # Default authentication
+)
+
+
+# Microsoft Identity Platform (Azure AD) Settings
+
+
+LOGIN_REDIRECT_URL = "/dashboard/" 
+LOGOUT_REDIRECT_URL = "/"
+
+# Azure AD B2C Authority
+MICROSOFT_AUTHORITY = f"https://login.microsoftonline.com/{MICROSOFT_AUTH_TENANT_ID}"
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -54,6 +64,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'UserManagement.urls'
@@ -84,13 +95,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
-        'USER': 'tpham69@CougarNet.UH.EDU',
-        'PASSWORD': get_azure_access_token(),  # Use Azure access token
-        'HOST': 'troisrivieres.postgres.database.azure.com',
+        'USER': 'ruuby',
+        'PASSWORD': 'Ruby0909',
+        'HOST': 'localhost',
         'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
     }
 }
 
