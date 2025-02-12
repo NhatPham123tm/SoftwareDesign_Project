@@ -1,4 +1,6 @@
--- test dummy delete
-DELETE FROM users
-WHERE email IN ('john.doe@example.com', 'jane.smith@example.com');
+-- test data input table
+-- Run by each in pgAdmin
 Select * From users;
+Select * From address;
+Select * From roles;
+Select * From permissions;
