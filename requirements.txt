@@ -22,3 +22,4 @@ psycopg2  # If using PostgreSQL
 # Install Python first
 # requirements.txt store all the need packages
 # Run "pip install -r requirements.txt"
+
