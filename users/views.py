@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 import json
 def home(request):
-    return render(request, 'users/home.html')
+    return render(request, 'home.html')
 
 def register(request):
     if request.method == 'POST':
@@ -23,7 +23,7 @@ def register(request):
             return redirect('dashboard')
     else:
         form = UserRegisterForm()
-    return render(request, 'users/register.html', {'form': form})
+    return render(request, 'register.html', {'form': form})
 
 def user_login(request):
     if request.method == 'POST':
@@ -35,7 +35,7 @@ def user_login(request):
             return redirect('dashboard')
         else:
             messages.error(request, 'Invalid credentials')
-    return render(request, 'users/login.html')
+    return render(request, 'login.html')
 
 def user_logout(request):
     logout(request)
@@ -43,7 +43,7 @@ def user_logout(request):
 
 @login_required
 def dashboard(request):
-    return render(request, "users/dashboard.html")
+    return render(request, "dashboard.html")
 
 @login_required
 def login_success(request):
