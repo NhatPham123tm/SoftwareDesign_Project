@@ -23,11 +23,11 @@ pip install -r requirements.txt
 
 ## ***4 Connect PosgreSQl to app
 Create .enf file, and copy and change the following info connection
-DB_NAME= #DB name my_db         
-DB_USER= postgres #DB user, default = postgres
-DB_PASSWORD= #DB password
-DB_HOST=localhost #DB host, default = localhost
-DB_PORT=5432 #DB port, default = 5432
+- DB_NAME= #DB name my_db         
+- DB_USER= postgres #DB user, default = postgres
+- DB_PASSWORD= #DB password
+- DB_HOST=localhost #DB host, default = localhost
+- DB_PORT=5432 #DB port, default = 5432
 
 ## ***5 Apply migration
 python manage.py makemigrations
