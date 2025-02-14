@@ -1,0 +1,9 @@
+python-dotenv  # For environment variables
+djangorestframework  # Building APIs libs
+Django-Extensions  # Extra management commands
+django-debug-toolbar # Debug tools
+psycopg2  # If using PostgreSQL
+
+# Install Python first
+# requirements.txt store all the need packages
+# Run "pip install -r requirements.txt"
