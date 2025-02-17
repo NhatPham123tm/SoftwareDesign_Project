@@ -12,7 +12,8 @@ Before running this project, ensure you have the following installed:
 ---
 
 ## **🔧 Setup and Run the Project**
-Run "pip install -r requirements.txt" for Windows
+- pip install -r requirements.txt    for Windows
+- pip3 install -r requirements.txt    for MacOs
 
 ### **1 Create your local empty PostgreSQL database **
 
@@ -31,12 +32,12 @@ Create .env file in main directory with following info connection:
 
 ## ***5 Apply migration
 Windows:
-python manage.py makemigrations
-python manage.py migrate
+- python manage.py makemigrations
+- python manage.py migrate
 
-or MacOs:
-python3 manage.py makemigrations
-python3 manage.py migrate
+MacOs:
+- python3 manage.py makemigrations
+- python3 manage.py migrate
 
 ## ***6 Use Query tools to run the populate_users.sql script under db_script for initializing the first data.
 
