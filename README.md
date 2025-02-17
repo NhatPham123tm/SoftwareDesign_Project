@@ -14,9 +14,7 @@ Before running this project, ensure you have the following installed:
 ## **🔧 Setup and Run the Project**
 Run "pip install -r requirements.txt" for Windows
 
-### **1 Setup PosgreSQL **
-1. Create your local empty PostgreSQL database
-2. Use Query tools to run the populate_users.sql script under db_script for initializing the first data.
+### **1 Create your local empty PostgreSQL database **
 
 ## ***2 Connect PosgreSQl to app
 Create .env file in main directory with following info connection:
@@ -40,12 +38,14 @@ or MacOs:
 python3 manage.py makemigrations
 python3 manage.py migrate
 
-## ***6 run server
+## ***6 Use Query tools to run the populate_users.sql script under db_script for initializing the first data.
+
+## ***7 run server
 python manage.py runserver
 or
 python3 manage.py runserver
 
-## ***7 go to your browser
+## ***8 go to your browser
 http://127.0.0.1:8000/
 
 goto login -> login with Microsoft
