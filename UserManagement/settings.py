@@ -48,7 +48,9 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'social_django', 
+    'social_django',
+    'api',
+    'rest_framework',
 ]
 
 AUTHENTICATION_BACKENDS = (
