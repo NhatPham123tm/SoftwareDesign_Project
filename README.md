@@ -12,17 +12,13 @@ Before running this project, ensure you have the following installed:
 ---
 
 ## **🔧 Setup and Run the Project**
+Run "pip install -r requirements.txt" for Windows
 
-### **1️ Create your local postgreSQL database **
+### **1️.1 Create your local empty postgreSQL database **
+### **1️.2 Use Query tools run script populate_users.sql under db_script to initialize first data**
 
-### **2 change database connection parameters and add authentication key in UserManagement/setting.py**
-contact me for key
-
-## ***3 Install all dependencies
-pip install -r requirements.txt
-
-## ***4 Connect PosgreSQl to app
-Create .enf file, and copy and change the following info connection
+## ***2 Connect PosgreSQl to app
+Create .env file in main directory, and copy and change the following info connection
 - DB_NAME= #DB name my_db         
 - DB_USER= postgres #DB user, default = postgres
 - DB_PASSWORD= #DB password
@@ -30,10 +26,11 @@ Create .enf file, and copy and change the following info connection
 - DB_PORT=5432 #DB port, default = 5432
 
 ## ***5 Apply migration
+Windows:
 python manage.py makemigrations
 python manage.py migrate
 
-or 
+or MacOs:
 python3 manage.py makemigrations
 python3 manage.py migrate
 
