@@ -1,18 +1,16 @@
-from django.utils.deprecation import MiddlewareMixin
-from api.models import user_accs
+# middleware.py
+##import logging
+#from django.utils.deprecation import MiddlewareMixin
+#from rest_framework_simplejwt.authentication import JWTAuthentication
 
-class CustomAuthMiddleware(MiddlewareMixin):
-    """
-    Middleware to attach the user_accs instance to request.user.
-    """
+#logger = logging.getLogger(__name__)
 
-    def process_request(self, request):
-        user_id = request.session.get("user_id")
-        if user_id:
-            try:
-                request.user = user_accs.objects.get(id=user_id)
-                request.user.is_authenticated = True  # Manually add this attribute
-            except user_accs.DoesNotExist:
-                request.user = None
-        else:
-            request.user = None
+#class JWTAuthMiddleware(MiddlewareMixin):
+#    def process_request(self, request):
+#        if not request.user.is_authenticated:  # Only authenticate if user is anonymous
+ #           try:
+ #               auth = JWTAuthentication().authenticate(request)
+ #               if auth:
+  #                  request.user = auth[0]
+  #          except Exception as e:
+    #            logger.error(f"JWT Authentication failed: {str(e)}")##

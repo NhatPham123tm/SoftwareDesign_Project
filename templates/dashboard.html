@@ -4,6 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userData = JSON.parse(localStorage.getItem("user_data"));
+            const accessToken = localStorage.getItem("access_token");
+
+            if (!accessToken) {
+                console.error("No access token found in localStorage");
+                window.location.href = "/login";  // Redirect to login if token is missing
+                return;
+            }
+
+            console.log("Sending request with token:", accessToken);
+
+            document.getElementById("welcome-message").textContent = 
+                `Welcome, ${userData.name} (${userData.role})`;
+
+            fetch("/dashboard/", {
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Dashboard data:", data);
+                // Populate dashboard data
+            })
+            .catch(error => console.error("Error:", error));
+        });
+        </script>
 </head>
 <body>
     <h1>Welcome to the Dashboard, {{ user.name }}!</h1>

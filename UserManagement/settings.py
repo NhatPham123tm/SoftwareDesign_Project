@@ -64,7 +64,7 @@ AUTHENTICATION_BACKENDS = (
 
 LOGIN_REDIRECT_URL = "/dashboard/" 
 LOGOUT_REDIRECT_URL = "/"
-
+LOGIN_URL = '/login/'
 # Azure AD B2C Authority
 MICROSOFT_AUTHORITY = f"https://login.microsoftonline.com/{MICROSOFT_AUTH_TENANT_ID}"
 MIDDLEWARE = [
@@ -77,7 +77,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
-    'authentication.middleware.CustomAuthMiddleware',
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",  

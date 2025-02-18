@@ -8,35 +8,35 @@
     <link rel="stylesheet" href="{% static 'css/login_style.css' %}">
     <script>
         function loginUser(event) {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault();
 
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
-            fetch("http://localhost:8000/api/user_login/", {  // Ensure the API endpoint matches Django URL patterns
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                "email": document.getElementById("email").value,
-                "password": document.getElementById("password").value
+            fetch("/api/user_login/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"  // If using CSRF
+                },
+                body: JSON.stringify({ email, password })
             })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
             })
-            .then(response => response.json())
             .then(data => {
-                if (data.access_token) {
+                if (data.access_token) {  // Adjust key as needed
                     localStorage.setItem("access_token", data.access_token);
-                    window.location.href = "/dashboard/"; // Redirect on success
-                } else {
-                    document.getElementById("message").innerHTML = `<p style="color:red;">${data.error}</p>`;
+                    window.location.href = "/dashboard/";
                 }
             })
             .catch(error => {
-                console.error("Error:", error);
-                document.getElementById("message").innerHTML = `<p style="color:red;">Login failed. Please try again.</p>`;
+                const errorMsg = error.detail || error.message || "Login failed";
+                document.getElementById("message").innerHTML = `<p style="color:red;">${errorMsg}</p>`;
             });
-
         }
     </script>
 </head>
