@@ -1,5 +1,30 @@
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-</form>
+<!-- templates/register.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Registration</title>
+</head>
+<body>
+    <h2>Complete Your Registration</h2>
+    <p>Welcome, {{ name }}! Please select a role and complete your registration.</p>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <label>Email:</label>
+        <input type="email" name="email" value="{{ email }}" readonly>
+
+        <label>Name:</label>
+        <input type="text" name="name" value="{{ name }}" readonly>
+
+        <label>Select Role:</label>
+        <select name="role">
+            <option value="1">Admin</option>
+            <option value="2" selected>User</option>
+        </select>
+
+        <button type="submit">Complete Registration</button>
+    </form>
+</body>
+</html>
