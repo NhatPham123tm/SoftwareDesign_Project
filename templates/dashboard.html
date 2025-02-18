@@ -1,13 +1,33 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="{%  static 'css/dashboard.css' %}">
 </head>
 <body>
-    <h1>Welcome to the Dashboard, {{ user.first_name }}!</h1>
-    <a href="{% url 'microsoft-logout' %}">Logout</a>
+    <nav class="top">
+        <div class="topbox toplink">
+            <a href="index2.html" class="">BRAND</a>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a href="{% url 'microsoft-logout' %}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <main>
+        <section class="title">
+            <div class="container">
+                <div class="row">
+                    <h1>Welcome to the Dashboard, {{ user.first_name }}!</h1>
+                </div>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
 {% if messages %}
