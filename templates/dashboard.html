@@ -1,13 +1,37 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="{%  static 'css/dashboard.css' %}">
 </head>
 <body>
-    <h1>Welcome to the Dashboard, {{ user.first_name }}!</h1>
-    <a href="{% url 'microsoft-logout' %}">Logout</a>
+    <nav class="top">
+        <div class="topbox toplink">
+            <a>BRAND</a>
+            <div class="dropdown">
+                <button class="dropbtn">View</button>
+                <div class="dropdown-content">
+                  <a href="{% url 'basicuser' %}">Profile</a>
+                  <a href="{% url 'microsoft-logout' %}">Logout</a>
+                  <!--hid admin if not admin-->
+                  <a class= "admin" href="{% url 'admin' %}">Admin</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <main>
+        <section class="title">
+            <div class="container">
+                <div class="row">
+                    <h1>Welcome to the Dashboard, {{ user.first_name }}!</h1>
+                </div>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
 {% if messages %}
@@ -29,7 +53,7 @@
             position: fixed;
             top: 10px;
             right: 10px;
-            background-color: rgba(0, 255, 0, 0.9);
+            background-color: green;
             color: white;
             padding: 10px;
             border-radius: 5px;
