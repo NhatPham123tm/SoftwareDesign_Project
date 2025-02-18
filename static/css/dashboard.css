@@ -1,0 +1,50 @@
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 2;
+}
+
+.containered {
+    display: block;
+    overflow: hidden;
+    
+}
+
+.top {
+    
+    width: 100%;
+    background-color: black;
+    box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
+    top: 0;
+    z-index: 1000;
+}
+
+.topbox {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toplink {
+    display: flex;
+    gap: 2rem;
+}
+
+.toplink a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    
+}
+
+
+.title {
+    text-align: center;
+    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+    color: white;
+    padding: 80px 0;
+    margin-bottom: 24px;
+}
