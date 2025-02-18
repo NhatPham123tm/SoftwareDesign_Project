@@ -105,3 +105,10 @@ def microsoft_callback(request):
 def microsoft_logout(request):
     logout(request)
     return redirect(settings.LOGOUT_REDIRECT_URL)
+
+
+def basicuser(request):
+    return render(request, 'basicuser.html')
+
+def admin(request):
+    return render(request, 'admin.html')
