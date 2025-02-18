@@ -12,10 +12,10 @@
     
     <nav class="top">
         <div class="topbox toplink">
-            <a href="" class="">BRAND</a>
+            <a>BRAND</a>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a href="" class="">Login</a>
+                    <a href="{% url 'dashboard' %}" class="">Home</a>
                 </li>
             </ul>
         </div>
@@ -31,7 +31,7 @@
             <li><a href="#users">Users</a></li>
             <li><a href="#settings">Settings</a></li>
             <li><a href="#reports">Reports</a></li>
-            <li><a href="#" id="logoutBtn">Logout</a></li>
+            <li><a href="{% url 'microsoft-logout' %}" id="logoutBtn">Logout</a></li>
         </ul>
     </div>
     <!-- Holds content for all sidepanel selections -->
@@ -108,6 +108,6 @@
         </div>
 
     </div>
-    
-    <script src="admin.js"></script>
+
 </body>
+</html>
