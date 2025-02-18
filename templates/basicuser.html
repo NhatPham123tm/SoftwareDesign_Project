@@ -1,11 +1,259 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>user page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+
+        body {
+            background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .profile-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .profile-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .user-info {
+            text-align: center;
+        }
+
+        .user-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            object-fit: cover;
+            background-color: #e1e1e1;
+        }
+
+        .user-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+
+        .social-links {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+    button[id=edit]{
+    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 0.5rem;
+}
+
+button:hover{
+    opacity: 0.8;
+}
+
+.fa {
+  padding: 20px;
+  font-size: 20px;
+  text-decoration: none;
+  margin: 2px 0px;
+  border-radius: 0.5rem;
+}
+
+.fa:hover {
+    opacity: 0.8;
+}
+
+.fa-facebook {
+  background: #3B5998;
+  color: white;
+}
+
+.fa-twitter {
+  background: #55ACEE;
+  color: white;
+}
+
+.fa-instagram {
+  background: #125688;
+  color: white;
+}
+
+
+
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .tablinks.active {
+            background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+            color: white;
+        }
+
+        .tablinks{
+            border-radius: 0.5rem;
+        }
+
+        .tablinks:hover{
+            opacity: 0.8;
+        }
+
+
+        .tabcontent {
+            display: none;
+            padding: 10px;
+        }
+
+        .tabcontent.active {
+            display: block;
+        }
+
+    .profile-tab{
+    width: 40em;
+    height: 39em;
+    padding: 2em;
+    border-radius: 0.5rem;
+    background: #fff;
+    text-align: center;
+}        
+
+.editurl
+{
+    display: none;
+    margin: 10px;
+}
+
+</style>
 </head>
+<script>
+
+function openTab(event, tabId) {
+            let tabs = document.querySelectorAll('.tablinks');
+            let contents = document.querySelectorAll('.tabcontent');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+</script>
 <body>
-    <h1>This is user page</h1>
+
+    <div class="profile-container">
+        <div class="left-column">
+            <div class="profile-box user-info">
+                <img src="{% static 'pic/default-avatar-profile-picture-male-icon.webp' %}" alt="User Avatar" class="user-avatar">
+                <h2 class="user-name">{{ user.first_name }} {{ user.last_name }}</h2>
+                <button type="submit" id="edit">Edit Profile</button><br>
+            </div>
+
+            <div class="profile-box social-links">
+                <h3>Social Media</h3>
+                <a href="" class="fa fa-twitter"> Twitter</a><br/>
+                <a href="" class="fa fa-instagram"> Instagram</a><br/>
+                <a href="" class="fa fa-facebook"> Facebook</a><br/>
+            </div>
+        </div>
+
+
+            <div class="profile-tab">
+                <div class="tab">
+                    <button class="tablinks active" onclick="openTab(event, 'Bio')">Bio</button>
+                    <button class="tablinks" onclick="openTab(event, 'info')">Info</button>
+                </div>
+
+                <div id="Bio" class="tabcontent active">
+                    <p>This is your bio add something interesting for yourself</p>
+                </div>
+                
+                <div id="info" class="tabcontent">
+                    <div class="infoing">
+                        <div>
+                            <div class="col-md-6">
+                                <label style="font-weight:bold;">Name</label>
+                            </div>
+                            <div class="col-md-6">
+                                <p>{{ user.first_name }} {{ user.last_name }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="col-md-6">
+                                <label style="font-weight:bold;">Email</label>
+                            </div>
+                            <div class="col-md-6">
+                                <p>{{ user.username }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="col-md-6">
+                                <label style="font-weight:bold;">Phone</label>
+                            </div>
+                            <div class="col-md-6">
+                                <p>Enter phone</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="col-md-6">
+                                <label style="font-weight:bold;">Birth Date</label>
+                            </div>
+                            <div class="col-md-6">
+                                <p>Enter DOB</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="editurl">
+                        <div class="col-md-6">
+                            <label style="font-weight:bold;">Twitter url</label>
+                        </div>
+                        <div class="col-md-6">
+                            <p>Enter url</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-weight:bold;">Instagram url</label>
+                        </div>
+                        <div class="col-md-6">
+                            <p>Enter url</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-weight:bold;">Facebook url</label>
+                        </div>
+                        <div class="col-md-6">
+                            <p>Enter url</p>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
