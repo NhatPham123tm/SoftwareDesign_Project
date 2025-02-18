@@ -1,5 +1,53 @@
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Step 1</title>
+    <link rel="stylesheet" href="{%  static 'css/register.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h2>Register</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="userID">UH ID:</label>
+                <input type="text" id="userID" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" required>
+            </div>
+            <div class="form-group">
+                <label for="retypePassword">Verrified Password:</label>
+                <input type="password" id="retypePassword" required>
+            </div>
+            <button type="button" onclick="nextStep()">Next</button>
+        </form>
+    </div>
+
+    <script>
+        function nextStep() {
+            const userID = document.getElementById('userID').value;
+            const password = document.getElementById('password').value;
+            const retypePassword = document.getElementById('retypePassword').value;
+            
+            if (userID && password && retypePassword) {
+                if (password.length < 7) {
+                    alert('Password must be at least 7 characters long.');
+                    return;
+                }
+                if (password !== retypePassword) {
+                    alert('Passwords do not match.');
+                    return;
+                }
+                sessionStorage.setItem('userID', userID);
+                sessionStorage.setItem('password', password);
+                window.location.href = 'register_step2.html';
+            } else {
+                alert('Please fill in all fields.');
+            }
+        }
+    </script>
+</body>
+</html>
