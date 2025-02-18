@@ -9,4 +9,7 @@ urlpatterns = [
     path('login/microsoft/', microsoft_login, name='microsoft-login'),
     path('auth/complete/azure/', microsoft_callback, name='microsoft-callback'),
     path('logout/', microsoft_logout, name='microsoft-logout'),
+    path('basicuser/', views.basicuser, name='basicuser'),
+    path('home/', views.home, name='home'),
+    path('admin/', views.admin, name='admin'),
 ]

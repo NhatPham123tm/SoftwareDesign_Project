@@ -1,11 +1,115 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>user page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{%  static 'css/basicuser.css' %}">
 </head>
+<script>
+
+function openTab(event, tabId) {
+            let tabs = document.querySelectorAll('.tablinks');
+            let contents = document.querySelectorAll('.tabcontent');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+</script>
 <body>
-    <h1>This is user page</h1>
+
+    <div class="profile-container">
+        <div class="left-column">
+            <div class="profile-box user-info">
+                <img src="{% static 'pic/default-avatar-profile-picture-male-icon.webp' %}" alt="User Avatar" class="user-avatar">
+                <h2 class="user-name">{{ user.first_name }} {{ user.last_name }}</h2>
+                <!--create a edit script-->
+                <button type="submit" id="edit">Edit Profile</button><br>
+                <a href="{% url 'dashboard' %}">Home</a><br>
+            </div>
+
+            <div class="profile-box social-links">
+                <h3>Social Media</h3>
+                <a href="" class="fa fa-twitter"> Twitter</a><br/>
+                <a href="" class="fa fa-instagram"> Instagram</a><br/>
+                <a href="" class="fa fa-facebook"> Facebook</a><br/>
+            </div>
+        </div>
+
+
+            <div class="profile-tab">
+                <div class="tab">
+                    <button class="tablinks active" onclick="openTab(event, 'Bio')">Bio</button>
+                    <button class="tablinks" onclick="openTab(event, 'info')">Info</button>
+                </div>
+
+                <div id="Bio" class="tabcontent active">
+                    <p>This is your bio add something interesting for yourself</p>
+                </div>
+                
+                <div id="info" class="tabcontent">
+                    <div class="infoing">
+                        <div>
+                            <div class="col-md-6">
+                                <label style="font-weight:bold;">Name</label>
+                            </div>
+                            <div class="col-md-6">
+                                <p>{{ user.first_name }} {{ user.last_name }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="col-md-6">
+                                <label style="font-weight:bold;">Email</label>
+                            </div>
+                            <div class="col-md-6">
+                                <p>{{ user.username }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="col-md-6">
+                                <label style="font-weight:bold;">Phone</label>
+                            </div>
+                            <div class="col-md-6">
+                                <p>Enter phone</p>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="col-md-6">
+                                <label style="font-weight:bold;">Birth Date</label>
+                            </div>
+                            <div class="col-md-6">
+                                <p>Enter DOB</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="editurl">
+                        <div class="col-md-6">
+                            <label style="font-weight:bold;">Twitter url</label>
+                        </div>
+                        <div class="col-md-6">
+                            <p>Enter url</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-weight:bold;">Instagram url</label>
+                        </div>
+                        <div class="col-md-6">
+                            <p>Enter url</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label style="font-weight:bold;">Facebook url</label>
+                        </div>
+                        <div class="col-md-6">
+                            <p>Enter url</p>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
