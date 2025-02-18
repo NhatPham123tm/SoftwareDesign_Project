@@ -7,6 +7,7 @@ input[type=text], input[type=password] {
     box-sizing: border-box;
     text-align: center;
     border-radius: 0.5rem;
+    font-family: Arial, sans-serif;
 }
 
 button[id=log]{
@@ -18,6 +19,7 @@ button[id=log]{
     width: 100%;
     background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
     border-radius: 0.5rem;
+    font-family: Arial, sans-serif;
 }
 
 button:hover {
@@ -33,14 +35,17 @@ button:hover {
     background-color: white;
     padding: 3%;
     border-radius: 0.5rem;
+    font-family: Arial, sans-serif;
 }
 
 body {
     background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+    font-family: Arial, sans-serif;
 }
 
 .links {
     margin-top: 15px;
+    font-family: Arial, sans-serif;
 }
 
 .links a {
