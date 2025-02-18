@@ -1,74 +1,115 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import logout
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 from django.shortcuts import render
 import msal
 import requests
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from api.models import user_accs, roles
-from django.http import JsonResponse
 import json
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import get_object_or_404
+from rest_framework import status
+from django.contrib.auth.hashers import make_password
+
 def home(request):
     return render(request, 'home.html')
 
+def login_page(request):
+    return render(request, "login.html")
+
+def register_page(request):
+    return render(request, "register.html")
+
 # Temporary since someone doing relate to this part
-def register(request):
-    """Handle first-time Microsoft login users who need to complete registration."""
-    email = request.session.get("pending_email", "")
-    name = request.session.get("pending_name", "")
+@api_view(["POST"])
+@permission_classes([AllowAny])  # Allow public access to register
+def user_register(request):
+    """
+    API-based registration for users.
+    - If registering via Microsoft, password is optional.
+    - If registering normally, password is required.
+    """
+    email = request.data.get("email")
+    name = request.data.get("name")
+    password = request.data.get("password", None)  # Password is optional
+    role_id = request.data.get("role_id")
 
-    if request.method == "POST":
-        role_id = request.POST.get("role")  # Get role from form
-        role = roles.objects.get(pk=role_id) if role_id else roles.objects.get_or_create(role_name="User")[0]
+    if not email or not name:
+        return Response({"error": "Email and name are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create the new user
-        user = user_accs.objects.create(
-            name=name,
-            email=email,
-            password_hash="microsoft_auth",  # Placeholder password since authentication is via Microsoft
-            role=role,
-        )
+    # Check if user already exists
+    if user_accs.objects.filter(email=email).exists():
+        return Response({"error": "User already exists."}, status=status.HTTP_409_CONFLICT)
 
-        # Remove session variables
-        del request.session["pending_email"]
-        del request.session["pending_name"]
-
-        # Log the user in by storing their ID in the session
-        request.session["user_id"] = user.id
-        messages.success(request, f"Welcome {user.name}! Your account has been registered.")
-        return redirect(settings.LOGIN_REDIRECT_URL)
-
-    return render(request, "register.html", {"email": email, "name": name})
-
-def user_login(request):
-    if request.method == 'POST':
-        email = request.POST['email']
-        password = request.POST['password']
-
+    # Assign default role or selected role
+    if role_id:
         try:
-            user = user_accs.objects.get(email=email)
-            if check_password(password, user.password_hash):  # Compare hashed password
-                request.session["user_id"] = user.id  # Store user in session
-                messages.success(request, f"Welcome {user.name}!")
-                return redirect('dashboard')
-            else:
-                messages.error(request, "Invalid email or password")
-        except user_accs.DoesNotExist:
-            messages.error(request, "User does not exist")
+            role = roles.objects.get(pk=role_id)
+        except roles.DoesNotExist:
+            return Response({"error": "Invalid role ID."}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        role, _ = roles.objects.get_or_create(role_name="User")
 
-    return render(request, 'login.html')
+    # Securely hash password if provided, else set a Microsoft placeholder
+    password_hash = make_password(password) if password else "microsoft_auth"
 
+    # Create the new user
+    user = user_accs.objects.create(
+        name=name,
+        email=email,
+        password_hash=password_hash,
+        role=role,
+    )
+
+    return Response({
+        "message": "User registered successfully!",
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role.role_name
+        }
+    }, status=status.HTTP_201_CREATED)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def user_login(request):
+    email = request.data.get("email")
+    password = request.data.get("password")
+
+    if not email or not password:
+        return Response({"error": "Email and password are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = get_object_or_404(user_accs, email=email)  # Get user by email
+    if not check_password(password, user.password_hash):  # Verify hashed password
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # Generate JWT tokens
+    refresh = RefreshToken.for_user(user)
+    
+    return Response({
+        "access_token": str(refresh.access_token),
+        "refresh_token": str(refresh),
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role.role_name  
+        }
+    }, status=status.HTTP_200_OK)
+
+    
 def user_logout(request):
     logout(request)  # Clear session
-    return redirect('login')
+    return redirect('/login')
 
 
 def dashboard(request):
-    if not getattr(request.user, 'is_authenticated', False):  # Check if user is authenticated
-        return redirect('login')  # Redirect to login if not authenticated
-
     return render(request, "dashboard.html", {"user": request.user})
 
 

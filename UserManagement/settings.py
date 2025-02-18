@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'api',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -67,6 +68,7 @@ LOGOUT_REDIRECT_URL = "/"
 # Azure AD B2C Authority
 MICROSOFT_AUTHORITY = f"https://login.microsoftonline.com/{MICROSOFT_AUTH_TENANT_ID}"
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -77,7 +79,10 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'authentication.middleware.CustomAuthMiddleware',
 ]
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",  
+    "http://127.0.0.1:8000", 
+]
 ROOT_URLCONF = 'UserManagement.urls'
 
 TEMPLATES = [
@@ -132,6 +137,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

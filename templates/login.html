@@ -6,24 +6,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Member Login</title>
     <link rel="stylesheet" href="{% static 'css/login_style.css' %}">
+    <script>
+        function loginUser(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            fetch("http://localhost:8000/api/user_login/", {  // Ensure the API endpoint matches Django URL patterns
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "email": document.getElementById("email").value,
+                "password": document.getElementById("password").value
+            })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.access_token) {
+                    localStorage.setItem("access_token", data.access_token);
+                    window.location.href = "/dashboard/"; // Redirect on success
+                } else {
+                    document.getElementById("message").innerHTML = `<p style="color:red;">${data.error}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("message").innerHTML = `<p style="color:red;">Login failed. Please try again.</p>`;
+            });
+
+        }
+    </script>
 </head>
 <body>
     <div class="login-container">
         <h2>Member Login</h2>
-        <form>
+        <form onsubmit="loginUser(event)">  <!-- Use JavaScript function -->
             <div class="input-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" required>
             </div>
             <div class="input-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" required>
             </div>
             <button type="submit">LOGIN</button>
         </form>
+        <div id="message"></div> <!-- Display login messages -->
+
         <div class="links">
             <a href="#">Forgot Username / Password?</a>
-            <a href="{% url 'register' %}">Create your Account</a>
+            <a href="{% url 'register_page' %}">Create your Account</a>
             <a href="{% url 'microsoft-login' %}">Login with Microsoft</a>
         </div>
     </div>
