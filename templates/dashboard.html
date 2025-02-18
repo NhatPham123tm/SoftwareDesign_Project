@@ -10,12 +10,16 @@
 <body>
     <nav class="top">
         <div class="topbox toplink">
-            <a href="index2.html" class="">BRAND</a>
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a href="{% url 'microsoft-logout' %}">Logout</a>
-                </li>
-            </ul>
+            <a>BRAND</a>
+            <div class="dropdown">
+                <button class="dropbtn">View</button>
+                <div class="dropdown-content">
+                  <a href="{% url 'basicuser' %}">Profile</a>
+                  <a href="{% url 'microsoft-logout' %}">Logout</a>
+                  <!--hid admin if not admin-->
+                  <a class= "admin" href="{% url 'admin' %}">Admin</a>
+                </div>
+            </div>
         </div>
     </nav>
     
@@ -49,7 +53,7 @@
             position: fixed;
             top: 10px;
             right: 10px;
-            background-color: rgba(0, 255, 0, 0.9);
+            background-color: green;
             color: white;
             padding: 10px;
             border-radius: 5px;
