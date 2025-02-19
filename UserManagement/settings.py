@@ -65,6 +65,10 @@ AUTHENTICATION_BACKENDS = (
 LOGIN_REDIRECT_URL = "/dashboard/" 
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = '/login/'
+
+# reset pass word
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 # Azure AD B2C Authority
 MICROSOFT_AUTHORITY = f"https://login.microsoftonline.com/{MICROSOFT_AUTH_TENANT_ID}"
 MIDDLEWARE = [
