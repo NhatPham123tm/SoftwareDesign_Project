@@ -4,71 +4,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{%  static 'css/register.css' %}">
-    <title>Complete Registration</title>
-    <script>
-        function registerUser(event) {
-            event.preventDefault(); // Prevent default form submission
-
-            const email = document.getElementById("email").value;
-            const name = document.getElementById("name").value;
-            const role = document.getElementById("role").value;
-            const password = document.getElementById("password").value;
-
-            fetch("http://localhost:8000/api/user_register/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    email: email,
-                    name: name,
-                    password: password,
-                    role_id: role
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    document.getElementById("message").innerHTML = `<p style="color:red;">${data.error}</p>`;
-                } else {
-                    document.getElementById("message").innerHTML = `<p style="color:green;">${data.message}</p>`;
-                    setTimeout(() => window.location.href = "/login", 2000); // Redirect after success
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                document.getElementById("message").innerHTML = `<p style="color:red;">Registration failed. Try again.</p>`;
-            });
-        }
-    </script>
+    <title>Register</title>
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
 </head>
 <body>
-    <div class="blah">
-        <h1>Complete Your Registration</h1>
-        <p>Please select a role and complete your registration.</p>
-
-        <form onsubmit="registerUser(event)">
-            <label>Email</label><br>
-            <input type="email" id="email" placeholder="Enter Email" value="{{ email }}" pattern="^[^@]+@[^@]+\.[^@]{3}$" required><br>
-
-            <label>Name</label><br>
-            <input type="text" placeholder="Enter Name" id="name" value="{{ name }}" pattern="[A-Za-z0-9]{5,}" required><br>
-
-            <label>Password</label><br>
-            <input type="password" placeholder="Enter Password" id="password" pattern="[A-Za-z0-9]{6,}" required><br>
-
-            <label>Select Role:</label>
-            <select id="role">
-                <option value="1">Admin</option>
-                <option value="2" selected>User</option>
-            </select>
-
-            <button type="submit" id="create">Complete Registration</button>
+    <div class="container">
+        <h2>Register</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="userID">UH ID:</label>
+                <input type="text" id="userID" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" required minlength="7">
+            </div>
+            <div class="form-group">
+                <label for="retypePassword">Confirm Password: </label>
+                <input type="password" id="retypePassword" required>
+            </div>
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="user_email">Email:</label>
+                <input type="email" id="user_email" required>
+            </div>
+            <div class="microsoft-auth-group">
+                <input type="checkbox" id="microsoftAuth" onclick="toggleMicrosoftAuth()">
+                <label for="microsoftAuth">Link with Microsoft</label>
+            </div>
+            <button type="button" id="submitButton" onclick="nextStep()">Submit</button>
         </form>
-
-        <div id="message"></div>
-
     </div>
+
+    <script>
+        function toggleMicrosoftAuth() {
+            const isChecked = document.getElementById('microsoftAuth').checked;
+            document.getElementById('name').disabled = isChecked;
+            document.getElementById('user_email').disabled = isChecked;
+            document.getElementById('submitButton').textContent = isChecked ? "Continue with Microsoft" : "Submit";
+        }
+
+        function nextStep() {
+            const userID = document.getElementById('userID').value.trim();
+            const password = document.getElementById('password').value;
+            const retypePassword = document.getElementById('retypePassword').value;
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('user_email').value.trim();
+            const microsoftAuth = document.getElementById('microsoftAuth').checked;
+
+            if (!userID || !password || !retypePassword) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            if (password.length < 7) {
+                alert('Password must be at least 7 characters long.');
+                return;
+            }
+            if (password !== retypePassword) {
+                alert('Passwords do not match.');
+                return;
+            }
+
+            if (!microsoftAuth) {
+                if (!name || !email) {
+                    alert('Please fill in all fields.');
+                    return;
+                }
+                sessionStorage.setItem('name', name);
+                sessionStorage.setItem('email', email);
+            }
+
+            sessionStorage.setItem('userID', userID);
+            sessionStorage.setItem('password', password);
+            
+            if (microsoftAuth) {
+                window.location.href = 'https://login.microsoftonline.com/';
+            } else {
+                alert('Form submitted successfully!');
+            }
+        }
+    </script>
 </body>
 </html>
