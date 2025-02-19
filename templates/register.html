@@ -12,15 +12,15 @@
         <h2>Register</h2>
         <form id="registerForm">
             <div class="form-group">
-                <label for="userID">UH ID:</label>
-                <input type="text" id="userID" required>
+                <label for="id">UH ID:</label>
+                <input type="text" id="id" placeholder="7 digits" required>
             </div>
             <div class="form-group">
                 <label for="password">Password:</label>
-                <input type="password" id="password" required minlength="7">
+                <input type="password" id="password" placeholder="Min 7 characters" required minlength="7">
             </div>
             <div class="form-group">
-                <label for="retypePassword">Confirm Password: </label>
+                <label for="retypePassword">Confirm Password:</label>
                 <input type="password" id="retypePassword" required>
             </div>
             <div class="form-group">
@@ -39,6 +39,14 @@
         </form>
     </div>
 
+    <!-- Modal for showing messages -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <p id="modalMessage">Message goes here...</p>
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
     <script>
         function toggleMicrosoftAuth() {
             const isChecked = document.getElementById('microsoftAuth').checked;
@@ -48,44 +56,83 @@
         }
 
         function nextStep() {
-            const userID = document.getElementById('userID').value.trim();
+            const id = document.getElementById('id').value.trim();
             const password = document.getElementById('password').value;
             const retypePassword = document.getElementById('retypePassword').value;
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('user_email').value.trim();
             const microsoftAuth = document.getElementById('microsoftAuth').checked;
 
-            if (!userID || !password || !retypePassword) {
-                alert('Please fill in all required fields.');
+            if (!id || !password || !retypePassword) {
+                showModal('Please fill in all required fields.');
                 return;
             }
             if (password.length < 7) {
-                alert('Password must be at least 7 characters long.');
+                showModal('Password must be at least 7 characters long.');
                 return;
             }
             if (password !== retypePassword) {
-                alert('Passwords do not match.');
+                showModal('Passwords do not match.');
                 return;
             }
 
             if (!microsoftAuth) {
                 if (!name || !email) {
-                    alert('Please fill in all fields.');
+                    showModal('Please fill in all fields.');
                     return;
                 }
-                sessionStorage.setItem('name', name);
-                sessionStorage.setItem('email', email);
-            }
 
-            sessionStorage.setItem('userID', userID);
-            sessionStorage.setItem('password', password);
-            
-            if (microsoftAuth) {
-                window.location.href = 'https://login.microsoftonline.com/';
+                const userData = {
+                    id,
+                    password,
+                    name,
+                    email
+                };
+
+                // Manual form submission
+                fetch('/api/user_register/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showModal(data.message);
+                    } else {
+                        showModal(data.message);
+                    }
+                })
+                .catch(error => {
+                    showModal('An error occurred. Please try again.');
+                    console.error('Error:', error);
+                });
+
             } else {
-                alert('Form submitted successfully!');
+                // Microsoft authentication flow
+                sessionStorage.setItem('id', id);
+                sessionStorage.setItem('password', password);
+                window.location.href = '/login/microsoft/';
             }
         }
+
+        function showModal(message) {
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('messageModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            const modalMessage = document.getElementById('modalMessage').textContent;
+            document.getElementById('messageModal').style.display = 'none';
+
+            // Redirect to login page if the registration was successful
+            if (modalMessage === 'User registered successfully!') {
+                window.location.href = '/login/';
+            }
+        }
+
     </script>
 </body>
 </html>
