@@ -195,3 +195,6 @@ def microsoft_logout(request):
     """Log out the user and redirect."""
     logout(request)
     return redirect(settings.LOGOUT_REDIRECT_URL)
+
+def suspend(request):
+    return render(request, 'suspend.html')
