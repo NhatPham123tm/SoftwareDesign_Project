@@ -50,8 +50,7 @@
                 <div class="dropdown-content">
                   <a href="{% url 'basicuser' %}">Profile</a>
                   <a href="{% url 'microsoft-logout' %}">Logout</a>
-                  <!--hid admin if not admin-->
-                  <a class= "admin" href="{% url 'admin' %}">Admin</a>
+                  <a href="{% url 'admin' %}">Admin</a>
                 </div>
             </div>
         </div>
@@ -61,7 +60,7 @@
         <section class="title">
             <div class="container">
                 <div class="row">
-                    <h1>Welcome to the Dashboard, {{ user.first_name }}!</h1>
+                    <h1>Welcome to the Dashboard</h1>
                 </div>
             </div>
         </section>
