@@ -155,3 +155,34 @@ function deleteUser(userId) {
     }
 }
 
+function registerUser(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    const email = document.getElementById("email").value;
+    const name = document.getElementById("name").value;
+    const role = document.getElementById("role").value;
+    const password = document.getElementById("password").value;
+
+    fetch("http://localhost:8000/api/user_register/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            email: email,
+            name: name,
+            password: password,
+            role: role
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        userLoad();
+        openPanel.classList.remove('show');
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        document.getElementById("message").innerHTML = `<p style="color:red;">Registration failed. Try again.</p>`;
+    });
+}
+
