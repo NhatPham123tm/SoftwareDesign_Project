@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Step 1</title>
-    <link rel="stylesheet" href="{%  static 'css/register.css' %}">
+    <title>Register</title>
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
 </head>
 <body>
     <div class="container">
@@ -17,36 +17,73 @@
             </div>
             <div class="form-group">
                 <label for="password">Password:</label>
-                <input type="password" id="password" required>
+                <input type="password" id="password" required minlength="7">
             </div>
             <div class="form-group">
-                <label for="retypePassword">Verrified Password:</label>
+                <label for="retypePassword">Confirm Password: </label>
                 <input type="password" id="retypePassword" required>
             </div>
-            <button type="button" onclick="nextStep()">Next</button>
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="user_email">Email:</label>
+                <input type="email" id="user_email" required>
+            </div>
+            <div class="microsoft-auth-group">
+                <input type="checkbox" id="microsoftAuth" onclick="toggleMicrosoftAuth()">
+                <label for="microsoftAuth">Link with Microsoft</label>
+            </div>
+            <button type="button" id="submitButton" onclick="nextStep()">Submit</button>
         </form>
     </div>
 
     <script>
+        function toggleMicrosoftAuth() {
+            const isChecked = document.getElementById('microsoftAuth').checked;
+            document.getElementById('name').disabled = isChecked;
+            document.getElementById('user_email').disabled = isChecked;
+            document.getElementById('submitButton').textContent = isChecked ? "Continue with Microsoft" : "Submit";
+        }
+
         function nextStep() {
-            const userID = document.getElementById('userID').value;
+            const userID = document.getElementById('userID').value.trim();
             const password = document.getElementById('password').value;
             const retypePassword = document.getElementById('retypePassword').value;
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('user_email').value.trim();
+            const microsoftAuth = document.getElementById('microsoftAuth').checked;
+
+            if (!userID || !password || !retypePassword) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            if (password.length < 7) {
+                alert('Password must be at least 7 characters long.');
+                return;
+            }
+            if (password !== retypePassword) {
+                alert('Passwords do not match.');
+                return;
+            }
+
+            if (!microsoftAuth) {
+                if (!name || !email) {
+                    alert('Please fill in all fields.');
+                    return;
+                }
+                sessionStorage.setItem('name', name);
+                sessionStorage.setItem('email', email);
+            }
+
+            sessionStorage.setItem('userID', userID);
+            sessionStorage.setItem('password', password);
             
-            if (userID && password && retypePassword) {
-                if (password.length < 7) {
-                    alert('Password must be at least 7 characters long.');
-                    return;
-                }
-                if (password !== retypePassword) {
-                    alert('Passwords do not match.');
-                    return;
-                }
-                sessionStorage.setItem('userID', userID);
-                sessionStorage.setItem('password', password);
-                window.location.href = 'register_step2.html';
+            if (microsoftAuth) {
+                window.location.href = 'https://login.microsoftonline.com/';
             } else {
-                alert('Please fill in all fields.');
+                alert('Form submitted successfully!');
             }
         }
     </script>
