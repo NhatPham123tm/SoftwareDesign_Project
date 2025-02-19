@@ -16,6 +16,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from .serializers import UserRegisterSerializer, UserLoginSerializer
 from django.http import JsonResponse
+from api.serializers import UserSerializer
 
 def home(request):
     return render(request, 'home.html')
