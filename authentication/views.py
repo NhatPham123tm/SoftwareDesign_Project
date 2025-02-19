@@ -32,6 +32,11 @@ def basicuser(request):
 def adminpage(request):
     return render(request, 'admin.html')
 
+def get_userLoad(request):
+    users = user_accs.objects.select_related('role').all()
+    serializer = UserSerializer(users, many=True)
+    return JsonResponse({'users': serializer.data})
+
 # Temporary since someone doing relate to this part
 @api_view(["POST"])
 @permission_classes([AllowAny])  # Allow public access to register
