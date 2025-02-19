@@ -41,7 +41,7 @@ def get_userLoad(request):
 @authentication_classes([JWTAuthentication])  # Use JWT authentication
 @permission_classes([IsAuthenticated])  # Allow only authenticated users
 @user_passes_test(is_admin)
-def admin(request):
+def adminpage(request):
     return render(request, 'admin.html')
 
 # Temporary since someone doing relate to this part
