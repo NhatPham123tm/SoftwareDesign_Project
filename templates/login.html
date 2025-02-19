@@ -31,7 +31,7 @@
         console.log("Login response:", data);
         if (data.access_token && data.user) {
             localStorage.setItem("access_token", data.access_token);
-          
+            
             localStorage.setItem("user_data", JSON.stringify(data.user));
             console.log("user_data saved to localStorage:", data.user);
             // Role-based redirection: if the role is admin, redirect to admin dashboard; else, regular dashboard.
@@ -67,10 +67,43 @@
             <div id="message"></div>
 
             <div class="links">
-                <a href="{% url 'password_reset' %}">Forgot Username / Password?</a>
+                <a href="{% url 'reset_password' %}">Forgot Username / Password?</a>
                 <a href="{% url 'register_page' %}">Create your Account</a>
                 <a href="{% url 'microsoft-login' %}">Login with Microsoft</a>
             </div>
     </div>
 </body>
 </html>
+{% if messages %}
+    <div id="message-popup" class="popup">
+        {% for message in messages %}
+            <p class="{{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+    </div>
+
+    <script>
+        // Automatically close the popup after 3 seconds
+        setTimeout(function () {
+            document.getElementById("message-popup").style.display = "none";
+        }, 3000);
+    </script>
+
+    <style>
+        .popup {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: green;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+{% endif %}
