@@ -29,7 +29,7 @@ def register_page(request):
 def basicuser(request):
     return render(request, 'basicuser.html')
 
-def admin(request):
+def adminpage(request):
     return render(request, 'admin.html')
 
 # Temporary since someone doing relate to this part
