@@ -32,6 +32,8 @@ class user_accs(models.Model):
     address = models.ForeignKey(address, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
+    # Required fields for Django Authentication
+    last_login = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name

@@ -1,5 +1,69 @@
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Registration</title>
+    <script>
+        function registerUser(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const email = document.getElementById("email").value;
+            const name = document.getElementById("name").value;
+            const role = document.getElementById("role").value;
+            const password = document.getElementById("password").value;
+
+            fetch("http://localhost:8000/api/user_register/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: email,
+                    name: name,
+                    password: password,
+                    role_id: role
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById("message").innerHTML = `<p style="color:red;">${data.error}</p>`;
+                } else {
+                    document.getElementById("message").innerHTML = `<p style="color:green;">${data.message}</p>`;
+                    setTimeout(() => window.location.href = "/login", 2000); // Redirect after success
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                document.getElementById("message").innerHTML = `<p style="color:red;">Registration failed. Try again.</p>`;
+            });
+        }
+    </script>
+</head>
+<body>
+    <h2>Complete Your Registration</h2>
+    <p>Welcome, {{ name }}! Please select a role and complete your registration.</p>
+
+    <form onsubmit="registerUser(event)">
+        <label>Email:</label>
+        <input type="email" id="email" value="{{ email }}" >
+
+        <label>Name:</label>
+        <input type="text" id="name" value="{{ name }}" >
+
+        <label>Password:</label>
+        <input type="password" id="password" required>
+
+        <label>Select Role:</label>
+        <select id="role">
+            <option value="1">Admin</option>
+            <option value="2" selected>User</option>
+        </select>
+
+        <button type="submit">Complete Registration</button>
+    </form>
+
+    <div id="message"></div>
+</body>
+</html>

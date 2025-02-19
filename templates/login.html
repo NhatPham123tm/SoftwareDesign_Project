@@ -6,17 +6,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="{%  static 'css/login.css' %}">
+    <script>
+        function loginUser(event) {
+            event.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            fetch("/api/user_login/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"  // If using CSRF
+                },
+                body: JSON.stringify({ email, password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.access_token) {  // Adjust key as needed
+                    localStorage.setItem("access_token", data.access_token);
+                    window.location.href = "/dashboard/";
+                }
+            })
+            .catch(error => {
+                const errorMsg = error.detail || error.message || "Login failed";
+                document.getElementById("message").innerHTML = `<p style="color:red;">${errorMsg}</p>`;
+            });
+        }
+    </script>
 </head>
+    
 <body>
     <div class="login-container">
         <h1>Login</h1>
-        <form action="{% url 'dashboard' %}" method="post" target="_self">
+        <form onsubmit="loginUser(event)">
 
-            <label for="mail"><b>Email</b></label><br>
-            <input type="text" placeholder="Enter Email" name="mail" pattern="^[^@]+@[^@]+\.[^@]{3}$" required><br>
+            <label for="email"><b>Email</b></label><br>
+            <input type="text" placeholder="Enter Email" id="email" name="email" pattern="^[^@]+@[^@]+\.[^@]{3}$" required><br>
             
-            <label for="psw"><b>Password</b></label><br>
-            <input type="password" placeholder="Enter Password" name="psw" required><br>
+            <label for="password"><b>Password</b></label><br>
+            <input type="password" placeholder="Enter Password" id="password" name="password" required><br>
             
             <label>
                 <input type="checkbox" name="remember" checked> Remember me <br>
@@ -25,9 +59,11 @@
             <button type="submit" id="log">Login</button><br>
 
         </form>
+            <div id="message"></div>
+
             <div class="links">
                 <a href="#">Forgot Username / Password?</a>
-                <a href="{% url 'register' %}">Create your Account</a>
+                <a href="{% url 'register_page' %}">Create your Account</a>
                 <a href="{% url 'microsoft-login' %}">Login with Microsoft</a>
             </div>
     </div>
