@@ -1,36 +1,94 @@
-input[type=text], input[type=password] , input[type=email]{
-    width: 100%;
-    padding: 12px 20px;
-    margin: 8px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    text-align: center;
-    border-radius: 0.5rem;
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+    font-family: Arial, sans-serif;
 }
-button[id=create]{
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+.form-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0;
+}
+.form-group label {
+    width: 70%;
+    text-align: right;
+    margin-left: 10px;
+}
+.form-group input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-left: 5px;
+}
+button {
+    background: linear-gradient(to right, #66a6ff, #3b5998);
     color: white;
-    padding: 14px 20px;
-    margin: 8px 0;
-    border: 1px solid #ccc;
-    cursor: pointer;
+    border: none;
+    padding: 10px;
     width: 100%;
-    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
-    border-radius: 0.5rem;
-}
-body{
-    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
-}
-.blah{
-    text-align: center;
-    position: absolute;
-    top: 28%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: white;
-    padding: 3%;
-    border-radius: 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
 }
 button:hover {
-    opacity: 0.8;
-  }
+    opacity: 0.9;
+}
+#microsoftAuth {
+    width: 27px;
+    height: 27px;
+    margin-right: 10px;
+}
+.microsoft-auth-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+input:disabled {
+    background-color:rgb(128,128,128);
+    opacity: 0.7;
+}
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Background overlay */
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 5px;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.modal button {
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal button:hover {
+    background-color: #0056b3;
+}

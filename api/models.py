@@ -37,6 +37,10 @@ class user_accs(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def set_password(self, raw_password):
+        """ Set the password by hashing it """
+        self.password_hash = make_password(raw_password)
 
     def save(self, *args, **kwargs):
         # Ensure password is hashed before saving
