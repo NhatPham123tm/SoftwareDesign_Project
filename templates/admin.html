@@ -1,11 +1,113 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>admin page</title>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="{% static 'js/admin.js' %}" defer></script>
 </head>
 <body>
-    <h1>This is admin page</h1>
+    
+    <nav class="top">
+        <div class="topbox toplink">
+            <a>BRAND</a>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a href="{% url 'dashboard' %}" class="">Home</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <!-- Sidepanel -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Admin Panel</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#dashboard" class="active">Dashboard</a></li>
+            <li><a href="#users">Users</a></li>
+            <li><a href="#settings">Settings</a></li>
+            <li><a href="#reports">Reports</a></li>
+            <li><a href="{% url 'microsoft-logout' %}" id="logoutBtn">Logout</a></li>
+        </ul>
+    </div>
+    <!-- Holds content for all sidepanel selections -->
+    <div class="main">
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="part active">
+            <div>
+                <h1>Dashboard</h1>
+            </div>
+        </div>
+
+        <!-- Users list box -->
+        <div class="part" id="users">
+            <div class="container">
+                <div class="tabldgn">
+                    <div class="filters">
+                        <select id="roleFilter">
+                            <option value="all">All Roles</option>
+                            <option value="admin">Admin</option>
+                            <option value="basicuser">basicuser</option>
+                        </select>
+                    </div>
+
+                    <!-- Create User section -->
+                    <button class="createbt" id="createbt">
+                        Create User
+                    </button>
+
+                    <div class="back-panel" id="back-panel">
+                        <div class="pnl">
+                            <div class="panel-top"> 
+                                <h1>Create User</h1>
+                                <button class="xBt" id="closePanel">x</button>
+                            </div>
+                            <form id="createUser">
+                                <div class="input-spacing">
+                                    <label for="username">Username</label>
+                                    <input type="text" id="username" name="username" required>
+                                </div>
+                                <div class="input-spacing">
+                                    <label for="email">Email</label>
+                                    <input type="text" id="email" name="email" required>
+                                </div>
+                                <div class="input-spacing">
+                                    <label for="password">Password</label>
+                                    <input type="text" id="password" name="password" required>
+                                </div>
+                                <div class="panel-bot">
+                                    <button type="submit" id="savebt" class="savebt">Create</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- End of Create User section -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                                <th>Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Insert Users -->
+                            
+                        </tbody>
+                    </table> 
+                </div>
+            </div>
+        </div>
+
+    </div>
+
 </body>
 </html>

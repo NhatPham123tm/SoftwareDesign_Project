@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import microsoft_login, microsoft_callback, microsoft_logout, user_login, login_page, register_page, user_register, dashboard
+from .views import microsoft_login, microsoft_callback, microsoft_logout, user_login, login_page, register_page, user_register, dashboard, home, admin, basicuser
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -13,4 +13,7 @@ urlpatterns = [
     path("login/", login_page, name="login_page"),  # Renders login.html
     path("api/user_login/", user_login, name="api_login"),
     path('dashboard/', dashboard, name='dashboard'),
+    path('basicuser/', basicuser, name='basicuser'),
+    path('home/', home, name='home'),
+    path('admin/', admin, name='admin'),
 ]

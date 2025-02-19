@@ -26,6 +26,11 @@ def login_page(request):
 def register_page(request):
     return render(request, "register.html")
 
+def basicuser(request):
+    return render(request, 'basicuser.html')
+
+def admin(request):
+    return render(request, 'admin.html')
 
 # Temporary since someone doing relate to this part
 @api_view(["POST"])

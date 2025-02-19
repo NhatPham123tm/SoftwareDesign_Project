@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Member Login</title>
-    <link rel="stylesheet" href="{% static 'css/login_style.css' %}">
+    <title>Login</title>
+    <link rel="stylesheet" href="{%  static 'css/login.css' %}">
     <script>
         function loginUser(event) {
             event.preventDefault();
@@ -40,27 +40,32 @@
         }
     </script>
 </head>
+    
 <body>
     <div class="login-container">
-        <h2>Member Login</h2>
-        <form onsubmit="loginUser(event)">  <!-- Use JavaScript function -->
-            <div class="input-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" required>
-            </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" required>
-            </div>
-            <button type="submit">LOGIN</button>
-        </form>
-        <div id="message"></div> <!-- Display login messages -->
+        <h1>Login</h1>
+        <form onsubmit="loginUser(event)">
 
-        <div class="links">
-            <a href="#">Forgot Username / Password?</a>
-            <a href="{% url 'register_page' %}">Create your Account</a>
-            <a href="{% url 'microsoft-login' %}">Login with Microsoft</a>
-        </div>
+            <label for="email"><b>Email</b></label><br>
+            <input type="text" placeholder="Enter Email" id="email" name="email" pattern="^[^@]+@[^@]+\.[^@]{3}$" required><br>
+            
+            <label for="password"><b>Password</b></label><br>
+            <input type="password" placeholder="Enter Password" id="password" name="password" required><br>
+            
+            <label>
+                <input type="checkbox" name="remember" checked> Remember me <br>
+            </label>
+
+            <button type="submit" id="log">Login</button><br>
+
+        </form>
+            <div id="message"></div>
+
+            <div class="links">
+                <a href="#">Forgot Username / Password?</a>
+                <a href="{% url 'register_page' %}">Create your Account</a>
+                <a href="{% url 'microsoft-login' %}">Login with Microsoft</a>
+            </div>
     </div>
 </body>
 </html>
