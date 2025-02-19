@@ -152,18 +152,37 @@ def microsoft_callback(request):
         headers={"Authorization": f"Bearer {token_response['access_token']}"},
     ).json()
 
-    email = user_info.get("mail") or user_info.get("userPrincipalName")
+    email = (user_info.get("mail") or user_info.get("userPrincipalName")).lower()
     name = user_info.get("displayName", "Unknown User")
 
     if not email:
         messages.error(request, "Could not retrieve email from Microsoft. Login failed.")
         return redirect("login")
 
-    # Check if user exists, otherwise create one
-    user, created = user_accs.objects.get_or_create(email=email, defaults={"name": name})
+    # Retrieve 'id' and 'password' from cookies
+    id = request.COOKIES.get("sessionId")
+    password = request.COOKIES.get("password")
+    print("Stored ID from cookies:", id)
+    print("Stored Password from cookies:", password)
 
-    if created:
-        user.set_password(None)  # External account (no password needed)
+
+
+    # Check if user exists, otherwise create one
+    try:
+        user = user_accs.objects.get(email=email)
+    except user_accs.DoesNotExist:
+        # Create new user if doesn't exist
+        if user_accs.DoesNotExist:
+            if not id or not password:
+                messages.error(request, "No account registered with this Microsoft email")
+                return redirect('register_page')
+        
+        user = user_accs.objects.create(
+            id=id,
+            email=email,
+            name=name
+        )
+        user.set_password(password)  # Hash and store password
         user.save()
 
     # Authenticate & log in user
@@ -186,13 +205,19 @@ def microsoft_callback(request):
                 "role": user.role.role_name if user.role else "User",
             }
         }, status=200)
+    
+    # Clear cookies after user creation and login
+    response = redirect(f"/dashboard/?token={access_token}")
+    response.delete_cookie('sessionId')
+    response.delete_cookie('password')
 
     # Store JWT tokens in session for frontend redirection (if necessary)
     request.session["access_token"] = access_token
     request.session["refresh_token"] = str(refresh)
-
+    
     messages.success(request, f"Welcome back, {user.name}!")
-    return redirect(f"/dashboard/?token={access_token}")
+    return response
+
 
 # Microsoft Logout
 def microsoft_logout(request):
