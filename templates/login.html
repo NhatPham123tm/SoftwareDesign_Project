@@ -2,45 +2,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="{%  static 'css/login.css' %}">
-    <script>
-        function loginUser(event) {
-            event.preventDefault();
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+  <script>
+    function loginUser(event) {
+      event.preventDefault();
 
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
 
-            fetch("/api/user_login/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": "{{ csrf_token }}"  // If using CSRF
-                },
-                body: JSON.stringify({ email, password })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err; });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.access_token) {  // Adjust key as needed
-                    localStorage.setItem("access_token", data.access_token);
-                    window.location.href = "/dashboard/";
-                }
-            })
-            .catch(error => {
-                const errorMsg = error.detail || error.message || "Login failed";
-                document.getElementById("message").innerHTML = `<p style="color:red;">${errorMsg}</p>`;
-            });
+      fetch("/api/user_login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ email, password })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { throw err; });
         }
-    </script>
+        return response.json();
+      })
+      .then(data => {
+        console.log("Login response:", data);
+        if (data.access_token && data.user) {
+            localStorage.setItem("access_token", data.access_token);
+          
+            localStorage.setItem("user_data", JSON.stringify(data.user));
+            console.log("user_data saved to localStorage:", data.user);
+            // Role-based redirection: if the role is admin, redirect to admin dashboard; else, regular dashboard.
+            //console.log(data.user.role);
+            if (Number(data.user.role) === 1) {
+               window.location.href = "/admin/";
+            } else {
+                window.location.href = "/dashboard/";
+        }
+        }
+      })
+      .catch(error => {
+        const errorMsg = error.detail || error.message || "Login failed";
+        document.getElementById("message").innerHTML = `<p style="color:red;">${errorMsg}</p>`;
+      });
+    }
+  </script>
 </head>
-    
 <body>
     <div class="login-container">
         <h1>Login</h1>
