@@ -1,0 +1,60 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+    font-family: Arial, sans-serif;
+}
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+.form-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0;
+}
+.form-group label {
+    width: 70%;
+    text-align: right;
+    margin-left: 10px;
+}
+.form-group input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-left: 5px;
+}
+button {
+    background: linear-gradient(to right, #66a6ff, #3b5998);
+    color: white;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+button:hover {
+    opacity: 0.9;
+}
+#microsoftAuth {
+    width: 27px;
+    height: 27px;
+    margin-right: 10px;
+}
+.microsoft-auth-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+input:disabled {
+    background-color:rgb(128,128,128);
+    opacity: 0.7;
+}
