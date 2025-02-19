@@ -112,3 +112,6 @@ def basicuser(request):
 
 def admin(request):
     return render(request, 'admin.html')
+
+def suspend(request):
+    return render(request, 'suspend.html')
