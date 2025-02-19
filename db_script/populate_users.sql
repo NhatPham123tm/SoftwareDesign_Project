@@ -1,8 +1,8 @@
 -- Sample data for api_roles
-INSERT INTO api_roles (role_name) 
+INSERT INTO api_roles (id, role_name) 
 VALUES 
-    ('admin'),
-    ('basicuser');
+    (1, 'admin'),
+    (2, 'basicuser');
 
 -- Sample data for api_address
 INSERT INTO api_address (line_1, line_2, city, state, zip_code)

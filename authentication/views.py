@@ -9,7 +9,7 @@ from api.models import user_accs, roles
 import json
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -29,6 +29,13 @@ def register_page(request):
 def basicuser(request):
     return render(request, 'basicuser.html')
 
+def is_admin(user):
+    # Ensure the user is authenticated and has role id 1
+    return getattr(user, 'role', None) and user.role_id == 1
+
+@authentication_classes([JWTAuthentication])  # Use JWT authentication
+@permission_classes([IsAuthenticated])  # Allow only authenticated users
+@user_passes_test(is_admin)
 def admin(request):
     return render(request, 'admin.html')
 
@@ -48,7 +55,7 @@ def user_register(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role.role_name
+                "role": user.role_id # returns the role ID
             }
         }, status=status.HTTP_201_CREATED)
     
@@ -74,7 +81,7 @@ def user_login(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role.role_name
+                "role": user.role_id
             }
         }, status=status.HTTP_200_OK)
 
@@ -179,7 +186,7 @@ def microsoft_callback(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role.role_name if user.role else "User",
+                "role": user.role_id if user.role_id else "2",
             }
         }, status=200)
 
@@ -188,7 +195,10 @@ def microsoft_callback(request):
     request.session["refresh_token"] = str(refresh)
 
     messages.success(request, f"Welcome back, {user.name}!")
-    return redirect(f"/dashboard/?token={access_token}")
+    if user.role_id == 2:
+        return redirect(f"/dashboard/?token={access_token}")
+    else:
+        return redirect(f"/admin/?token={access_token}")
 
 # Microsoft Logout
 def microsoft_logout(request):
