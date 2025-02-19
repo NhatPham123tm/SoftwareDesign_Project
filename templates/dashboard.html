@@ -7,38 +7,49 @@
     <title>Dashboard</title>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const userData = JSON.parse(localStorage.getItem("user_data"));
-            const accessToken = localStorage.getItem("access_token");
+        const userDataString = localStorage.getItem("user_data");
+        const accessToken = localStorage.getItem("access_token");
 
-            if (!accessToken) {
-                console.error("No access token found in localStorage");
-                window.location.href = "/login";  // Redirect to login if token is missing
-                return;
-            }
+        if (!accessToken) {
+            console.error("No access token found in localStorage");
+            window.location.href = "/login";  // Redirect to login if token is missing
+            return;
+        }
 
-            console.log("Sending request with token:", accessToken);
+        let userData;
+        try {
+            userData = JSON.parse(userDataString);
+        } catch (error) {
+            console.error("Failed to parse user_data:", error);
+            userData = { name: "Guest", role: "User" }; // Fallback to default values
+        }
 
+        if (userData && userData.name ) {
             document.getElementById("welcome-message").textContent = 
-                `Welcome, ${userData.name} (${userData.role})`;
+            `Welcome, ${userData.name}`;
+        } else {
+            console.error("User data is missing or incomplete in localStorage");
+        }
 
-            fetch("/dashboard/", {
-                headers: {
-                    "Authorization": `Bearer ${accessToken}`
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("Dashboard data:", data);
-                // Populate dashboard data
-            })
-            .catch(error => console.error("Error:", error));
+        fetch("api/dashboard/", {
+            headers: {
+            "Authorization": `Bearer ${accessToken}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Dashboard data:", data);
+            // Populate dashboard data
+        })
+        .catch(error => console.error("Error:", error));
         });
-        </script>
+    </script>
+
     <link rel="stylesheet" href="{%  static 'css/dashboard.css' %}">
 </head>
 <body>
@@ -60,7 +71,7 @@
         <section class="title">
             <div class="container">
                 <div class="row">
-                    <h1>Welcome to the Dashboard</h1>
+                    <h1 id="welcome-message">Welcome to the Dashboard!</h1>
                 </div>
             </div>
         </section>
