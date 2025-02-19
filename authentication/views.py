@@ -126,6 +126,7 @@ def microsoft_login(request):
     )
     return redirect(auth_url)
 
+# Hnadle after microsoft login
 def microsoft_callback(request):
     """Handle Microsoft OAuth callback and issue JWT tokens."""
     if "code" not in request.GET:

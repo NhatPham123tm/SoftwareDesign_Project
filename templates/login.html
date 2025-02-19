@@ -7,6 +7,7 @@
   <title>Login</title>
   <link rel="stylesheet" href="{% static 'css/login.css' %}">
   <script>
+    // submit login info and fetch response
     function loginUser(event) {
       event.preventDefault();
 
@@ -30,8 +31,8 @@
       .then(data => {
         console.log("Login response:", data);
         if (data.access_token && data.user) {
+            // save user login information (should be deleted when log out)
             localStorage.setItem("access_token", data.access_token);
-            
             localStorage.setItem("user_data", JSON.stringify(data.user));
             console.log("user_data saved to localStorage:", data.user);
             // Role-based redirection: if the role is admin, redirect to admin dashboard; else, regular dashboard.
