@@ -33,6 +33,11 @@ def is_admin(user):
     # Ensure the user is authenticated and has role id 1
     return getattr(user, 'role', None) and user.role_id == 1
 
+def get_userLoad(request):
+    users = user_accs.objects.select_related('role').all()
+    serializer = UserSerializer(users, many=True)
+    return JsonResponse({'users': serializer.data})
+
 @authentication_classes([JWTAuthentication])  # Use JWT authentication
 @permission_classes([IsAuthenticated])  # Allow only authenticated users
 @user_passes_test(is_admin)
