@@ -67,10 +67,10 @@
                                 <h1>Create User</h1>
                                 <button class="xBt" id="closePanel">x</button>
                             </div>
-                            <form id="createUser">
+                            <form id="createUser" onsubmit="registerUser(event)">
                                 <div class="input-spacing">
-                                    <label for="username">Username</label>
-                                    <input type="text" id="username" name="username" required>
+                                    <label for="name">Name</label>
+                                    <input type="text" id="name" name="name" required>
                                 </div>
                                 <div class="input-spacing">
                                     <label for="email">Email</label>
