@@ -1,0 +1,41 @@
+input[type=text], input[type=password] , input[type=email]{
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    text-align: center;
+    border-radius: 0.5rem;
+}
+
+button[id=create]{
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    width: 100%;
+    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+    border-radius: 0.5rem;
+}
+
+
+body{
+    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+}
+
+.blah{
+    text-align: center;
+    position: absolute;
+    top: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    padding: 3%;
+    border-radius: 0.5rem;
+}
+
+button:hover {
+    opacity: 0.8;
+  }
