@@ -20,15 +20,16 @@ body {
     margin: 10px 0;
 }
 .form-group label {
-    width: 30%;
+    width: 70%;
     text-align: right;
-    padding-right: 10px;
+    margin-left: 10px;
 }
 .form-group input {
-    width: 65%;
+    flex: 1;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    margin-left: 5px;
 }
 button {
     background: linear-gradient(to right, #66a6ff, #3b5998);
@@ -42,4 +43,18 @@ button {
 }
 button:hover {
     opacity: 0.9;
+}
+#microsoftAuth {
+    width: 27px;
+    height: 27px;
+    margin-right: 10px;
+}
+.microsoft-auth-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+input:disabled {
+    background-color:rgb(128,128,128);
+    opacity: 0.7;
 }
