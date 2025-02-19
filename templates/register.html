@@ -181,6 +181,13 @@
 
         // Call this function when the Microsoft callback page loads
         window.onload = getMicrosoftAuthData;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Loop over messages and display them
+            {% for message in messages %}
+                showModal("{{ message }}");
+            {% endfor %}
+        });
     </script>
 </body>
 </html>
