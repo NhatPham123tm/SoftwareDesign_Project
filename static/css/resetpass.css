@@ -1,0 +1,48 @@
+body {
+    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+    font-family: Arial, sans-serif;
+    margin: 0;
+    height: 100vh; /* Full viewport height */
+    display: flex;
+    justify-content: center; /* Horizontally center the content */
+    align-items: center; /* Vertically center the content */
+}
+
+.login-container {
+    text-align: center;
+    background-color: white;
+    padding: 3%;
+    border-radius: 0.5rem;
+    font-family: Arial, sans-serif;
+    width: 100%;
+    max-width: 400px; /* Limit the width for better appearance */
+}
+
+input[type=password], input[type=email] {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    text-align: center;
+    border-radius: 0.5rem;
+    font-family: Arial, sans-serif;
+}
+
+button[id=reset]{
+    color: white;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    width: 100%;
+    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+    border-radius: 0.5rem;
+    font-family: Arial, sans-serif;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+

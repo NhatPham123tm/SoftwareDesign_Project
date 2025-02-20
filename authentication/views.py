@@ -6,6 +6,7 @@ import msal
 import requests
 from django.conf import settings
 from api.models import user_accs, roles
+from django.contrib.auth.decorators import user_passes_test
 import json
 from django.contrib.auth.decorators import user_passes_test
 from rest_framework.response import Response
@@ -175,11 +176,6 @@ def microsoft_callback(request):
     # Retrieve 'id' and 'password' from cookies
     id = request.COOKIES.get("sessionId")
     password = request.COOKIES.get("password")
-    print("Stored ID from cookies:", id)
-    print("Stored Password from cookies:", password)
-
-
-
     # Check if user exists, otherwise create one
     try:
         user = user_accs.objects.get(email=email)

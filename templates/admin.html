@@ -49,15 +49,16 @@
             <div class="container">
                 <div class="tabldgn">
                     <div class="filters">
+                        <!-- Create User section
                         <select id="roleFilter">
                             <option value="all">All Roles</option>
                             <option value="admin">Admin</option>
                             <option value="basicuser">basicuser</option>
-                        </select>
+                        </select>-->
                     </div>
 
                     <!-- Create User section -->
-                    <button class="createbt" id="createbt">
+                    <button class="btsg" id="createbt">
                         Create User
                     </button>
 
@@ -67,28 +68,28 @@
                                 <h1>Create User</h1>
                                 <button class="xBt" id="closePanel">x</button>
                             </div>
-                            <form id="createUser" onsubmit="registerUser(event)">
-                                <div class="input-spacing">
-                                    <label for="name">Name</label>
-                                    <input type="text" id="name" name="name" required>
+                            <form id="registerForm">
+                                <div class="form-group">
+                                    <label for="id">UH ID:</label>
+                                    <input type="text" id="id" placeholder="7 digits" required>
                                 </div>
-                                <div class="input-spacing">
-                                    <label for="email">Email</label>
-                                    <input type="text" id="email" name="email" required>
+                                <div class="form-group">
+                                    <label for="password">Password:</label>
+                                    <input type="password" id="password" placeholder="Min 7 characters" required minlength="7">
                                 </div>
-                                <div class="input-spacing">
-                                    <label for="password">Password</label>
-                                    <input type="text" id="password" name="password" required>
+                                <div class="form-group">
+                                    <label for="retypePassword">Confirm Password:</label>
+                                    <input type="password" id="retypePassword" required>
                                 </div>
-                                <div class="input-spacing">
-                                    <select id="role">
-                                        <option value="1">Admin</option>
-                                        <option value="2" selected>User</option>
-                                    </select>
+                                <div class="form-group">
+                                    <label for="name">Name:</label>
+                                    <input type="text" id="name" required>
                                 </div>
-                                <div class="panel-bot">
-                                    <button type="submit" id="savebt" class="savebt">Create</button>
+                                <div class="form-group">
+                                    <label for="user_email">Email:</label>
+                                    <input type="email" id="user_email" required>
                                 </div>
+                                <button type="button" id="submitButton" onclick="nextStep()" class="bts">Submit</button>
                             </form>
                         </div>
                     </div>
@@ -100,7 +101,6 @@
                                 <th>Email</th>
                                 <th>Status</th>
                                 <th>Role</th>
-                                <th>Actions</th>
                                 <th>Edit</th>
                                 <th>Delete</th>
                             </tr>

@@ -1,38 +1,165 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{%  static 'css/basicuser.css' %}">
+    <link rel="stylesheet" href="{% static 'css/basicuser.css' %}">
 </head>
 <script>
 
 function openTab(event, tabId) {
-            let tabs = document.querySelectorAll('.tablinks');
-            let contents = document.querySelectorAll('.tabcontent');
-            
-            tabs.forEach(tab => tab.classList.remove('active'));
-            contents.forEach(content => content.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-        }
+    let tabs = document.querySelectorAll('.tablinks');
+    let contents = document.querySelectorAll('.tabcontent');
+    
+    tabs.forEach(tab => tab.classList.remove('active'));
+    contents.forEach(content => content.classList.remove('active'));
+    
+    event.target.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+}
+
+function userLoad() {
+    // Get user data from localStorage
+    const userDataString = localStorage.getItem("user_data");
+    if (!userDataString) {
+        console.error("No user data found in localStorage.");
+        return;
+    }
+
+    let userData = JSON.parse(userDataString);
+    
+    // Fetch the current user's data
+    fetch(`/api/users/${userData.id}/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(user => {
+            let tbody = document.getElementById('userTableBody');
+            if (!tbody) {
+                console.error("userTableBody element not found.");
+                return;
+            }
+
+            tbody.innerHTML = `
+                <tr>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td><button id = "farrty" onclick="openEditPanel('${user.id}')">Edit</button></td>
+                </tr>`;
+        })
+        .catch(error => {
+            console.error('Error loading user:', error);
+        });
+}
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const userDataString = localStorage.getItem("user_data");
+    let userData;
+    userData = JSON.parse(userDataString);
+    if (userData && userData.name ) {
+        document.getElementById("username").textContent = 
+        `${userData.name}`;
+
+        document.getElementById("email").textContent = 
+        `${userData.email}`;
+    } 
+    });
+
+function openEditPanel(userId) {
+    const userDataString = localStorage.getItem("user_data");
+    if (!userDataString) {
+        console.error("No user data found in localStorage.");
+        return;
+    }
+
+    let userData = JSON.parse(userDataString);
+    fetch(`/api/users/${userId}/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(user => {
+            // Ensure elements exist before updating them
+            let nameField = document.getElementById('currentName');
+            let emailField = document.getElementById('currentEmail');
+            let userIdField = document.getElementById('userId');
+            let editPanel = document.getElementById('editPanel');
+
+            if (!nameField || !emailField || !userIdField || !editPanel) {
+                console.error("One or more required elements are missing.");
+                return;
+            }
+
+            // Set current info
+            nameField.textContent = user.name;
+            emailField.textContent = user.email;
+
+            // Set hidden user ID
+            userIdField.value = userId;
+
+            // Show the panel
+            editPanel.style.display = 'block';
+        })
+        .catch(error => {
+            console.error("Error loading user details:", error);
+            alert("Failed to load user details. Please try again.");
+        });
+}
+
+function closeEditPanel() {
+    document.getElementById('editPanel').style.display = 'none';
+    document.getElementById('editForm').reset();
+}
+
+function handleEdit(event) {
+    const userDataString = localStorage.getItem("user_data");
+    let userData;
+    userData = JSON.parse(userDataString);
+
+    event.preventDefault();
+    const userId = document.getElementById('userId').value;
+    
+    const newData = {
+        name: document.getElementById('newName').value || document.getElementById('currentName').textContent,
+        email: document.getElementById('newEmail').value || document.getElementById('currentEmail').textContent,
+    };
+
+    fetch(`/api/users/${userId}/`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        closeEditPanel();
+        userLoad();  // Reload the table
+    })
+    .catch(error => {
+        console.error('Error updating user:', error);
+    });
+}
 
 </script>
 <body>
-
     <div class="profile-container">
         <div class="left-column">
             <div class="profile-box user-info">
                 <img src="{% static 'pic/default-avatar-profile-picture-male-icon.webp' %}" alt="User Avatar" class="user-avatar">
-                <h2 class="user-name">{{ user.first_name }} {{ user.last_name }}</h2>
-                <!--create a edit script-->
-                <button type="submit" id="edit">Edit Profile</button><br>
-                <a href="{% url 'dashboard' %}">Home</a><br>
+                <h2 id="username"></h2>
+                
+                <a href="{% url 'dashboard' %}" class="home-button">Home</a>
             </div>
-
             <div class="profile-box social-links">
                 <h3>Social Media</h3>
                 <a href="" class="fa fa-twitter"> Twitter</a><br/>
@@ -42,72 +169,90 @@ function openTab(event, tabId) {
         </div>
 
 
-            <div class="profile-tab">
-                <div class="tab">
-                    <button class="tablinks active" onclick="openTab(event, 'Bio')">Bio</button>
-                    <button class="tablinks" onclick="openTab(event, 'info')">Info</button>
-                </div>
+        <div class="profile-tab">
+            <div class="tab">
+                <button class="tablinks active" onclick="openTab(event, 'Bio')">Bio</button>
+                <button class="tablinks" onclick="openTab(event, 'info')">Info</button>
+                <button class="tablinks" onclick="openTab(event, 'Edit'),userLoad(); return false;">Edit</button>
+            </div>
 
-                <div id="Bio" class="tabcontent active">
-                    <p>This is your bio add something interesting for yourself</p>
-                </div>
-                
-                <div id="info" class="tabcontent">
-                    <div class="infoing">
-                        <div>
-                            <div class="col-md-6">
-                                <label style="font-weight:bold;">Name</label>
-                            </div>
-                            <div class="col-md-6">
-                                <p>{{ user.first_name }} {{ user.last_name }}</p>
-                            </div>
+            <div id="Bio" class="tabcontent active">
+                <p id="biosing">This is your bio add something interesting for yourself</p>
+            </div>
+            
+            <div id="info" class="tabcontent">
+                    <div>
+                        <div class="col-md-6">
+                            <label style="font-weight:bold;">Email</label>
                         </div>
-                        <div>
-                            <div class="col-md-6">
-                                <label style="font-weight:bold;">Email</label>
-                            </div>
-                            <div class="col-md-6">
-                                <p>{{ user.username }}</p>
-                            </div>
+                        <div class="col-md-6">
+                            <p id="email"></p>
                         </div>
-                        <div>
-                            <div class="col-md-6">
-                                <label style="font-weight:bold;">Phone</label>
-                            </div>
-                            <div class="col-md-6">
-                                <p>Enter phone</p>
-                            </div>
+                    </div>
+                    <div>
+                        <div class="col-md-6">
+                            <label style="font-weight:bold;">Phone</label>
                         </div>
-                        <div>
-                            <div class="col-md-6">
-                                <label style="font-weight:bold;">Birth Date</label>
+                        <div class="col-md-6">
+                            <p id="phone"></p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="col-md-6">
+                            <label style="font-weight:bold;">Birth Date</label>
+                        </div>
+                        <div class="col-md-6">
+                            <p id="DOB"></p>
+                        </div>
+                    </div>
+            </div>
+
+            <div id="Edit" class="tabcontent">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- Insert Users -->
+                            
+                        </tbody>
+                    </table>
+                    <!-- Edit users -->
+                    <div id="editPanel" class="edit-panel">
+                        <div class="panel-content">
+                            <span class="close-btn" onclick="closeEditPanel()">&times;</span>
+                            
+                            <!-- Current User Info Section -->
+                            <div class="current-info">
+                                <h3>Current User Information</h3>
+                                <p>Name: <span id="currentName"></span></p>
+                                <p>Email: <span id="currentEmail"></span></p>
                             </div>
-                            <div class="col-md-6">
-                                <p>Enter DOB</p>
+                    
+                            <!-- Edit Form Section -->
+                            <div class="edit-section">
+                                <h3>Update Information</h3>
+                                <form id="editForm" onsubmit="handleEdit(event)">
+                                    
+                                    <input type="hidden" id="userId">
+                                    <div class="form-group">
+                                        <label for="newName">New Name:</label>
+                                        <input type="text" id="newName">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newEmail">New Email:</label>
+                                        <input type="email" id="newEmail">
+                                    </div>
+                                    <button id ="wee" type="submit">Update User</button>
+                                </form>
                             </div>
                         </div>
                     </div>
-
-                    <div class="editurl">
-                        <div class="col-md-6">
-                            <label style="font-weight:bold;">Twitter url</label>
-                        </div>
-                        <div class="col-md-6">
-                            <p>Enter url</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label style="font-weight:bold;">Instagram url</label>
-                        </div>
-                        <div class="col-md-6">
-                            <p>Enter url</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label style="font-weight:bold;">Facebook url</label>
-                        </div>
-                        <div class="col-md-6">
-                            <p>Enter url</p>
-                        </div>
-                    </div>
+                 <!-- Edit end -->
             </div>
         </div>
     </div>
