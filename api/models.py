@@ -8,21 +8,11 @@ class roles(models.Model):
     def __str__(self):
         return self.role_name
 
-class address(models.Model):
-    line_1 = models.CharField(max_length=255)
-    line_2 = models.CharField(max_length=255, default="N/A", blank=True)
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=10)
-
-    def __str__(self):
-        return f"{self.line_1}, {self.city}, {self.state}"
-
 class user_accs(AbstractBaseUser, PermissionsMixin):
     STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('inactive', 'Inactive'),
-        ('banned', 'Banned'),
+        ('active', 'active'),
+        ('inactive', 'inactive'),
+        ('banned', 'banned'),
     ]
 
     name = models.CharField(max_length=100)
@@ -30,7 +20,7 @@ class user_accs(AbstractBaseUser, PermissionsMixin):
     password_hash = models.CharField(max_length=255)  # Store hashed passwords
     role = models.ForeignKey(roles, on_delete=models.SET_DEFAULT, default=2)
     phone_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
-    address = models.ForeignKey(address, on_delete=models.SET_NULL, null=True, blank=True)
+    address = models.CharField(max_length=255, unique=False, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     created_at = models.DateTimeField(auto_now_add=True)
     # Required fields for Django Authentication
