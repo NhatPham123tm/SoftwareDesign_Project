@@ -68,9 +68,8 @@ function userLoad() {
                 <td>${user.email}</td>
                 <td>${user.status}</td>
                 <td>${user.role.role_name}</td>
-                <td>${user.status}</td>
-                <td><button onclick="openEditPanel('${user.id}')">Edit</button></td>
-                <td><button onclick="deleteUser(${user.id})" class="delete-btn">Delete</button></td>
+                <td><button class="bts" onclick="openEditPanel('${user.id}')">Edit</button></td>
+                <td><button class="btsr"  onclick="deleteUser(${user.id})" class="delete-btn">Delete</button></td>
             </tr>`;
         })
     })
@@ -155,6 +154,7 @@ function deleteUser(userId) {
     }
 }
 
+// Function to set cookies
 function setCookie(name, value, days) {
     const d = new Date();
     d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000)); // Expiration time
@@ -193,6 +193,7 @@ function nextStep() {
     const retypePassword = document.getElementById('retypePassword').value;
     const name = document.getElementById('name').value.trim();
     const email = document.getElementById('user_email').value.trim();
+    const microsoftAuth = document.getElementById('microsoftAuth').checked;
 
     if (!id || !password || !retypePassword) {
         showModal('Please fill in all required fields.');
@@ -234,6 +235,8 @@ function nextStep() {
         })
         .then(response => response.json())
         .then(data => {
+            userLoad()
+            openPanel.classList.remove('show');
             if (data.success) {
                 showModal(data.message);
             } else {
@@ -283,4 +286,10 @@ function getMicrosoftAuthData() {
         console.log('No session data found.');
     }
 }
+
+
+
+
+
+
 
