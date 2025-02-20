@@ -32,6 +32,7 @@
         console.log("Login response:", data);
         if (data.user) {
           // Optionally save user data in localStorage if needed
+          localStorage.setItem("access_token", data.access_token);
           localStorage.setItem("user_data", JSON.stringify(data.user));
           console.log(Number(data.user.role));
           // Role-based redirection
