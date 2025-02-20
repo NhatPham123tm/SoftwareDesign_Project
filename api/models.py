@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 class roles(models.Model):
     role_name = models.CharField(max_length=30, unique=True)
@@ -17,7 +18,7 @@ class address(models.Model):
     def __str__(self):
         return f"{self.line_1}, {self.city}, {self.state}"
 
-class user_accs(models.Model):
+class user_accs(AbstractBaseUser, PermissionsMixin):
     STATUS_CHOICES = [
         ('active', 'Active'),
         ('inactive', 'Inactive'),
@@ -35,6 +36,10 @@ class user_accs(models.Model):
     # Required fields for Django Authentication
     last_login = models.DateTimeField(auto_now=True)
 
+    is_active = models.BooleanField(default=True)  # Needed for Django authentication
+    is_staff = models.BooleanField(default=False)  # Needed for Django admin access
+    USERNAME_FIELD = 'email'  # Email will be used as the unique identifier
+    REQUIRED_FIELDS = ['name']  # Required fields for createsuperuser
     def __str__(self):
         return self.name
     
