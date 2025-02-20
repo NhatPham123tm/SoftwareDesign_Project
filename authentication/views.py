@@ -166,11 +166,6 @@ def microsoft_callback(request):
     # Retrieve 'id' and 'password' from cookies
     id = request.COOKIES.get("sessionId")
     password = request.COOKIES.get("password")
-    print("Stored ID from cookies:", id)
-    print("Stored Password from cookies:", password)
-
-
-
     # Check if user exists, otherwise create one
     try:
         user = user_accs.objects.get(email=email)
