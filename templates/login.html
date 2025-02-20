@@ -7,15 +7,15 @@
   <title>Login</title>
   <link rel="stylesheet" href="{% static 'css/login.css' %}">
   <script>
-    // submit login info and fetch response
     function loginUser(event) {
       event.preventDefault();
-
+  
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-
+  
       fetch("/api/user_login/", {
         method: "POST",
+        credentials: "same-origin",  // Ensures cookies are sent and received
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": "{{ csrf_token }}"
@@ -30,18 +30,16 @@
       })
       .then(data => {
         console.log("Login response:", data);
-        if (data.access_token && data.user) {
-            // save user login information (should be deleted when log out)
-            localStorage.setItem("access_token", data.access_token);
-            localStorage.setItem("user_data", JSON.stringify(data.user));
-            console.log("user_data saved to localStorage:", data.user);
-            // Role-based redirection: if the role is admin, redirect to admin dashboard; else, regular dashboard.
-            //console.log(data.user.role);
-            if (Number(data.user.role) === 1) {
-               window.location.href = "/adminpage/";
-            } else {
-                window.location.href = "/dashboard/";
-        }
+        if (data.user) {
+          // Optionally save user data in localStorage if needed
+          localStorage.setItem("user_data", JSON.stringify(data.user));
+          console.log(Number(data.user.role));
+          // Role-based redirection
+          if (Number(data.user.role) === 1) {
+            window.location.href = "/adminpage/";
+          } else {
+            window.location.href = "/dashboard/";
+          }
         }
       })
       .catch(error => {
@@ -50,6 +48,7 @@
       });
     }
   </script>
+  
 </head>
 <body>
     <div class="login-container">
