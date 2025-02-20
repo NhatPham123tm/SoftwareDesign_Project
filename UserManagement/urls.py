@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from authentication.views import home  # Import the home view
-from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, reset_password
+from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password
 from authentication import views
 from django.contrib.auth import views as auth_views
 
@@ -19,7 +19,7 @@ urlpatterns = [
     path("login/", login_page, name="login_page"),  # Renders login.html
     path('basicuser/', basicuser, name='basicuser'),
     path('home/', home, name='home'),
-    path('admin/', views.admin, name='admin'),
-    
     path('reset_password/', reset_password, name='reset_password'),
+    path('adminpage/', adminpage, name='adminpage'),
+    path('api/get_userLoad/', get_userLoad, name='get_userLoad'),
 ]

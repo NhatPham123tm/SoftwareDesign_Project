@@ -38,7 +38,7 @@
             // Role-based redirection: if the role is admin, redirect to admin dashboard; else, regular dashboard.
             //console.log(data.user.role);
             if (Number(data.user.role) === 1) {
-               window.location.href = "/admin/";
+               window.location.href = "/adminpage/";
             } else {
                 window.location.href = "/dashboard/";
         }

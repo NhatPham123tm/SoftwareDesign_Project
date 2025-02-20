@@ -9,7 +9,7 @@ from api.models import user_accs, roles
 import json
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -17,6 +17,8 @@ from rest_framework import status
 from .serializers import UserRegisterSerializer, UserLoginSerializer
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
+from api.serializers import UserSerializer
+
 def home(request):
     return render(request, 'home.html')
 
@@ -29,15 +31,13 @@ def register_page(request):
 def basicuser(request):
     return render(request, 'basicuser.html')
 
-def is_admin(user):
-    # Ensure the user is authenticated and has role id 1
-    return getattr(user, 'role', None) and user.role_id == 1
-
-@authentication_classes([JWTAuthentication])  # Use JWT authentication
-@permission_classes([IsAuthenticated])  # Allow only authenticated users
-@user_passes_test(is_admin)
-def admin(request):
+def adminpage(request):
     return render(request, 'admin.html')
+
+def get_userLoad(request):
+    users = user_accs.objects.select_related('role').all()
+    serializer = UserSerializer(users, many=True)
+    return JsonResponse({'users': serializer.data})
 
 # Temporary since someone doing relate to this part
 @api_view(["POST"])
@@ -47,6 +47,7 @@ def user_register(request):
     API-based registration using serializers.
     """
     serializer = UserRegisterSerializer(data=request.data)
+    
     if serializer.is_valid():
         user = serializer.save()
         return Response({
@@ -55,11 +56,14 @@ def user_register(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role_id # returns the role ID
+                "role": user.role.role_name
             }
         }, status=status.HTTP_201_CREATED)
     
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+        "message": "Registration failed.",
+        "errors": serializer.errors
+    }, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -81,7 +85,7 @@ def user_login(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role_id
+                "role": user.role.role_name
             }
         }, status=status.HTTP_200_OK)
 
@@ -151,18 +155,37 @@ def microsoft_callback(request):
         headers={"Authorization": f"Bearer {token_response['access_token']}"},
     ).json()
 
-    email = user_info.get("mail") or user_info.get("userPrincipalName")
+    email = (user_info.get("mail") or user_info.get("userPrincipalName")).lower()
     name = user_info.get("displayName", "Unknown User")
 
     if not email:
         messages.error(request, "Could not retrieve email from Microsoft. Login failed.")
         return redirect("/login")
 
-    # Check if user exists, otherwise create one
-    user, created = user_accs.objects.get_or_create(email=email, defaults={"name": name})
+    # Retrieve 'id' and 'password' from cookies
+    id = request.COOKIES.get("sessionId")
+    password = request.COOKIES.get("password")
+    print("Stored ID from cookies:", id)
+    print("Stored Password from cookies:", password)
 
-    if created:
-        user.set_password(None)  # External account (no password needed)
+
+
+    # Check if user exists, otherwise create one
+    try:
+        user = user_accs.objects.get(email=email)
+    except user_accs.DoesNotExist:
+        # Create new user if doesn't exist
+        if user_accs.DoesNotExist:
+            if not id or not password:
+                messages.error(request, "No account registered with this Microsoft email")
+                return redirect('register_page')
+        
+        user = user_accs.objects.create(
+            id=id,
+            email=email,
+            name=name
+        )
+        user.set_password(password)  # Hash and store password
         user.save()
 
     # Authenticate & log in user
@@ -182,19 +205,22 @@ def microsoft_callback(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role_id if user.role_id else "2",
+                "role": user.role.role_name if user.role else "User",
             }
         }, status=200)
+    
+    # Clear cookies after user creation and login
+    response = redirect(f"/dashboard/?token={access_token}")
+    response.delete_cookie('sessionId')
+    response.delete_cookie('password')
 
     # Store JWT tokens in session for frontend redirection (if necessary)
     request.session["access_token"] = access_token
     request.session["refresh_token"] = str(refresh)
-
+    
     messages.success(request, f"Welcome back, {user.name}!")
-    if user.role_id == 2:
-        return redirect(f"/dashboard/?token={access_token}")
-    else:
-        return redirect(f"/admin/?token={access_token}")
+    return response
+
 
 # Microsoft Logout
 def microsoft_logout(request):
@@ -204,7 +230,6 @@ def microsoft_logout(request):
 
 def suspend(request):
     return render(request, 'suspend.html')
-
 # Simplified process without checking through user email
 def reset_password(request):
     if request.method == 'POST':

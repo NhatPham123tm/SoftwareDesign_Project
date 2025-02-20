@@ -28,7 +28,7 @@
         </div>
         <ul class="sidebar-menu">
             <li><a href="#dashboard" class="active">Dashboard</a></li>
-            <li><a href="#users">Users</a></li>
+            <li><a href="#users" onclick="userLoad(); return false;">Users</a></li>
             <li><a href="#settings">Settings</a></li>
             <li><a href="#reports">Reports</a></li>
             <li><a href="{% url 'microsoft-logout' %}" id="logoutBtn">Logout</a></li>
@@ -67,10 +67,10 @@
                                 <h1>Create User</h1>
                                 <button class="xBt" id="closePanel">x</button>
                             </div>
-                            <form id="createUser">
+                            <form id="createUser" onsubmit="registerUser(event)">
                                 <div class="input-spacing">
-                                    <label for="username">Username</label>
-                                    <input type="text" id="username" name="username" required>
+                                    <label for="name">Name</label>
+                                    <input type="text" id="name" name="name" required>
                                 </div>
                                 <div class="input-spacing">
                                     <label for="email">Email</label>
@@ -79,6 +79,12 @@
                                 <div class="input-spacing">
                                     <label for="password">Password</label>
                                     <input type="text" id="password" name="password" required>
+                                </div>
+                                <div class="input-spacing">
+                                    <select id="role">
+                                        <option value="1">Admin</option>
+                                        <option value="2" selected>User</option>
+                                    </select>
                                 </div>
                                 <div class="panel-bot">
                                     <button type="submit" id="savebt" class="savebt">Create</button>
@@ -96,13 +102,59 @@
                                 <th>Role</th>
                                 <th>Actions</th>
                                 <th>Edit</th>
+                                <th>Delete</th>
                             </tr>
                         </thead>
                         <tbody id="userTableBody">
                             <!-- Insert Users -->
                             
                         </tbody>
-                    </table> 
+                    </table>
+                    <!-- Edit users -->
+                    <div id="editPanel" class="edit-panel">
+                        <div class="panel-content">
+                            <span class="close-btn" onclick="closeEditPanel()">&times;</span>
+                            
+                            <!-- Current User Info Section -->
+                            <div class="current-info">
+                                <h3>Current User Information</h3>
+                                <p>Name: <span id="currentName"></span></p>
+                                <p>Email: <span id="currentEmail"></span></p>
+                                <p>Status: <span id="currentStatus"></span></p>
+                                <p>Role: <span id="currentRole"></span></p>
+                            </div>
+                    
+                            <!-- Edit Form Section -->
+                            <div class="edit-section">
+                                <h3>Update Information</h3>
+                                <form id="editForm" onsubmit="handleEdit(event)">
+                                    
+                                    <input type="hidden" id="userId">
+                                    <div class="form-group">
+                                        <label for="newName">New Name:</label>
+                                        <input type="text" id="newName">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newEmail">New Email:</label>
+                                        <input type="email" id="newEmail">
+                                    </div>
+                                    <div class="form-group">
+                                        <select id="newStatus">
+                                            <!-- User status -->
+                                        </select>
+                                        
+                                    </div>
+                                    <div class="form-group">
+                                        <select id="newRole">
+                                            
+                                        </select>
+                                    </div>
+                                    <button type="submit">Update User</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Edit end -->
                 </div>
             </div>
         </div>

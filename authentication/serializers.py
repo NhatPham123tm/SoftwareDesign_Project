@@ -7,6 +7,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     Serializer for user registration.
     Hashes the password before saving.
     """
+    id = serializers.CharField(required=True)
     password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
