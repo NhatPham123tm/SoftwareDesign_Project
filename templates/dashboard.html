@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <script>
+        // verify token and generate content (missing)
         document.addEventListener('DOMContentLoaded', () => {
         const userDataString = localStorage.getItem("user_data");
         const accessToken = localStorage.getItem("access_token");
@@ -30,7 +31,7 @@
         } else {
             console.error("User data is missing or incomplete in localStorage");
         }
-
+        // fetch content (still missing)
         fetch("api/dashboard/", {
             headers: {
             "Authorization": `Bearer ${accessToken}`

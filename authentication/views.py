@@ -16,6 +16,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from .serializers import UserRegisterSerializer, UserLoginSerializer
 from django.http import JsonResponse
+from django.contrib.auth.hashers import make_password
 from api.serializers import UserSerializer
 
 def home(request):
@@ -103,11 +104,6 @@ def dashboard(request):
     return render(request, "dashboard.html", {"user": request.user})
 
 
-def login_success(request):
-    redirect(settings.LOGIN_REDIRECT_URL)
-
-
-
 # Initialize MSAL
 def get_msal_app():
     return msal.ConfidentialClientApplication(
@@ -134,6 +130,7 @@ def microsoft_login(request):
     )
     return redirect(auth_url)
 
+# Hnadle after microsoft login
 def microsoft_callback(request):
     """Handle Microsoft OAuth callback and issue JWT tokens."""
     if "code" not in request.GET:
@@ -163,7 +160,7 @@ def microsoft_callback(request):
 
     if not email:
         messages.error(request, "Could not retrieve email from Microsoft. Login failed.")
-        return redirect("login")
+        return redirect("/login")
 
     # Retrieve 'id' and 'password' from cookies
     id = request.COOKIES.get("sessionId")
@@ -233,3 +230,31 @@ def microsoft_logout(request):
 
 def suspend(request):
     return render(request, 'suspend.html')
+# Simplified process without checking through user email
+def reset_password(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        # Check that passwords match
+        if new_password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return render(request, 'reset_password.html')
+
+        try:
+            # Look up the user by email
+            user = user_accs.objects.get(email=email)
+        except user_accs.DoesNotExist:
+            messages.error(request, "No account found with that email address.")
+            return render(request, 'reset_password.html')
+
+        # Update the password (make sure you hash it)
+        user.password_hash = make_password(new_password)
+        user.save()
+
+        messages.success(request, "Password reset successfully. Please log in with your new password.")
+        return redirect('/login') 
+
+    # For GET requests, just display the form
+    return render(request, 'reset_password.html')
