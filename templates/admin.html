@@ -49,11 +49,12 @@
             <div class="container">
                 <div class="tabldgn">
                     <div class="filters">
+                        <!-- Create User section
                         <select id="roleFilter">
                             <option value="all">All Roles</option>
                             <option value="admin">Admin</option>
                             <option value="basicuser">basicuser</option>
-                        </select>
+                        </select>-->
                     </div>
 
                     <!-- Create User section -->
@@ -88,7 +89,10 @@
                                     <label for="user_email">Email:</label>
                                     <input type="email" id="user_email" required>
                                 </div>
-            
+                                <div class="microsoft-auth-group">
+                                    <input type="checkbox" id="microsoftAuth" onclick="toggleMicrosoftAuth()">
+                                    <label for="microsoftAuth">Link with Microsoft</label>
+                                </div>
                                 <button type="button" id="submitButton" onclick="nextStep()" class="bts">Submit</button>
                             </form>
                         </div>
@@ -107,7 +111,6 @@
                                 <th>Email</th>
                                 <th>Status</th>
                                 <th>Role</th>
-                                <th>Actions</th>
                                 <th>Edit</th>
                                 <th>Delete</th>
                             </tr>
