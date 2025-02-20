@@ -6,6 +6,7 @@ import msal
 import requests
 from django.conf import settings
 from api.models import user_accs, roles
+from django.contrib.auth.decorators import user_passes_test
 import json
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
