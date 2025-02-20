@@ -21,60 +21,97 @@ function openTab(event, tabId) {
 }
 
 function userLoad() {
-    // change this to find current user
-    fetch("http://localhost:8000/api/get_userLoad/")
-    .then(response => response.json())
-    .then(data => {
-        tbody = document.getElementById('userTableBody');
-        tbody.innerHTML = '';
-        data.users.forEach(user => {
-            tbody.innerHTML += `
-            <tr>
-                <td>${user.name}</td>
-                <td>${user.email}</td>
-                <td><button onclick="openEditPanel('${user.id}')">Edit</button></td>
-            </tr>`;
+    // Get user data from localStorage
+    const userDataString = localStorage.getItem("user_data");
+    if (!userDataString) {
+        console.error("No user data found in localStorage.");
+        return;
+    }
+
+    let userData = JSON.parse(userDataString);
+    
+    // Fetch the current user's data
+    fetch(`/api/users/${userData.id}/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
         })
-    })
-    .catch(error => {
-        console.error('Error loading users:', error);
-    });
+        .then(user => {
+            let tbody = document.getElementById('userTableBody');
+            if (!tbody) {
+                console.error("userTableBody element not found.");
+                return;
+            }
+
+            tbody.innerHTML = `
+                <tr>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td><button id = "farrty" onclick="openEditPanel('${user.id}')">Edit</button></td>
+                </tr>`;
+        })
+        .catch(error => {
+            console.error('Error loading user:', error);
+        });
 }
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const userDataString = localStorage.getItem("user_data");
     let userData;
-    try {
-        userData = JSON.parse(userDataString);
-    } catch (error) {
-        console.error("Failed to parse user_data:", error);
-        userData = { name: "Guest", role: "User" }; // Fallback to default values
-    }
-
+    userData = JSON.parse(userDataString);
     if (userData && userData.name ) {
         document.getElementById("username").textContent = 
         `${userData.name}`;
-    } else {
-        console.error("User data is missing or incomplete in localStorage");
-    }
 
+        document.getElementById("email").textContent = 
+        `${userData.email}`;
+    } 
     });
-    
 
 function openEditPanel(userId) {
+    const userDataString = localStorage.getItem("user_data");
+    if (!userDataString) {
+        console.error("No user data found in localStorage.");
+        return;
+    }
+
+    let userData = JSON.parse(userDataString);
     fetch(`/api/users/${userId}/`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(user => {
+            // Ensure elements exist before updating them
+            let nameField = document.getElementById('currentName');
+            let emailField = document.getElementById('currentEmail');
+            let userIdField = document.getElementById('userId');
+            let editPanel = document.getElementById('editPanel');
+
+            if (!nameField || !emailField || !userIdField || !editPanel) {
+                console.error("One or more required elements are missing.");
+                return;
+            }
+
             // Set current info
-            document.getElementById('currentName').textContent = user.name;
-            document.getElementById('currentEmail').textContent = user.email;
+            nameField.textContent = user.name;
+            emailField.textContent = user.email;
 
             // Set hidden user ID
-            document.getElementById('userId').value = userId;
+            userIdField.value = userId;
 
             // Show the panel
-            document.getElementById('editPanel').style.display = 'block';
-
+            editPanel.style.display = 'block';
+        })
+        .catch(error => {
+            console.error("Error loading user details:", error);
+            alert("Failed to load user details. Please try again.");
         });
 }
 
@@ -84,6 +121,10 @@ function closeEditPanel() {
 }
 
 function handleEdit(event) {
+    const userDataString = localStorage.getItem("user_data");
+    let userData;
+    userData = JSON.parse(userDataString);
+
     event.preventDefault();
     const userId = document.getElementById('userId').value;
     
@@ -116,10 +157,9 @@ function handleEdit(event) {
             <div class="profile-box user-info">
                 <img src="{% static 'pic/default-avatar-profile-picture-male-icon.webp' %}" alt="User Avatar" class="user-avatar">
                 <h2 id="username"></h2>
-                <button id="edit"onclick="userLoad(); return false;">Edit Profile</button>
-                <a href="{% url 'dashboard' %}">Home</a><br>
+                
+                <a href="{% url 'dashboard' %}" class="home-button">Home</a>
             </div>
-
             <div class="profile-box social-links">
                 <h3>Social Media</h3>
                 <a href="" class="fa fa-twitter"> Twitter</a><br/>
@@ -133,23 +173,14 @@ function handleEdit(event) {
             <div class="tab">
                 <button class="tablinks active" onclick="openTab(event, 'Bio')">Bio</button>
                 <button class="tablinks" onclick="openTab(event, 'info')">Info</button>
-                <button class="tablinks" onclick="openTab(event, 'Edit')">Edit</button>
+                <button class="tablinks" onclick="openTab(event, 'Edit'),userLoad(); return false;">Edit</button>
             </div>
 
             <div id="Bio" class="tabcontent active">
-                <p>This is your bio add something interesting for yourself</p>
+                <p id="biosing">This is your bio add something interesting for yourself</p>
             </div>
             
             <div id="info" class="tabcontent">
-                    <div>
-                        <div class="col-md-6">
-                            <label style="font-weight:bold;">Name</label>
-                        </div>
-                        <div class="col-md-6">
-                            <p id ="username"></p>
-                            
-                        </div>
-                    </div>
                     <div>
                         <div class="col-md-6">
                             <label style="font-weight:bold;">Email</label>
@@ -216,7 +247,7 @@ function handleEdit(event) {
                                         <label for="newEmail">New Email:</label>
                                         <input type="email" id="newEmail">
                                     </div>
-                                    <button type="submit">Update User</button>
+                                    <button id ="wee" type="submit">Update User</button>
                                 </form>
                             </div>
                         </div>
