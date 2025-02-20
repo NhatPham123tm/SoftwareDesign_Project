@@ -33,27 +33,16 @@ MacOs:
 - python3 manage.py makemigrations
 - python3 manage.py migrate
 
-## 6. Initialize data
-Rerun
-Windows:
-- python manage.py makemigrations
-- python manage.py migrate
+Note: If no initialized data is in the database rerun the above commands.
 
-MacOs:
-- python3 manage.py makemigrations
-- python3 manage.py migrate
+## 6. Server/ Web deployment
+- python manage.py runserver    (Window)
+- python3 manage.py runserver   (MacOs)
 
-## 7. Server/ Web deployment
-python manage.py runserver
-
-or
-
-python3 manage.py runserver
-
-## 8. Web location
+## 7. Web location
 http://localhost:8000/
 
-## 9. Create and Login account
+## 8. Create and Login account
 No account or no Microsoft account is linked to our account.
 
 => Register a new account manually or link with a Microsoft account (Both need a User ID - 7 digits)
