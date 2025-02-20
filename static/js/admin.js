@@ -155,34 +155,132 @@ function deleteUser(userId) {
     }
 }
 
-function registerUser(event) {
-    event.preventDefault(); // Prevent default form submission
+function setCookie(name, value, days) {
+    const d = new Date();
+    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000)); // Expiration time
+    const expires = "expires=" + d.toUTCString();
+    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+}
 
-    const email = document.getElementById("email").value;
-    const name = document.getElementById("name").value;
-    const role = document.getElementById("role").value;
-    const password = document.getElementById("password").value;
+// Function to get cookies
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
 
-    fetch("http://localhost:8000/api/user_register/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            email: email,
-            name: name,
-            password: password,
-            role: role
+// Function to delete cookies
+function deleteCookie(name) {
+    document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+
+// Toggle function for Microsoft authentication
+function toggleMicrosoftAuth() {
+    const isChecked = document.getElementById('microsoftAuth').checked;
+    document.getElementById('name').disabled = isChecked;
+    document.getElementById('user_email').disabled = isChecked;
+    document.getElementById('submitButton').textContent = isChecked ? "Continue with Microsoft" : "Submit";
+}
+
+// Function to handle registration or Microsoft login
+function nextStep() {
+    const id = document.getElementById('id').value.trim();
+    const password = document.getElementById('password').value;
+    const retypePassword = document.getElementById('retypePassword').value;
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('user_email').value.trim();
+
+    if (!id || !password || !retypePassword) {
+        showModal('Please fill in all required fields.');
+        return;
+    }
+    if (password.length < 7) {
+        showModal('Password must be at least 7 characters long.');
+        return;
+    }
+    if (password !== retypePassword) {
+        showModal('Passwords do not match.');
+        return;
+    }
+
+    if (!microsoftAuth) {
+        if (!name || !email) {
+            showModal('Please fill in all fields.');
+            return;
+        }
+
+        // Set cookies for user_id and user_password (expiring in 7 days)
+        document.cookie = `sessionId=${id}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
+        document.cookie = `password=${password}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
+
+        const userData = {
+            id,
+            password,
+            name,
+            email
+        };
+
+        // Manual form submission
+        fetch('/api/user_register/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        userLoad();
-        openPanel.classList.remove('show');
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        document.getElementById("message").innerHTML = `<p style="color:red;">Registration failed. Try again.</p>`;
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showModal(data.message);
+            } else {
+                showModal(data.message);
+            }
+        })
+        .catch(error => {
+            showModal('An error occurred. Please try again.');
+            console.error('Error:', error);
+        });
+
+    } else {
+        // Microsoft authentication flow: Set cookies for id and password before redirect
+        document.cookie = `sessionId=${id}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
+        document.cookie = `password=${password}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
+        window.location.href = '/login/microsoft/';
+    }
+}
+
+// Function to show modal with message
+function showModal(message) {
+    document.getElementById('modalMessage').textContent = message;
+    document.getElementById('messageModal').style.display = 'block';
+}
+
+// Function to close the modal
+function closeModal() {
+    const modalMessage = document.getElementById('modalMessage').textContent;
+    document.getElementById('messageModal').style.display = 'none';
+
+    // Redirect to login page if the registration was successful
+    if (modalMessage === 'User registered successfully!') {
+        window.location.href = '/login/';
+    }
+}
+
+// Function to get Microsoft authentication data from cookies
+function getMicrosoftAuthData() {
+    const userId = getCookie('sessionId');  // Correct cookie name
+    const userPassword = getCookie('password');  // Correct cookie name
+
+    if (userId && userPassword) {
+        console.log("User ID:", userId);
+        console.log("User Password:", userPassword);
+        // You can now use these credentials to continue the authentication flow
+    } else {
+        console.log('No session data found.');
+    }
 }
 
