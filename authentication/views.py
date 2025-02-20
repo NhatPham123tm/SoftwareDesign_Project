@@ -7,6 +7,7 @@ import requests
 from django.conf import settings
 from api.models import user_accs, roles
 import json
+from django.contrib.auth.decorators import user_passes_test
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from django.contrib.auth.decorators import login_required
@@ -31,7 +32,19 @@ def register_page(request):
 def basicuser(request):
     return render(request, 'basicuser.html')
 
+def is_admin(user):
+    print(user)
+    if not user.is_authenticated:
+        return False
+    return getattr(user, 'role_id', None) == 1
+
+
+@login_required
+@user_passes_test(is_admin)
 def adminpage(request):
+    print(f"Session Key: {request.session.session_key}")
+    print(f"User: {request.user}")
+    print(f"Is Authenticated: {request.user.is_authenticated}")
     return render(request, 'admin.html')
 
 def get_userLoad(request):
@@ -39,7 +52,6 @@ def get_userLoad(request):
     serializer = UserSerializer(users, many=True)
     return JsonResponse({'users': serializer.data})
 
-# Temporary since someone doing relate to this part
 @api_view(["POST"])
 @permission_classes([AllowAny])  # Allow public access to register
 def user_register(request):
@@ -56,7 +68,7 @@ def user_register(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role.role_name
+                "role": user.role_id
             }
         }, status=status.HTTP_201_CREATED)
     
@@ -68,27 +80,22 @@ def user_register(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def user_login(request):
-    """
-    API-based login using serializers.
-    """
     serializer = UserLoginSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.validated_data["user"]
-        
-        # Generate JWT tokens
-        refresh = RefreshToken.for_user(user)
-        
+        login(request, user)
+        request.session.save()  # Explicitly save the session
+        print(f"User {user.email} logged in. Session: {request.session.session_key}")
+        print(f"Session exists: {request.session.exists(request.session.session_key)}")
         return Response({
-            "access_token": str(refresh.access_token),
-            "refresh_token": str(refresh),
+            "message": "Logged in successfully",
             "user": {
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role.role_name
+                "role": user.role_id,
             }
         }, status=status.HTTP_200_OK)
-
     return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -97,9 +104,7 @@ def user_logout(request):
     logout(request)  # Clear session
     return redirect('/login')
 
-
-@authentication_classes([JWTAuthentication])  # Use JWT authentication
-@permission_classes([IsAuthenticated])  # Allow only authenticated users
+@login_required
 def dashboard(request):
     return render(request, "dashboard.html", {"user": request.user})
 
@@ -135,7 +140,7 @@ def microsoft_callback(request):
     """Handle Microsoft OAuth callback and issue JWT tokens."""
     if "code" not in request.GET:
         messages.error(request, "Microsoft login failed. Please try again.")
-        return redirect("login")
+        return redirect("/login")
 
     msal_app = get_msal_app()
     token_response = msal_app.acquire_token_by_authorization_code(
@@ -147,7 +152,7 @@ def microsoft_callback(request):
     if "access_token" not in token_response:
         error_msg = token_response.get("error_description", "Unknown error")
         messages.error(request, f"Microsoft login failed: {error_msg}")
-        return redirect("login")
+        return redirect("/login")
 
     # Fetch user details from Microsoft Graph API
     user_info = requests.get(
@@ -205,7 +210,7 @@ def microsoft_callback(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role.role_name if user.role else "User",
+                "role": user.role_id if user.role_id else "2",
             }
         }, status=200)
     

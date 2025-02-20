@@ -32,6 +32,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
 ALLOWED_HOSTS = []
 
 
@@ -52,6 +53,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -66,8 +68,6 @@ LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = '/login/'
 
-# reset pass word
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Azure AD B2C Authority
 MICROSOFT_AUTHORITY = f"https://login.microsoftonline.com/{MICROSOFT_AUTH_TENANT_ID}"
@@ -86,7 +86,9 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",  
     "http://127.0.0.1:8000", 
 ]
+CORS_ALLOW_CREDENTIALS = True
 ROOT_URLCONF = 'UserManagement.urls'
+AUTH_USER_MODEL = 'api.user_accs'
 
 TEMPLATES = [
     {
@@ -142,7 +144,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ),
 }
 
