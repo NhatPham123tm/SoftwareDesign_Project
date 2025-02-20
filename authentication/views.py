@@ -85,8 +85,8 @@ def user_login(request):
         user = serializer.validated_data["user"]
         login(request, user)
         request.session.save()  # Explicitly save the session
-        print(f"User {user.email} logged in. Session: {request.session.session_key}")
-        print(f"Session exists: {request.session.exists(request.session.session_key)}")
+        #print(f"User {user.email} logged in. Session: {request.session.session_key}")
+        #print(f"Session exists: {request.session.exists(request.session.session_key)}")
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
         
@@ -227,8 +227,8 @@ def microsoft_callback(request):
     # Store JWT tokens in session for frontend redirection (if necessary)
     request.session["access_token"] = access_token
     request.session["refresh_token"] = str(refresh)
-    print(f"User {user.email} logged in. Session: {request.session.session_key}")
-    print(f"Session exists: {request.session.exists(request.session.session_key)}")
+    #print(f"User {user.email} logged in. Session: {request.session.session_key}")
+    #print(f"Session exists: {request.session.exists(request.session.session_key)}")
     messages.success(request, f"Welcome back, {user.name}!")
     return response
 

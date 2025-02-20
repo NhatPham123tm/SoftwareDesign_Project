@@ -123,8 +123,10 @@ function handleEdit(event) {
 
     fetch(`/api/users/${userId}/`, {
         method: 'PATCH',
+        credentials: "same-origin",  // 🔹 Ensures session cookies are sent
         headers: {
-            'Content-Type': 'application/json',
+        "X-CSRFToken": getCookie("csrftoken"),  // 🔹 Adds CSRF token
+        "Content-Type": "application/json"
         },
         body: JSON.stringify(newData)
     })
@@ -142,8 +144,10 @@ function deleteUser(userId) {
     if(confirm('Are you sure you want to delete this user?')) {
         fetch(`/api/users/${userId}/`, {
             method: 'DELETE',
+            hcredentials: "same-origin",  // 🔹 Ensures session cookies are sent
             headers: {
-                
+                "X-CSRFToken": getCookie("csrftoken"),  // 🔹 Adds CSRF token
+                "Content-Type": "application/json"
             }
         })
         .then(response => {
@@ -165,8 +169,10 @@ function registerUser(event) {
 
     fetch("http://localhost:8000/api/user_register/", {
         method: "POST",
+        credentials: "same-origin",  // 🔹 Ensures session cookies are sent
         headers: {
-            "Content-Type": "application/json"
+        "X-CSRFToken": getCookie("csrftoken"),  // 🔹 Adds CSRF token
+        "Content-Type": "application/json"
         },
         body: JSON.stringify({
             email: email,
@@ -186,3 +192,17 @@ function registerUser(event) {
     });
 }
 
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
