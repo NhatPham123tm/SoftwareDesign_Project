@@ -216,7 +216,11 @@ def microsoft_callback(request):
         }, status=200)
     
     # Clear cookies after user creation and login
-    response = redirect(f"/dashboard/?token={access_token}")
+    if user.role_id == 1:
+        response = redirect("/adminpage/?token={access_token}")
+    else:
+        response = redirect(f"/dashboard/?token={access_token}")
+    
     response.delete_cookie('sessionId')
     response.delete_cookie('password')
 
