@@ -8,9 +8,15 @@
     <script>
         // verify token and generate content (missing)
         document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        if (token){
+            const accessToken = token;
+        }
+        else{
+            const accessToken = localStorage.getItem("access_token");
+        }       
         const userDataString = localStorage.getItem("user_data");
-        const accessToken = localStorage.getItem("access_token");
-
         if (!accessToken) {
             console.error("No access token found in localStorage");
             window.location.href = "/login";  // Redirect to login if token is missing
