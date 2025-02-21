@@ -15,3 +15,11 @@ Ricardo Jesus Prieto (ricarpr):
   + Created admin page with corresponding CSS
   + CRUD utilities for admin in frontend
   + Assisted in User page
+
+Tien Phu Tran (TienPhuTran):
+  + Created and deployed database model
+  + Created and responsible for Web App Backend connections
+  + Created and deployed API
+  + Create and responsible for the register page
+  + Created Suspend page redirect to inactive/ban users
+  + Review and debug
