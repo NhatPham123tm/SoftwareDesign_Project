@@ -203,6 +203,7 @@ def microsoft_callback(request):
     access_token = str(refresh.access_token)
 
     # Check if request expects JSON response
+     # Check if request expects JSON response
     if request.headers.get("Accept") == "application/json":
         return JsonResponse({
             "access_token": access_token,
@@ -215,6 +216,18 @@ def microsoft_callback(request):
                 "status": user.status
             }
         }, status=200)
+    #save json response
+    request.session["auth_data"] = {
+        "access_token": access_token,
+        "refresh_token": str(refresh),
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role_id if user.role_id else "2",
+            "status": user.status
+        }
+    }
     
     # Clear cookies after user creation and login
     if user.role_id == 1 and user.status == "active":
@@ -235,6 +248,14 @@ def microsoft_callback(request):
     messages.success(request, f"Welcome back, {user.name}!")
     return response
 
+def get_auth_data(request):
+    """Retrieve stored authentication data from session."""
+    auth_data = request.session.get("auth_data", None)
+    
+    if not auth_data:
+        return JsonResponse({"error": "No authentication data found"}, status=401)
+    
+    return JsonResponse(auth_data, status=200)
 
 # Microsoft Logout
 def microsoft_logout(request):
