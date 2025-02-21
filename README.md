@@ -23,6 +23,13 @@ Create .env file in the main directory with the following info connection:
 - DB_PASSWORD= #DB password
 - DB_HOST=localhost #DB host, default = localhost
 - DB_PORT=5432 #DB port, default = 5432
+- MICROSOFT_AUTH_CLIENT_ID = ""
+- MICROSOFT_AUTH_CLIENT_SECRET = "" 
+- MICROSOFT_AUTH_TENANT_ID = ""
+- MICROSOFT_AUTH_REDIRECT_URI = ""
+- SECRET_KEY = ''
+
+Note: data in Azure is not filled due to GitHub security, but you can download .env file here: https://drive.google.com/file/d/1Ur6PS5JKRTOn3OWM0o7Dg-NkggFfO37O/view?usp=sharing 
 
 ## 5. Apply makemigrations and migration to initialize database with initial data
 Windows:
