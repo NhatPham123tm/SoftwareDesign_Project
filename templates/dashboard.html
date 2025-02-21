@@ -5,59 +5,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    
     <script>
-        // verify token and generate content (missing)
-        document.addEventListener('DOMContentLoaded', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        if (token){
-            const accessToken = token;
-        }
-        else{
-            const accessToken = localStorage.getItem("access_token");
-        }       
-        const userDataString = localStorage.getItem("user_data");
-        if (!accessToken) {
-            console.error("No access token found in localStorage");
-            window.location.href = "/login";  // Redirect to login if token is missing
-            return;
-        }
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            let token = urlParams.get("token") || localStorage.getItem("access_token");
 
-        let userData;
-        try {
-            userData = JSON.parse(userDataString);
-        } catch (error) {
-            console.error("Failed to parse user_data:", error);
-            userData = { name: "Guest", role: "User" }; // Fallback to default values
-        }
+            if (!token) {
+                console.error("No access token found. Redirecting to login.");
+                window.location.href = "/login";
+                return;
+            }
 
-        if (userData && userData.name ) {
-            document.getElementById("welcome-message").textContent = 
-            `Welcome, ${userData.name}`;
-        } else {
-            console.error("User data is missing or incomplete in localStorage");
-        }
-        // fetch content (still missing)
-        fetch("api/dashboard/", {
-            headers: {
-            "Authorization": `Bearer ${accessToken}`
+            let userData = localStorage.getItem("user_data");
+
+            if (!userData) {
+                console.log("Fetching user data from API...");
+                try {
+                    const response = await fetch("/api/user-info/", {
+                        headers: { "Authorization": `Bearer ${token}` },
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+                    userData = await response.json();
+                    localStorage.setItem("user_data", JSON.stringify(userData));
+                } catch (error) {
+                    console.error("Failed to fetch user data:", error);
+                    window.location.href = "/login";
+                    return;
+                }
+            } else {
+                userData = JSON.parse(userData);
             }
-        })
-        .then(response => {
-            if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("Dashboard data:", data);
-            // Populate dashboard data
-        })
-        .catch(error => console.error("Error:", error));
+
+            // Update UI with user data
+            document.getElementById("welcome").textContent = `Welcome, ${userData.name}!`;
+            document.getElementById("user-id").textContent = `User ID: ${userData.id}`;
         });
     </script>
-
-    <link rel="stylesheet" href="{%  static 'css/dashboard.css' %}">
 </head>
 <body>
     <nav class="top">
@@ -72,19 +59,19 @@
             </div>
         </div>
     </nav>
-    
+
     <main>
         <section class="title">
             <div class="container">
                 <div class="row">
                     <h1 id="welcome">Welcome to the Dashboard!</h1>
+                    <h2 id="user-id">User ID: Loading...</h2>
                 </div>
             </div>
         </section>
     </main>
-</body>
-</html>
-{% if messages %}
+
+    {% if messages %}
     <div id="message-popup" class="popup">
         {% for message in messages %}
             <p class="{{ message.tags }}">{{ message }}</p>
@@ -116,4 +103,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
-{% endif %}
+    {% endif %}
+</body>
+</html>
