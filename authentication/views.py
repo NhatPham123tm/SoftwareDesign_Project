@@ -90,7 +90,6 @@ def user_login(request):
         #print(f"Session exists: {request.session.exists(request.session.session_key)}")
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
-        
         return Response({
             "access_token": str(refresh.access_token),
             "refresh_token": str(refresh),
@@ -100,6 +99,7 @@ def user_login(request):
                 "name": user.name,
                 "email": user.email,
                 "role": user.role_id,
+                "status": user.status,
             }
         }, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
@@ -212,14 +212,17 @@ def microsoft_callback(request):
                 "name": user.name,
                 "email": user.email,
                 "role": user.role_id if user.role_id else "2",
+                "status": user.status
             }
         }, status=200)
     
     # Clear cookies after user creation and login
-    if user.role_id == 1:
+    if user.role_id == 1 and user.status == "active":
         response = redirect("/adminpage/?token={access_token}")
-    else:
+    elif user.role_id == 2 and user.status == "active":
         response = redirect(f"/dashboard/?token={access_token}")
+    else:
+        response = redirect("/suspend")
     
     response.delete_cookie('sessionId')
     response.delete_cookie('password')
@@ -241,6 +244,8 @@ def microsoft_logout(request):
 
 def suspend(request):
     return render(request, 'suspend.html')
+
+
 # Simplified process without checking through user email
 def reset_password(request):
     if request.method == 'POST':
