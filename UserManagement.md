@@ -10,3 +10,8 @@ Son nguyen:
   + created the user profile html css
   + created the edit profile for user javascript
   + assissed on the other page html css
+
+Ricardo Jesus Prieto (ricarpr):
+  + Created admin page with corresponding CSS
+  + CRUD utilities for admin in frontend
+  + Assisted in User page
