@@ -61,4 +61,4 @@ Testing account:
 - admin@example.com/admin123
 - user@example.com/user123
 
-
+Note: Use the Log Out button after each access for the best experience. If any page is not loading properly, try clearing cookies and local storage using the browser's developer tools.
