@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        fetch('/auth/complete/azure/', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Save data to local storage
+            localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('refresh_token', data.refresh_token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+
+            // Redirect or perform other actions
+            if (data.user.role === '1' && data.user.status === 'active') {
+                window.location.href = `/adminpage/?token=${data.access_token}`;
+            } else if (data.user.role === '2' && data.user.status === 'active') {
+                window.location.href = `/dashboard/?token=${data.access_token}`;
+            } else {
+                window.location.href = '/suspend';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    </script>
+</head>
+<body>
+    
+</body>
+</html>

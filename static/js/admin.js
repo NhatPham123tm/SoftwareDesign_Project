@@ -392,5 +392,11 @@ function createUserStatsChart(admins, basicUsers, activeUsers, inactiveUsers, ba
     });
 }
 
-// Call function when the page loads
+function logoutUser() {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user_data");
+    localStorage.removeItem("user");
+    window.location.href = "/logout/";
+}
+
 document.addEventListener("DOMContentLoaded", loadDashboardStats);

@@ -22,7 +22,7 @@ function openTab(event, tabId) {
 
 function userLoad() {
     // Get user data from localStorage
-    const userDataString = localStorage.getItem("user_data");
+    let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
     if (!userDataString) {
         console.error("No user data found in localStorage.");
         return;
