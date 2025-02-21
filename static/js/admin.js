@@ -392,5 +392,5 @@ function createUserStatsChart(admins, basicUsers, activeUsers, inactiveUsers, ba
     });
 }
 
-// Call function when the page loads
+
 document.addEventListener("DOMContentLoaded", loadDashboardStats);
