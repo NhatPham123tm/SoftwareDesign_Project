@@ -4,7 +4,8 @@ Tran Minh Nhat Pham (NhatPham123tm):
   + Reset password feature
   + Display statistics + chart in admin front-end
   + Home landing page
-Son nguyen: 
+
+Son nguyen:
   + created the login page html css
   + created the user profile html css
   + created the edit profile for user javascript
