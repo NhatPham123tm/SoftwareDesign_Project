@@ -41,6 +41,18 @@
         <div id="dashboard" class="part active">
             <div>
                 <h1>Dashboard</h1>
+                <div class="dashboard-stats">
+                    <div class="stat-box">Total Users: <span id="totalUsers">0</span></div>
+                    <div class="stat-box">Total Admins: <span id="totalAdmins">0</span></div>
+                    <div class="stat-box">Total Basic Users: <span id="totalBasicUsers">0</span></div>
+                    <div class="stat-box">Active Users: <span id="totalActiveUsers">0</span></div>
+                    <div class="stat-box">Inactive Users: <span id="totalInactiveUsers">0</span></div>
+                    <div class="stat-box">Banned Users: <span id="totalBannedUsers">0</span></div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="userStatsChart"></canvas>
+                </div>
             </div>
         </div>
 
@@ -160,6 +172,6 @@
         </div>
 
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
