@@ -395,7 +395,8 @@ function createUserStatsChart(admins, basicUsers, activeUsers, inactiveUsers, ba
 function logoutUser() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user_data");
-    window.location.href = "/login/";
+    localStorage.removeItem("user");
+    window.location.href = "/logout/";
 }
 
 document.addEventListener("DOMContentLoaded", loadDashboardStats);
