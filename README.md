@@ -64,4 +64,5 @@ Testing account:
 Note: Use the Log Out button after each access for the best experience. If any page is not loading properly, try clearing cookies and local storage using the browser's developer tools.
 
 Online Deployment:
+Login your Cougarnet Account in browser before direct app location (avoid Microsoft blocking)
 https://trois-user-management-cuaed0fhgch5hza9.centralus-01.azurewebsites.net/
