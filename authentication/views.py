@@ -274,3 +274,17 @@ def reset_password(request):
 
     # For GET requests, just display the form
     return render(request, 'reset_password.html')
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def user_info(request):
+    """Return user data for frontend localStorage update."""
+    user = request.user
+    return Response({
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role_id,
+        "status": user.status,
+    })
