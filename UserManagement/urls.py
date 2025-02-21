@@ -7,7 +7,7 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', login_page, name='home'),  # Define the root URL
+    path('', home, name='home'),  # Define the root URL
     path('auth/complete/azure/', microsoft_callback, name='microsoft-callback'),
     path('dashboard/', dashboard, name='dashboard'),
     path('api/', include('api.urls')),

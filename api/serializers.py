@@ -1,15 +1,11 @@
 from rest_framework import serializers
-from .models import user_accs, roles, address, permission
+from .models import user_accs, roles, permission
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = roles
         fields = '__all__'  # Serialize all fields
 
-class AddressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = address
-        fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
     role = RoleSerializer(read_only=True)  # Nested serializer to show role details
@@ -17,14 +13,11 @@ class UserSerializer(serializers.ModelSerializer):
         queryset=roles.objects.all(), source='role', write_only=True
     )  # Allow assigning role by ID
 
-    address_id = serializers.PrimaryKeyRelatedField(
-        queryset=address.objects.all(), source='address', write_only=True
-    )
 
     class Meta:
         model = user_accs
         fields = ['id', 'name', 'email', 'password_hash', 'role', 'role_id', 'phone_number', 
-                  'address', 'address_id', 'status', 'created_at']
+                  'address', 'address', 'status', 'created_at']
         extra_kwargs = {'password_hash': {'write_only': True}}  # Hide password in responses
 
     def create(self, validated_data):

@@ -34,13 +34,19 @@
           // Optionally save user data in localStorage if needed
           localStorage.setItem("access_token", data.access_token);
           localStorage.setItem("user_data", JSON.stringify(data.user));
+
           console.log(Number(data.user.role));
           // Role-based redirection
-          if (Number(data.user.role) === 1) {
-            window.location.href = "/adminpage/";
+          if (data.user.status === "active") {
+            if (Number(data.user.role) === 1) {
+              window.location.href = "/adminpage/";
+            } else {
+              window.location.href = "/dashboard/";
+            }
           } else {
-            window.location.href = "/dashboard/";
+            window.location.href = "/suspend/";
           }
+
         }
       })
       .catch(error => {

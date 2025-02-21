@@ -310,3 +310,87 @@ function getCookie(name) {
     return cookieValue;
 }
 
+function loadDashboardStats() {
+    fetch("http://localhost:8000/api/users/")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(users => {
+            let totalUsers = users.length;
+            let totalAdmins = users.filter(user => user.role.id === 1).length;
+            let totalBasicUsers = users.filter(user => user.role.id === 2).length;
+            let totalActiveUsers = users.filter(user => user.status === "active").length;
+            let totalInactiveUsers = users.filter(user => user.status === "inactive").length;
+            let totalBannedUsers = users.filter(user => user.status === "banned").length;
+
+            // Update text statistics
+            document.getElementById("totalUsers").textContent = totalUsers;
+            document.getElementById("totalAdmins").textContent = totalAdmins;
+            document.getElementById("totalBasicUsers").textContent = totalBasicUsers;
+            document.getElementById("totalActiveUsers").textContent = totalActiveUsers;
+            document.getElementById("totalInactiveUsers").textContent = totalInactiveUsers;
+            document.getElementById("totalBannedUsers").textContent = totalBannedUsers;
+
+            // Create the pie chart
+            createUserStatsChart(totalAdmins, totalBasicUsers, totalActiveUsers, totalInactiveUsers, totalBannedUsers);
+        })
+        .catch(error => {
+            console.error("Error fetching user stats:", error);
+        });
+}
+
+// Function to create a Pie Chart with Chart.js
+function createUserStatsChart(admins, basicUsers, activeUsers, inactiveUsers, bannedUsers) {
+    const ctx = document.getElementById("userStatsChart").getContext("2d");
+
+    // Total users (sum of all categories)
+    let totalUsers = admins + basicUsers + activeUsers + inactiveUsers + bannedUsers;
+
+    // Format percentages for labels
+    function calculatePercentage(value) {
+        return totalUsers > 0 ? ((value / totalUsers) * 100).toFixed(1) + "%" : "0%";
+    }
+
+    new Chart(ctx, {
+        type: "pie",
+        data: {
+            labels: [
+                `Admins (${calculatePercentage(admins)})`,
+                `Basic Users (${calculatePercentage(basicUsers)})`,
+                `Active Users (${calculatePercentage(activeUsers)})`,
+                `Inactive Users (${calculatePercentage(inactiveUsers)})`,
+                `Banned Users (${calculatePercentage(bannedUsers)})`
+            ],
+            datasets: [{
+                label: "User Distribution",
+                data: [admins, basicUsers, activeUsers, inactiveUsers, bannedUsers],
+                backgroundColor: ["#FF5733", "#33B5E5", "#4CAF50", "#FFC107", "#E91E63"],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            let value = tooltipItem.raw;
+                            let percentage = calculatePercentage(value);
+                            return ` ${tooltipItem.label.split(" (")[0]}: ${percentage}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Call function when the page loads
+document.addEventListener("DOMContentLoaded", loadDashboardStats);

@@ -331,3 +331,29 @@ th {
     cursor: pointer;
     margin-top: 10px;
 }
+
+.dashboard-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+}
+
+.stat-box {
+    background-color: #f4f4f4;
+    padding: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.chart-container {
+    width: 50%;
+    margin: auto;
+    padding: 20px;
+}
+
+canvas {
+    width: 100%;
+    height: auto;
+}
