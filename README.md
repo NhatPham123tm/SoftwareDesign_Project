@@ -57,4 +57,8 @@ No account or no Microsoft account is linked to our account.
 
 Login by email or Microsoft Authorization
 
+Testing account:
+- admin@example.com/admin123
+- user@example.com/user123
+
 
