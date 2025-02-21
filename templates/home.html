@@ -1,12 +1,79 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-</head>
-<body>
-    <h1>Welcome to the User Management System</h1>
-    <p><a href="{% url 'login' %}">Login</a> | <a href="{% url 'register' %}">Register</a></p>
-</body>
-</html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trois-Rivières</title>
+  <link rel="icon" href="favicon.ico"><link href="{%  static 'css/home.css' %}" rel="stylesheet"></head>
+  <body
+    x-data="{ page: 'home', 'darkMode': true, 'stickyMenu': false, 'navigationOpen': false, 'scrollTop': false }"
+    x-init="
+         darkMode = JSON.parse(localStorage.getItem('darkMode'));
+         $watch('darkMode', value => localStorage.setItem('darkMode', JSON.stringify(value)))"
+    :class="{'b eh': darkMode === true}"
+  >
+    <!-- ===== Header Start ===== -->
+    <header
+  class="g s r vd ya cj"
+  :class="{ 'hh sm _k dj bl ll' : stickyMenu }"
+  @scroll.window="stickyMenu = (window.pageYOffset > 20) ? true : false"
+>
+  <div class="bb ze ki xn 2xl:ud-px-0 oo wf yf i">
+    <div class="vd to/4 tc wf yf">
+    </div>
+
+    <div
+      class="vd wo/4 sd qo f ho oo wf yf"
+      :class="{ 'd hh rm sr td ud qg ug jc yh': navigationOpen }"
+    >
+      <nav>
+        <ul class="tc _o sf yo cg ep">
+        </ul>
+      </nav>
+
+      <div class="tc wf ig pb no">
+        <div class="pc h io pa ra" :class="navigationOpen ? '!-ud-visible' : 'd'">
+          <label class="rc ab i">
+          </label>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</header>
+
+    <!-- ===== Header End ===== -->
+
+    <main>
+      <!-- ===== Hero Start ===== -->
+      <section class="gj do ir hj sp jr i pg">
+        <!-- Hero Images -->
+        <div class="xc fn zd/2 2xl:ud-w-187.5 bd 2xl:ud-h-171.5 h q r">
+          <img src="{%  static 'pic/shape-04.svg' %}" alt="shape" class="h q r" />
+          <img src="{%  static 'pic/hero.png' %}" alt="Woman" class="h  r ua custom-hero" />
+        </div>
+
+        <!-- Hero Content -->
+        <div class="bb ze ki xn 2xl:ud-px-0">
+          <div class="tc _o">
+            <div class="animate_left jn/2">
+              <h1 class="fk vj zp or kk wm wb">Trois-Rivières Team User Management</h1>
+              <p class="fq">
+                Welcome to our group project!
+              </p>
+
+              <div class="tc tf yo zf mb">
+                <a href="login/" class="ek jk lk gh gi hi rg ml il vc _d _l"
+                  >Sign in</a
+                >
+
+                <span class="tc sf">
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ===== Hero End ===== -->
