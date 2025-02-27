@@ -1,7 +1,15 @@
 # SoftwareDesign_Project
 team_name = Trois-Rivières
 
-# Django Project Setup Guide
+# Online Deployment:
+## https://trois-user-management-cuaed0fhgch5hza9.centralus-01.azurewebsites.net/
+Login your Cougarnet Account in browser before directing app location (avoid Microsoft blocking)
+
+You can create a new account or login with Testing accounts:
+- admin@example.com/admin123
+- user@example.com/user123
+  
+# Local Django Project Setup Guide
 
 ## 1. Prerequisites
 Before downloading and running this project, ensure you have the following installed:
@@ -57,12 +65,8 @@ No account or no Microsoft account is linked to our account.
 
 Login by email or Microsoft Authorization
 
-Testing account:
+Testing accounts:
 - admin@example.com/admin123
 - user@example.com/user123
 
-Note: Use the Log Out button after each access for the best experience. If any page is not loading properly, try clearing cookies and local storage using the browser's developer tools.
-
-# Online Deployment:
-- Login your Cougarnet Account in browser before direct app location (avoid Microsoft blocking)
-- https://trois-user-management-cuaed0fhgch5hza9.centralus-01.azurewebsites.net/
+Note: Use the Log Out button for the best experience after each access. If any page is not loading properly, try clearing cookies and local storage using the browser's developer tools.
