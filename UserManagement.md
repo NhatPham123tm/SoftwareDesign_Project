@@ -17,9 +17,9 @@ Ricardo Jesus Prieto (ricarpr):
   + Assisted in User page
 
 Tien Phu Tran (TienPhuTran):
-  + Created and deployed database model
+  + Created and deployed database model 
   + Created and responsible for Web App Backend connections
-  + Created and deployed API
+  + Connect API
   + Create and responsible for the register page
   + Created Suspend page redirect to inactive/ban users
-  + Review and debug
+  + Online Deployment
