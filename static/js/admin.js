@@ -127,6 +127,7 @@ function openEditPanel(userId) {
         .then(response => response.json())
         .then(user => {
             // Set current info
+            document.getElementById('currentID').textContent = user.id;
             document.getElementById('currentName').textContent = user.name;
             document.getElementById('currentEmail').textContent = user.email;
             document.getElementById('currentStatus').textContent = user.status;
@@ -141,6 +142,7 @@ function openEditPanel(userId) {
 
             // Set hidden user ID
             document.getElementById('userId').value = userId;
+            
 
             // Show the panel
             document.getElementById('editPanel').style.display = 'block';
