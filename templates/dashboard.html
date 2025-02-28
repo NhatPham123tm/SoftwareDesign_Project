@@ -20,11 +20,10 @@
             .then(data => {
 
                 console.log("Fetched user data:", data);
-
-                // Save user data properly
-                localStorage.setItem("access_token", data.access_token);
-                localStorage.setItem("refresh_token", data.refresh_token);
-                localStorage.setItem("user", JSON.stringify(data.user)); // Store user object as JSON string
+                if (!localStorage.getItem("access_token")){
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("user", JSON.stringify(data.user)); 
+                }
 
                 // Update the UI after data is fetched
                 updateUserUI();
@@ -39,13 +38,21 @@
 
             // Try fetching "user_data" first, if not available, fall back to "user"
             let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
-
+            
             if (userDataString) {
                 try {
                     const userData = JSON.parse(userDataString);
-
+                    const userRole = userData.role;
+                    if (userData && userData.role) {
+                        console.log("User role:", userRole);
+                        if (userRole === 1) {
+                            document.getElementById("admin_link").style.display = "block";
+                        } else {
+                            document.getElementById("admin_link").style.display = "none";
+                        }
+                    }
                     if (userData && userData.name) {
-                        document.getElementById("welcome").textContent = `Welcome, ${userData.name}!`;
+                        document.getElementById("welcome").textContent = `Welcome, ${userData.name} (ID: ${userData.id})!`;
                         console.log("User data displayed:", userData.name);
                     }
                 } catch (error) {
@@ -74,6 +81,7 @@
                 <button class="dropbtn">View</button>
                 <div class="dropdown-content">
                   <a href="{% url 'basicuser' %}">Profile</a>
+                  <a href="{% url 'adminpage' %}" id = "admin_link">Admin</a>
                   <a href="#" onclick=logoutUser()>Logout</a>
                 </div>
             </div>
