@@ -12,6 +12,50 @@ let userVal = {
 
 };
 
+
+if (!localStorage.getItem("access_token")) {
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        fetch('/api/microsoft-login/', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+        
+            console.log("Fetched user data:", data);
+        
+            // Save user data properly
+            localStorage.setItem("access_token", data.access_token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+        })
+    });
+}
+
+
+const user_data = localStorage.getItem("user_data") || localStorage.getItem("user");
+
+if (user_data) {
+    try {
+        const user = JSON.parse(user_data); 
+        const idBar = document.getElementById('id_bar');
+        if (idBar) {
+            idBar.textContent = `${user.name} (ID: ${user.id})`; // Use innerText
+        } else {
+            console.error("Element with ID 'id_bar' not found!");
+        }
+    } catch (error) {
+        console.error("Error parsing user_data from localStorage:", error);
+    }
+} else {
+    console.error("No user_data found in localStorage");
+}
+
+
+
 function switchPanel(viewerId) {
     // Remove active class from all views and links
     document.querySelectorAll('.part').forEach(s => s.classList.remove('active'));
@@ -56,7 +100,7 @@ closePanel.addEventListener('click', closePopUpPanel);
 
 
 function userLoad() {
-    fetch("http://localhost:8000/api/get_userLoad/")
+    fetch("/api/get_userLoad/")
     .then(response => response.json())
     .then(data => {
         tbody = document.getElementById('userTableBody');
@@ -138,6 +182,9 @@ function handleEdit(event) {
         console.error('Error updating user:', error);
     });
 }
+
+const adToken = localStorage.getItem("access_token");
+document.getElementById("userLink").href = `/dashboard/`;
 
 function deleteUser(userId) {
     if(confirm('Are you sure you want to delete this user?')) {
@@ -311,7 +358,7 @@ function getCookie(name) {
 }
 
 function loadDashboardStats() {
-    fetch("http://localhost:8000/api/users/")
+    fetch("/api/users/")
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Error: ${response.status}`);
@@ -396,7 +443,9 @@ function logoutUser() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("user_data");
     localStorage.removeItem("user");
+    localStorage.removeItem("user_data");
     window.location.href = "/logout/";
 }
+
 
 document.addEventListener("DOMContentLoaded", loadDashboardStats);

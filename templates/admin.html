@@ -12,10 +12,9 @@
     
     <nav class="top">
         <div class="topbox toplink">
-            <a>BRAND</a>
+            <a id="id_bar">Name</a>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a href="{% url 'dashboard' %}" class="">Home</a>
                 </li>
             </ul>
         </div>
@@ -29,8 +28,7 @@
         <ul class="sidebar-menu">
             <li><a href="#dashboard" class="active">Dashboard</a></li>
             <li><a href="#users" onclick="userLoad(); return false;">Users</a></li>
-            <li><a href="#settings">Settings</a></li>
-            <li><a href="#reports">Reports</a></li>
+            <li><a href="" id="userLink">User View</a></li>
             <li><a href="#" onclick=logoutUser() id="logoutBtn">Logout</a></li>
         </ul>
     </div>
