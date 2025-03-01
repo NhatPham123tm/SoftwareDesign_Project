@@ -105,9 +105,10 @@ def user_login(request):
     return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
 
 
-
 def user_logout(request):
-    logout(request)  # Clear session
+    storage = messages.get_messages(request)
+    storage.used = True 
+    logout(request)
     return redirect('/login')
 
 #@login_required
