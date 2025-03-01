@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suspended Account</title>
     <link rel="stylesheet" href="{% static 'css/suspend.css' %}">
+    <script>
+        // Clear local storage when the page loads
+        window.onload = function() {
+            localStorage.clear();
+            sessionStorage.clear();
+            console.log("Local storage and session storage cleared.");
+        };
+    </script>
 </head>
 <body>
 
