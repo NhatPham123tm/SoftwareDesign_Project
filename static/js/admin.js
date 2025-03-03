@@ -192,7 +192,7 @@ function deleteUser(userId) {
     if(confirm('Are you sure you want to delete this user?')) {
         fetch(`/api/users/${userId}/`, {
             method: 'DELETE',
-            hcredentials: "same-origin",  //  Ensures session cookies are sent
+            credentials: "same-origin",  //  Ensures session cookies are sent
             headers: {
                 "X-CSRFToken": getCookie("csrftoken"),  //  Adds CSRF token
                 "Content-Type": "application/json"
@@ -232,14 +232,6 @@ function deleteCookie(name) {
     document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }
 
-// Toggle function for Microsoft authentication
-function toggleMicrosoftAuth() {
-    const isChecked = document.getElementById('microsoftAuth').checked;
-    document.getElementById('name').disabled = isChecked;
-    document.getElementById('user_email').disabled = isChecked;
-    document.getElementById('submitButton').textContent = isChecked ? "Continue with Microsoft" : "Submit";
-}
-
 // Function to handle registration or Microsoft login
 function nextStep() {
     const id = document.getElementById('id').value.trim();
@@ -247,7 +239,6 @@ function nextStep() {
     const retypePassword = document.getElementById('retypePassword').value;
     const name = document.getElementById('name').value.trim();
     const email = document.getElementById('user_email').value.trim();
-    const microsoftAuth = document.getElementById('microsoftAuth').checked;
 
     if (!id || !password || !retypePassword) {
         showModal('Please fill in all required fields.');
@@ -261,55 +252,44 @@ function nextStep() {
         showModal('Passwords do not match.');
         return;
     }
-
-    if (!microsoftAuth) {
-        if (!name || !email) {
-            showModal('Please fill in all fields.');
-            return;
-        }
-
-        // Set cookies for user_id and user_password (expiring in 7 days)
-        document.cookie = `sessionId=${id}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
-        document.cookie = `password=${password}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
-
-        const userData = {
-            id,
-            password,
-            name,
-            email
-        };
-
-        // Manual form submission
-        fetch('/api/user_register/', {
-            method: 'POST',
-            credentials: "same-origin",  // Ensures session cookies are sent
-            headers: {
-              "X-CSRFToken": getCookie("csrftoken"),  //  Adds CSRF token
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(userData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            userLoad()
-            openPanel.classList.remove('show');
-            if (data.success) {
-                showModal(data.message);
-            } else {
-                showModal(data.message);
-            }
-        })
-        .catch(error => {
-            showModal('An error occurred. Please try again.');
-            console.error('Error:', error);
-        });
-
-    } else {
-        // Microsoft authentication flow: Set cookies for id and password before redirect
-        document.cookie = `sessionId=${id}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
-        document.cookie = `password=${password}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
-        window.location.href = '/login/microsoft/';
+    if (!name || !email) {
+        showModal('Please fill in all fields.');
+        return;
     }
+
+
+    const userData = {
+        id,
+        password,
+        name,
+        email
+    };
+
+    // Manual form submission
+    fetch('/api/user_register/', {
+        method: 'POST',
+        credentials: "same-origin",  // Ensures session cookies are sent
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),  //  Adds CSRF token
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(userData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        userLoad()
+        openPanel.classList.remove('show');
+        if (data.success) {
+            showModal(data.message);
+        } else {
+            showModal(data.message);
+        }
+    })
+    .catch(error => {
+        showModal('An error occurred. Please try again.');
+        console.error('Error:', error);
+    });
+
 }
 
 // Function to show modal with message
@@ -326,20 +306,6 @@ function closeModal() {
     // Redirect to login page if the registration was successful
     if (modalMessage === 'User registered successfully!') {
         window.location.href = '/login/';
-    }
-}
-
-// Function to get Microsoft authentication data from cookies
-function getMicrosoftAuthData() {
-    const userId = getCookie('sessionId');  // Correct cookie name
-    const userPassword = getCookie('password');  // Correct cookie name
-
-    if (userId && userPassword) {
-        console.log("User ID:", userId);
-        console.log("User Password:", userPassword);
-        // You can now use these credentials to continue the authentication flow
-    } else {
-        console.log('No session data found.');
     }
 }
 
@@ -451,3 +417,7 @@ function logoutUser() {
 
 
 document.addEventListener("DOMContentLoaded", loadDashboardStats);
+
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById('submitButton').addEventListener('click', nextStep);
+});
