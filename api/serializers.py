@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import user_accs, roles, permission, PayrollAssignment, PositionInformation, PayrollChange
+from .models import user_accs, roles, permission, PayrollAssignment, PositionInformation
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,21 +30,15 @@ class PermissionSerializer(serializers.ModelSerializer):
         model = permission
         fields = '__all__'
 
-
+# PayRoll Assignment Serializer
 class PositionInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = PositionInformation
         fields = '__all__'
 
-class PayrollChangeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PayrollChange
-        fields = '__all__'
-
 class PayrollAssignmentSerializer(serializers.ModelSerializer):
     # Nested serializers for related fields.
     positions = PositionInformationSerializer(many=True, read_only=True)
-    payroll_changes = PayrollChangeSerializer(many=True, read_only=True)
 
     class Meta:
         model = PayrollAssignment
