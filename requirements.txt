@@ -95,7 +95,7 @@ wcwidth==0.2.5
 webencodings==0.5.1
 zipp==1.0.0
 whitenoise==6.0.0
-
+drf-nested-routers>=0.92.1
 
 # Install Python first
 # requirements.txt store all the need packages
