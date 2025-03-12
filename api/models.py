@@ -69,7 +69,7 @@ class PayrollAssignment(models.Model):
         ('Cancelled', 'Cancelled'),
     ]
     
-    user_id = models.ForeignKey(user_accs, on_delete=models.CASCADE)
+    user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
     employee_name = models.CharField(max_length=100)
     employee_id = models.CharField(max_length=50)
     todays_date = models.DateField()
