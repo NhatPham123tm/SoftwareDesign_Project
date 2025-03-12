@@ -75,6 +75,39 @@ class PayrollAssignment(models.Model):
     todays_date = models.DateField()
     education_level = models.CharField(max_length=20, choices=EDUCATION_LEVEL_CHOICES)
     requested_action = models.CharField(max_length=20, choices=REQUESTED_ACTION_CHOICES)
+
+    job_title = models.CharField(max_length=100, blank=True, null=True)
+    position_number = models.CharField(max_length=50, blank=True, null=True)
+    
+    # Termination 
+    termination_date = models.DateField(blank=True, null=True)
+    termination_reason = models.TextField(blank=True, null=True)
+    
+    # Budget change 
+    budget_change_effective_date = models.DateField(blank=True, null=True)
+    from_speed_type = models.CharField(max_length=50, blank=True, null=True)
+    to_speed_type = models.CharField(max_length=50, blank=True, null=True)
+    
+    # FTE change 
+    fte_change_effective_date = models.DateField(blank=True, null=True)
+    from_fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    to_fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    
+    # Pay rate change 
+    pay_rate_change_effective_date = models.DateField(blank=True, null=True)
+    current_rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    new_pay_rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    pay_rate_change_reason = models.TextField(blank=True, null=True)
+    
+    # Reallocation 
+    reallocation_dates = models.TextField(blank=True, null=True)
+    reallocation_from_position = models.CharField(max_length=50, blank=True, null=True)
+    reallocation_to_position = models.CharField(max_length=50, blank=True, null=True)
+    
+    # Other payroll change
+    other_specification = models.TextField(blank=True, null=True)
+
+    # Verification
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
     signature_url = models.URLField(blank=True, null=True)
     approve_date = models.DateField(blank=True, null=True)
@@ -111,41 +144,3 @@ class PositionInformation(models.Model):
     def __str__(self):
         return f"Position for {self.payroll_assignment.id} {self.payroll_assignment.employee_name}"
 
-
-class PayrollChange(models.Model):
-    payroll_assignment = models.ForeignKey(
-        PayrollAssignment, on_delete=models.CASCADE, related_name='payroll_changes'
-    )
-    job_title = models.CharField(max_length=100, blank=True, null=True)
-    position_number = models.CharField(max_length=50, blank=True, null=True)
-    
-    # Termination 
-    termination_date = models.DateField(blank=True, null=True)
-    termination_reason = models.TextField(blank=True, null=True)
-    
-    # Budget change 
-    budget_change_effective_date = models.DateField(blank=True, null=True)
-    from_speed_type = models.CharField(max_length=50, blank=True, null=True)
-    to_speed_type = models.CharField(max_length=50, blank=True, null=True)
-    
-    # FTE change 
-    fte_change_effective_date = models.DateField(blank=True, null=True)
-    from_fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    to_fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    
-    # Pay rate change 
-    pay_rate_change_effective_date = models.DateField(blank=True, null=True)
-    current_rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    new_pay_rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    pay_rate_change_reason = models.TextField(blank=True, null=True)
-    
-    # Reallocation 
-    reallocation_dates = models.TextField(blank=True, null=True)
-    reallocation_from_position = models.CharField(max_length=50, blank=True, null=True)
-    reallocation_to_position = models.CharField(max_length=50, blank=True, null=True)
-    
-    # Other payroll change
-    other_specification = models.TextField(blank=True, null=True)
-    
-    def __str__(self):
-        return f"Payroll Change for {self.payroll_assignment.employee_name}"
