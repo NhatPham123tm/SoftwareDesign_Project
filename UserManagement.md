@@ -17,9 +17,9 @@ Ricardo Jesus Prieto (ricarpr):
   + Assisted in User page
 
 Tien Phu Tran (TienPhuTran):
-  + Created and deployed database model 
-  + Created and responsible for Web App Backend connections
-  + Connect API
-  + Create and responsible for the register page
-  + Created Suspend page redirect to inactive/ban users
-  + Online Deployment
+  + Created and deployed database model (api/models.py - add models)
+  + Adjusted and responsible Web App Backend connections (API + authentication folders)
+  + Connect API to PostgreSQL (api/serilizers.py + api/views.py + api/urls.py)
+  + Create and responsible for the register page (authentication/views.py + authentication/urls.py + templates/register.html - add frontend input (user) to database)
+  + Created Suspend page redirect to inactive/ban users (authentication/views.py + authentication/urls.py + templates/suspend.html - delete all user local storage and direct to suspend page)
+  + Online Deployment (Copy repository and set up the connections in another repository for online deployment)
