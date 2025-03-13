@@ -1,0 +1,157 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{array}
+\usepackage{hhline}
+\usepackage{geometry}
+\geometry{a4paper, margin=0.2in}
+\usepackage[sfdefault]{roboto}
+\begin{document}
+
+\centering
+\LARGE\textbf{Request for Reimbursement}
+
+\vspace{0.5cm}
+\begin{minipage}{\textwidth}
+\small
+Charges to University of Houston Funds must be reasonable and allowable. According to MAPP 04.01.03 request for reimbursement must be supported by an \textbf{original itemized receipt}. If an original itemized receipt is not available, another proof of payment along with a merchant produced document could be accepted. All requests for reimbursements, including required documentation, should be submitted to the department business office \textbf{no later} than \textbf{60 days} after the date of purchase to avoid a MAPP Policy violation.
+\end{minipage}
+
+\vspace{1cm}
+\begin{tabular}{ll}
+    \small
+    Name: & \makebox[3in]{\hrulefill} \hspace{1cm} \small Empl ID: \makebox[2in]{\hrulefill} \\
+    {{NAME}} & {{EMPL_ID}} \\
+\end{tabular}
+
+\vspace{1cm}
+\noindent
+\begin{minipage}{0.15\textwidth}
+    \vspace{-0.3cm} % Adjust this value to move text higher
+    \raggedright % Align text to the left
+    \small
+    Reimbursement\\ % First line
+    for:(List Items)         % Second line
+\end{minipage}%
+\begin{minipage}{0.7\textwidth}
+    \begin{tabular}{|p{\textwidth}|}
+        \hline
+        {{REIMBURSEMENT_ITEMS}}\\ % Empty space inside the table
+        \\
+        \\
+        \hline
+    \end{tabular}
+\end{minipage}
+
+\vspace{1cm}
+\noindent
+\begin{minipage}{0.15\textwidth}
+\centering
+    \vspace{-0.3cm} % Adjust this value to move text higher
+    \small
+    Purpose\\ % First line
+    and\\         % Second line
+    Benefit
+\end{minipage}%
+\begin{minipage}{0.7\textwidth}
+    \begin{tabular}{|p{\textwidth}|}
+        \hline
+        {{PURPOSE}}\\ % Empty space inside the table
+        \\
+        \\
+        \hline
+    \end{tabular}
+\end{minipage}
+
+\vspace{1cm}
+\noindent
+\begin{minipage}{0.15\textwidth}
+    \vspace{-0.3cm} % Adjust this value to move text higher
+    \small
+    Meal\\ % First line
+    (if less than 10,\\         % Second line
+    list name and\\
+    affiliation)
+\end{minipage}%
+\begin{minipage}{0.7\textwidth}
+    \begin{tabular}{|p{\textwidth}|}
+        \hline
+        {{MEAL_INFO}}\\ % Empty space inside the table
+        \\
+        \\
+        \hline
+    \end{tabular}
+\end{minipage}
+
+\vspace{1cm}
+
+\begin{minipage}{0.9\textwidth}
+    \begin{tabular}{|p{1\textwidth}|} % Use a fixed width instead of \textwidth
+        \hline
+        \normalsize
+        Charge To Cost Center(s) below (if splitting between more than one Cost Center, use Cost Center \#2 field):\\
+        \small
+\begin{tabular}{l c l c}
+    PS SpeedType (Cost Center) \#1 & Amount\hspace{3cm} & PS SpeedType (Cost Center)\hspace{-0.3cm} \#2 & Amount \\
+    \begin{minipage}{0.22\textwidth}
+        \begin{tabular}{|p{\textwidth}|}
+            \hline
+            {{COST_CENTER_1}}\\ % Empty space inside the table
+            \hline
+        \end{tabular}
+    \end{minipage} &
+    \hspace{-2.3cm}
+    \begin{minipage}{0.1\textwidth}
+        \begin{tabular}{|p{\textwidth}|}
+            \hline
+            {{AMOUNT_1}}\\ % Empty space inside the table
+            \hline
+        \end{tabular}
+    \end{minipage} &
+    \begin{minipage}{0.21\textwidth}
+        \begin{tabular}{|p{\textwidth}|}
+            \hline
+            {{COST_CENTER_2}}\\ % Empty space inside the table
+            \hline
+        \end{tabular}
+    \end{minipage} &
+    \hspace{0.8cm}
+    \begin{minipage}{0.1\textwidth}
+        \begin{tabular}{|p{\textwidth}|}
+            \hline
+            {{AMOUNT_2}}\\ % Empty space inside the table
+            \hline
+        \end{tabular}
+    \end{minipage}
+\end{tabular}
+        \begin{minipage}{0.18\textwidth}
+            \vspace{0.4cm} % Adjust this value to move text higher
+            \small
+            Total Reimbursement:\\ % First line
+        \end{minipage}%
+        \begin{minipage}{0.23\textwidth}
+            \vspace{0.3cm}
+            \begin{tabular}{|p{\textwidth}|}
+                \hline
+                {{TOTAL_REIMBURSEMENT}}\\ % Empty space inside the table
+                \hline
+        \end{tabular}
+\end{minipage}
+        \\
+        \\
+    \hline
+    \end{tabular}
+\end{minipage}
+
+
+\vspace{1cm}
+Attach Receipts
+
+\vspace{0.5cm}
+\begin{tabular}{l l}
+    \makebox[2.2in]{\hrulefill}\hspace{2cm} & \makebox[1.5in]{\hrulefill}\hspace{5cm} \\
+    \large Payee Signature & \large Date \\ % Aligned within table columns
+    \makebox[2.5in]{\hrulefill} &  \makebox[1.5in]{\hrulefill} \\
+    \large Supervisor Approval Signature & \large Date \\ % Aligned within table columns
+\end{tabular}
+
+\end{document}
