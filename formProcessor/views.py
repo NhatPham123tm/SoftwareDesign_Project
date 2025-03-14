@@ -1,14 +1,14 @@
 import os
 import subprocess
 from django.shortcuts import render
-from django.http import FileResponse
-from .forms import PDFForm
+from django.http import FileResponse, HttpResponse
+from .forms import RimburseForm, PayrollForm
 # For testing need improvement
 def generate_reimburse_pdf(request):
     LATEX_TEMPLATE_PATH = "latexform/reimburse.tex"
     OUTPUT_PDF_PATH = "output/filled_template.pdf"
     if request.method == 'POST':
-        form = PDFForm(request.POST)
+        form = RimburseForm(request.POST)
         if form.is_valid():
             # Extract form data
             name = form.cleaned_data['name']
@@ -44,11 +44,48 @@ def generate_reimburse_pdf(request):
                 file.write(tex_content)
 
             # Run Makefile to generate PDF
-            subprocess.run(["make", "pdf"], check=True)
+            try:
+                subprocess.run(["make", "pdf"], check=True)
+            except subprocess.CalledProcessError as e:
+                return HttpResponse(f"Error generating PDF: {e}", status=500)
 
             # Serve PDF as response
             return FileResponse(open(OUTPUT_PDF_PATH, "rb"), content_type="application/pdf")
 
     else:
-        form = PDFForm()
+        form = RimburseForm()
+    return render(request, 'form.html', {'form': form})
+
+def generate_payroll_pdf(request):
+    LATEX_TEMPLATE_PATH = "latexform/payroll-assignment.tex"
+    OUTPUT_PDF_PATH = "output/filled_template.pdf"
+    if request.method == 'POST':
+        form = PayrollForm(request.POST)
+        if form.is_valid():
+            # Extract form data
+            context = {key.upper(): value for key, value in form.cleaned_data.items()}
+
+            # Read LaTeX template
+            with open(LATEX_TEMPLATE_PATH, "r") as file:
+                tex_content = file.read()
+
+            # Replace placeholders with user input
+            for placeholder, value in context.items():
+                tex_content = tex_content.replace(f"{{{{{placeholder}}}}}", str(value))
+
+            # Save modified LaTeX file
+            filled_tex_path = "output/filled_template.tex"
+            with open(filled_tex_path, "w") as file:
+                file.write(tex_content)
+
+            # Run Makefile to generate PDF
+            try:
+                subprocess.run(["make", "pdf"], check=True)
+            except subprocess.CalledProcessError as e:
+                return HttpResponse(f"Error generating PDF: {e}", status=500)
+
+            return FileResponse(open(OUTPUT_PDF_PATH, "rb"), content_type="application/pdf")
+
+    else:
+        form = PayrollForm()
     return render(request, 'form.html', {'form': form})

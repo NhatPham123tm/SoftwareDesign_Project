@@ -4,7 +4,7 @@ from authentication.views import home  # Import the home view
 from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data
 from authentication import views
 from django.contrib.auth import views as auth_views
-from formProcessor.views import generate_reimburse_pdf
+from formProcessor.views import generate_reimburse_pdf, generate_payroll_pdf
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,4 +26,5 @@ urlpatterns = [
     path('suspend/', suspend, name='suspend'),
     path("api/microsoft-login/", get_auth_data, name="microsoft-login-json"),
     path('generate_reimburse_pdf/', generate_reimburse_pdf, name='generate_pdf'),
+    path('generate_payroll_pdf/', generate_payroll_pdf, name='generate_payroll_pdf'),
 ]
