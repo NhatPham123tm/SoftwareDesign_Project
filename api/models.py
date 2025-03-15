@@ -144,3 +144,33 @@ class PositionInformation(models.Model):
     def __str__(self):
         return f"Position for {self.payroll_assignment.id} {self.payroll_assignment.employee_name}"
 
+class ReimbursementRequest(models.Model):
+    FORM_STATUS = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+        ('Cancelled', 'Cancelled'),
+    ]
+
+    user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
+    employee_name = models.CharField(max_length=100)
+    employee_id = models.CharField(max_length=50)
+    today_date = models.DateField()
+    reimbursement_items = models.TextField()  # List of expenses
+    purpose = models.TextField()
+    meal_info = models.TextField(blank=True, null=True)
+    
+    # Cost Center Information
+    cost_center_1 = models.CharField(max_length=50)
+    amount_1 = models.DecimalField(max_digits=10, decimal_places=2)
+    cost_center_2 = models.CharField(max_length=50, blank=True, null=True)
+    amount_2 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    total_reimbursement = models.DecimalField(max_digits=10, decimal_places=2)
+
+    # Approval Process
+    status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
+    signature_url = models.URLField(blank=True, null=True)
+    approve_date = models.DateField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.id} ({self.employee_name}) - {self.status}"
