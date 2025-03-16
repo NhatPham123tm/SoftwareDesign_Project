@@ -4,7 +4,7 @@ from authentication.views import home  # Import the home view
 from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data
 from authentication import views
 from django.contrib.auth import views as auth_views
-from formProcessor.views import generate_reimburse_pdf, generate_payroll_pdf
+from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_pdf, generate_payroll_pdf
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +25,13 @@ urlpatterns = [
     path('api/get_userLoad/', get_userLoad, name='get_userLoad'),
     path('suspend/', suspend, name='suspend'),
     path("api/microsoft-login/", get_auth_data, name="microsoft-login-json"),
-    path('generate_reimburse_pdf/', generate_reimburse_pdf, name='generate_pdf'),
+    # for testing
     path('generate_payroll_pdf/', generate_payroll_pdf, name='generate_payroll_pdf'),
+    # still developing
+    path('reimbursement/step1/', reimbursement_step1, name='reimbursement_step1'),
+    path('reimbursement/step2/<int:reimbursement_id>/', reimbursement_step2, name='reimbursement_step2'),
+    path('reimbursement/step3/<int:reimbursement_id>/', reimbursement_step3, name='reimbursement_step3'),
+    path('generate_reimbursement_pdf/<int:reimbursement_id>/', generate_reimbursement_pdf, name='generate_reimbursement_pdf'),
+    path('reimbursement/delete/<int:reimbursement_id>/', delete_reimbursement, name='delete_reimbursement'),
+    path('view_pdf/', view_pdf, name='view_pdf'),
 ]
