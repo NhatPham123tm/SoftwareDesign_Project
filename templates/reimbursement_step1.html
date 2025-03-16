@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reimbursement - Step 1</title>
+</head>
+<body>
+    <h2>Step 1: Employee Info</h2>
+    
+    <form id="reimbursement-form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="hidden" id="user_id" name="user_id">
+        <button type="submit">Next Step →</button>
+        <a href="{% url 'dashboard' %}">Return to dashboard</a>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let userId = localStorage.getItem("user_id");
+            if (userId) {
+                document.getElementById("user_id").value = userId;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reimbursement - Step 2</title>
+</head>
+<body>
+    <h2>Step 2: Expense Details</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Next Step →</button>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Redirect to step 1 if no form exists
+            let reimbursementExists = JSON.parse(document.getElementById("reimbursement-data").textContent);
+            if (!reimbursementExists) {
+                window.location.href = "{% url 'reimbursement_step1' %}";
+            }
+        });
+    </script>
+
+    <a href="{% url 'reimbursement_step1' %}">Back to step 1</a>
+    <a href="{% url 'dashboard' %}">Return to dashboard</a>
+</body>
+</html>
