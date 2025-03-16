@@ -3,8 +3,12 @@
 \usepackage{array}
 \usepackage{hhline}
 \usepackage{geometry}
+\usepackage{graphicx}
 \geometry{a4paper, margin=0.2in}
 \usepackage[sfdefault]{roboto}
+\graphicspath{ {./static/signature/} }
+\hbadness=10000  % suppress underfull hbox warnings
+\hfuzz=20pt      % allow overfull boxes up to 20pt without warning
 \begin{document}
 
 \centering
@@ -19,7 +23,7 @@ Charges to University of Houston Funds must be reasonable and allowable. Accordi
 \vspace{1cm}
 \begin{tabular}{ll}
     \small
-    Name: & \makebox[0.2in]{\hrulefill} \normalsize {{NAME}} \makebox[1in]{\hrulefill} \hspace{4cm} \small Empl ID: \makebox[0.2in]{\hrulefill } \normalsize {{EMPL_ID}} \makebox[1in]{\hrulefill } \\
+    Name: & \makebox[0.2in]{\hrulefill} \normalsize {{EMPLOYEE\_NAME}} \makebox[1in]{\hrulefill} \hspace{4cm} \small Empl ID: \makebox[0.2in]{\hrulefill } \normalsize {{EMPLOYEE\_ID}} \makebox[1in]{\hrulefill } \\
 \end{tabular}
 
 \vspace{1cm}
@@ -34,7 +38,7 @@ Charges to University of Houston Funds must be reasonable and allowable. Accordi
 \begin{minipage}{0.7\textwidth}
     \begin{tabular}{|p{\textwidth}|}
         \hline
-        \normalsize {{REIMBURSEMENT_ITEMS}}\\ % Empty space inside the table
+        \normalsize {{REIMBURSEMENT\_ITEMS}}\\ % Empty space inside the table
         \\
         \\
         \hline
@@ -74,7 +78,7 @@ Charges to University of Houston Funds must be reasonable and allowable. Accordi
 \begin{minipage}{0.7\textwidth}
     \begin{tabular}{|p{\textwidth}|}
         \hline
-        \normalsize {{MEAL_INFO}}\\ % Empty space inside the table
+        \normalsize {{MEAL\_INFO}}\\ % Empty space inside the table
         \\
         \\
         \hline
@@ -94,7 +98,7 @@ Charges to University of Houston Funds must be reasonable and allowable. Accordi
     \begin{minipage}{0.22\textwidth}
         \begin{tabular}{|p{\textwidth}|}
             \hline
-            {{COST_CENTER_1}}\\ % Empty space inside the table
+            {{COST\_CENTER\_1}}\\ % Empty space inside the table
             \hline
         \end{tabular}
     \end{minipage} &
@@ -102,14 +106,14 @@ Charges to University of Houston Funds must be reasonable and allowable. Accordi
     \begin{minipage}{0.1\textwidth}
         \begin{tabular}{|p{\textwidth}|}
             \hline
-            {{AMOUNT_1}}\\ % Empty space inside the table
+            {{AMOUNT\_1}}\\ % Empty space inside the table
             \hline
         \end{tabular}
     \end{minipage} &
     \begin{minipage}{0.21\textwidth}
         \begin{tabular}{|p{\textwidth}|}
             \hline
-            {{COST_CENTER_2}}\\ % Empty space inside the table
+            {{COST\_CENTER\_2}}\\ % Empty space inside the table
             \hline
         \end{tabular}
     \end{minipage} &
@@ -117,7 +121,7 @@ Charges to University of Houston Funds must be reasonable and allowable. Accordi
     \begin{minipage}{0.1\textwidth}
         \begin{tabular}{|p{\textwidth}|}
             \hline
-            {{AMOUNT_2}}\\ % Empty space inside the table
+            {{AMOUNT\_2}}\\ % Empty space inside the table
             \hline
         \end{tabular}
     \end{minipage}
@@ -131,7 +135,7 @@ Charges to University of Houston Funds must be reasonable and allowable. Accordi
             \vspace{0.3cm}
             \begin{tabular}{|p{\textwidth}|}
                 \hline
-                {{TOTAL_REIMBURSEMENT}}\\ % Empty space inside the table
+                {{TOTAL\_REIMBURSEMENT}}\\ % Empty space inside the table
                 \hline
         \end{tabular}
 \end{minipage}
@@ -147,7 +151,7 @@ Attach Receipts
 
 \vspace{0.5cm}
 \begin{tabular}{l l}
-    \makebox[2.2in]{\hrulefill}\hspace{2cm} & \makebox[1.5in]{\hrulefill}\hspace{5cm} \\
+    \makebox[1.0in]{\hrulefill}\includegraphics[width=5cm, keepaspectratio]{signature}\makebox[1.0in]{\hrulefill}\hspace{2cm} & \makebox[0.5in]{\hrulefill}\normalsize {{APPROVE\_DATE}}\makebox[0.5in]{\hrulefill}\hspace{5cm}\\
     \large Payee Signature & \large Date \\ % Aligned within table columns
     \makebox[2.5in]{\hrulefill} &  \makebox[1.5in]{\hrulefill} \\
     \large Supervisor Approval Signature & \large Date \\ % Aligned within table columns
