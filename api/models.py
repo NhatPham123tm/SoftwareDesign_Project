@@ -146,31 +146,52 @@ class PositionInformation(models.Model):
 
 class ReimbursementRequest(models.Model):
     FORM_STATUS = [
+        ('Draft', 'Draft'),
         ('Pending', 'Pending'),
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
         ('Cancelled', 'Cancelled'),
     ]
-
+    
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
-    employee_name = models.CharField(max_length=100)
-    employee_id = models.CharField(max_length=50)
-    today_date = models.DateField()
-    reimbursement_items = models.TextField()  # List of expenses
-    purpose = models.TextField()
+    employee_name = models.CharField(max_length=100, blank=True, null=True)
+    employee_id = models.CharField(max_length=50, blank=True, null=True)
+    today_date = models.DateField(blank=True, null=True)
+    reimbursement_items = models.TextField(blank=True, null=True)
+    purpose = models.TextField(blank=True, null=True)
     meal_info = models.TextField(blank=True, null=True)
     
     # Cost Center Information
-    cost_center_1 = models.CharField(max_length=50)
-    amount_1 = models.DecimalField(max_digits=10, decimal_places=2)
+    cost_center_1 = models.CharField(max_length=50, blank=True, null=True)
+    amount_1 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     cost_center_2 = models.CharField(max_length=50, blank=True, null=True)
     amount_2 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    total_reimbursement = models.DecimalField(max_digits=10, decimal_places=2)
+    total_reimbursement = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     # Approval Process
-    status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
+    status = models.CharField(max_length=20, choices=FORM_STATUS, default='Draft')
     signature_url = models.URLField(blank=True, null=True)
     approve_date = models.DateField(blank=True, null=True)
+    pdf_url = models.URLField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'], condition=models.Q(status="Pending"),
+                name='unique_pending_reimbursement_per_user'
+            )
+        ]
 
     def __str__(self):
-        return f"{self.id} ({self.employee_name}) - {self.status}"
+        return f"Reimbursement {self.id} - {self.status}"
+
+    def clean(self):
+        """ Ensure only one 'Pending' form per user """
+        if self.status == "Pending":
+            existing_pending = ReimbursementRequest.objects.filter(user=self.user, status="Pending").exclude(id=self.id)
+            if existing_pending.exists():
+                raise ValidationError("You can only have one pending reimbursement request at a time.")
+
+    def save(self, *args, **kwargs):
+        self.clean()  # Enforce constraint before saving
+        super().save(*args, **kwargs)
