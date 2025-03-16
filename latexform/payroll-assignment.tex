@@ -7,7 +7,7 @@
 \PassOptionsToPackage{pdfencoding=auto,unicode}{hyperref}
 \usepackage{hyperref}
 \usepackage{array}
-\def\selectedEducation{{{education_level}}}
+
 \newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
 
 \hypersetup{
@@ -53,11 +53,12 @@
 \vspace{-0.6cm}
 \begin{tcolorbox}[standard jigsaw, opacityback=0]
     \begin{Form}
-        \textbf{Employee Name:} \TextField[name=emp_name, width=5cm, value= {{EMP_NAME}}]{} 
-        \hspace{0.3cm} \textbf{EmpID:} \TextField[name=emp_id, width=3cm, value = {{EMP_ID}}]{}
-        \hspace{0.3cm} \textbf{Today’s Date:} \TextField[name=today_date, width=3cm, value = {{TODAY_DATE}}]{}
+        \textbf{Employee Name:} \TextField[name=emp_name, width=5cm, value= {{EMPLOYEE\_NAME}}]{} 
+        \hspace{0.3cm} \textbf{EmpID:} \TextField[name=emp_id, width=3cm, value = {{EMPLOYEE\_ID}}]{}
+        \hspace{0.3cm} \textbf{Today’s Date:} \TextField[name=today_date, width=3cm, value = {{TODAYS\_DATE}}]{}
 
         \vspace{0.2cm}
+        \def\selectedEducation{{{education\_level}}}
         {Check one:}%
         \hspace{2cm}\ChoiceMenu[radio,radiosymbol=\ding{52},name=education, default=\selectedEducation]{}{Undergraduate=Undergraduate}
         \ChoiceMenu[radio,radiosymbol=\ding{52},name=education, default=\selectedEducation]{}{Graduate=Graduate}
@@ -74,7 +75,7 @@
     \begin{Form}
 
     {}%
-    \def\selectedAction{{{requested_action}}}
+    \def\selectedAction{{{REQUESTED\_ACTION}}}
     \ChoiceMenu[radio,radiosymbol=\ding{52},name=action, default=\selectedAction]{}{New Hire = newHire}
     \hspace{4cm}\ChoiceMenu[radio,radiosymbol=\ding{52},name=action, default=\selectedAction]{}{Rehire/Transfer= rehireTransfer}
     \hspace{4cm}\ChoiceMenu[radio,radiosymbol=\ding{52},name=action, default=\selectedAction]{}{Payroll Change = payrollChange} 
@@ -103,23 +104,23 @@
 monthly or
 hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 FTE & PCN\\ 
 \hline
- \TextField[name=start1, width=1.5cm, value = {{START_DATE1}}]{}& \TextField[name=end1, width=1.5cm, value = {{END_DATE1}}]{} & \TextField[name=sal1, width=2cm, value = {{SALARY1}}]{} \scriptsize Month/hour & \TextField[name=fte1, width=0.88cm, value = {{FTE1}}]{} & \TextField[name=speed1, width=2.45cm, value = {{SPEED_TYPE1}}]{} & \TextField[name=bud1, width=0.96cm, value = {{BUDGET_PERCENT1}}]{} & \TextField[name=pos1, width=2.19cm, value = {{POSITION_TITLE1}}]{} & {}%
- \def\selectedBenefit1{{{Benefit1}}}
+ \TextField[name=start1, width=1.5cm, value = {{START\_DATE}}]{}& \TextField[name=end1, width=1.5cm, value = {{END\_DATE}}]{} & \TextField[name=sal1, width=2cm, value = {{SALARY\_VALUE}}]{} \scriptsize Month/hour & \TextField[name=fte1, width=0.88cm, value = {{FTE}}]{} & \TextField[name=speed1, width=2.45cm, value = {{SPEED\_TYPE}}]{} & \TextField[name=bud1, width=0.96cm, value = {{BUDGET\_PERCENTAGE}}]{} & \TextField[name=pos1, width=2.19cm, value = {{POSITION\_TITLE}}]{} & {}%
+ \def\selectedBenefit1{{{BENEFIT\_TYPE}}}
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit1]{}{\scriptsize Eligible    = eligible}
  
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit1]{}{\scriptsize No-Eligible= no_eligible}
  
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit1]{}{\scriptsize Insurance  = insurance}
- & \TextField[name=s_fte1, width=0.8cm, value = {{FTE1}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN1}}]{} \\ 
+ & \TextField[name=s_fte1, width=0.8cm, value = {{FTE}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN}}]{} \\ 
 \hline
- \TextField[name=start2, width=1.5cm, value = {{START_DATE2}}]{} & \TextField[name=end2, width=1.5cm, value = {{END_DATE2}}]{} & \TextField[name=sal2, width=2cm, value = {{SALARY2}}]{} \scriptsize Month/hour & \TextField[name=fte2, width=0.8cm, value = {{FTE2}}]{}  & \TextField[name=speed1, width=2.45cm, value = {{SPEED_TYPE2}}]{} & \TextField[name=bud2, width=0.96cm, value = {{BUDGET_PERCENT1}}]{} & \TextField[name=pos2, width=2.19cm, value = {{POSITION_TITLE1}}]{} & {}%
- \def\selectedBenefit2{{{Benefit2}}}
+ \TextField[name=start2, width=1.5cm, value = {{START\_DATE}}]{} & \TextField[name=end2, width=1.5cm, value = {{END\_DATE}}]{} & \TextField[name=sal2, width=2cm, value = {{SALARY\_VALUE}}]{} \scriptsize Month/hour & \TextField[name=fte2, width=0.8cm, value = {{FTE}}]{}  & \TextField[name=speed1, width=2.45cm, value = {{SPEED\_TYPE}}]{} & \TextField[name=bud2, width=0.96cm, value = {{BUDGET\_PERCENTAGE}}]{} & \TextField[name=pos2, width=2.19cm, value = {{POSITION\_TITLE}}]{} & {}%
+ \def\selectedBenefit2{{{BENEFIT\_TYPE}}}
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit2]{}{\scriptsize Eligible    = eligible}
  
- \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit2]{}{\scriptsize No-Eligible= no_eligible}
+ \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit2]{}{\scriptsize No-Eligible= no\_eligible}
  
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit2]{}{\scriptsize Insurance  = insurance} 
- & \TextField[name=s_fte2, width=0.8cm, value = {{FTE1}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN1}}]{} \\
+ & \TextField[name=s_fte2, width=0.8cm, value = {{FTE}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN}}]{} \\
 \hline
 
 \end{tabular}
@@ -134,8 +135,8 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
     
     \begin{Form}
         \vspace{0.1cm}
-        \textbf{Job Title} \TextField[name=jobTitle, width=9cm, value = {{JOB_TITLE}}]{} 
-        \hspace{0.3cm} \textbf{Position Number} \TextField[name= positionNumber, width=5cm, value = {{POSITION_NUMBER}}]{}
+        \textbf{Job Title} \TextField[name=jobTitle, width=9cm, value = {{JOB\_TITLE}}]{} 
+        \hspace{0.3cm} \textbf{Position Number} \TextField[name= positionNumber, width=5cm, value = {{POSITION\_NUMBER}}]{}
     \end{Form}
 \end{tcolorbox}
 \vspace{-0.2cm}
@@ -148,17 +149,17 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
             Termination Clearance with DBA.
             
             \normalsize
-            Last date of work: \TextField[name=ter_date, width=4cm, value = {{TERMINATION_DATE}}]{}\vspace{0.2cm}
+            Last date of work: \TextField[name=ter_date, width=4cm, value = {{TERMINATION\_DATE}}]{}\vspace{0.2cm}
 
-            Reason for termination: \TextField[name=ter_reason, width=5.5cm, value = {{TERMINATION_REASON}}]{}\vspace{0.3cm}
+            Reason for termination: \TextField[name=ter_reason, width=5.5cm, value = {{TERMINATION\_REASON}}]{}\vspace{0.3cm}
 
-            \CheckBox[name=action2]{} Budget Change:\hspace{0.2cm} Effective Date \TextField[name=buDate, width=3cm, value = {{EFFECTIVE_DATE1}}]{}\vspace{0.2cm}
+            \CheckBox[name=action2]{} Budget Change:\hspace{0.2cm} Effective Date \TextField[name=buDate, width=3cm, value = {{BUDGET\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
 
-            From Speed Type: \TextField[name=bufrom_speed, width=1.7cm, value = {{FROM_SPEED1}}]{} To Speed Type: \TextField[name=buto_speed, width=1.7cm, value = {{TO_SPEED1}}]{}\vspace{0.3cm}
+            From Speed Type: \TextField[name=bufrom_speed, width=1.7cm, value = {{FROM\_SPEED\_TYPE}}]{} To Speed Type: \TextField[name=buto_speed, width=1.7cm, value = {{TO\_SPEED\_TYPE}}]{}\vspace{0.3cm}
 
-            \CheckBox[name=action3]{} FTE Change:\hspace{0.2cm} Effective Date: \TextField[name=fteDate, width=3cm, value = {{EFFECTIVE_DATE2}}]{}\vspace{0.2cm}
+            \CheckBox[name=action3]{} FTE Change:\hspace{0.2cm} Effective Date: \TextField[name=fteDate, width=3cm, value = {{FTE\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
 
-            From \TextField[name=fteFrom, width=3cm, value = {{FTEFROM}}]{} \% \hspace{0.1cm} To \TextField[name=fteTo, width=3cm, value = {{FTETO}}]{} \% 
+            From \TextField[name=fteFrom, width=3cm, value = {{FROM\_FTE}}]{} \% \hspace{0.1cm} To \TextField[name=fteTo, width=3cm, value = {{to\_fte}}]{} \% 
         \end{Form}
     \end{tcolorbox}
 \end{minipage}
@@ -168,14 +169,14 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
         \begin{Form}
             \vspace{-0.1cm}
             \CheckBox[name=action4]{} Pay Rate Change:
-            \hspace{0.5cm}Effective Date \TextField[name=payDate, width=2.5cm, value = {{EFFECTIVE_DATE3}}]{}\vspace{0.2cm}
+            \hspace{0.5cm}Effective Date \TextField[name=payDate, width=2.5cm, value = {{PAY\_RATE\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
             
-            Current Rate \$ \TextField[name=cur_rate, width=1cm, value = {{CURRENT_RATE}}]{}mo/hr\hspace{0.3cm}New Pay Rate \$ \TextField[name=new_rate, width=1cm, value = {{NEW_RATE}}]{}mo/hr
+            Current Rate \$ \TextField[name=cur_rate, width=1cm, value = {{CURRENT\_RATE}}]{}mo/hr\hspace{0.3cm}New Pay Rate \$ \TextField[name=new_rate, width=1cm, value = {{NEW\_PAY\_RATE}}]{}mo/hr
             \vspace{0.1cm}
 
-            \CheckBox[name=action5]{} Reallocation: \hspace{0.5cm} Dates: \TextField[name=reDate, width=2.5cm, value = {{RE_DATE}}]{}\vspace{0.2cm}
+            \CheckBox[name=action5]{} Reallocation: \hspace{0.5cm} Dates: \TextField[name=reDate, width=2.5cm, value = {{REALLOCATION\_DATES}}]{}\vspace{0.2cm}
 
-            From Speed Type: \TextField[name=refrom_speed, width=1.7cm, value = {{FROM_SPEED2}}]{} To Speed Type: \TextField[name=reto_speed, width=1.7cm, value = {{TO_SPEED2}}]{}\vspace{0.3cm}
+            From Speed Type: \TextField[name=refrom_speed, width=1.7cm, value = {{REALLOCATION\_FROM\_POSITION}}]{} To Speed Type: \TextField[name=reto_speed, width=1.7cm, value = {{REALLOCATION\_TO\_POSITION}}]{}\vspace{0.3cm}
 
             \CheckBox[name=action6]{} Other (specify): \vspace{0.1cm}
             
@@ -189,7 +190,7 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
 
 \begin{Form}
     Supervisor/Hiring Authority:
-    \hspace{6cm}Date: \TextField[name= approved_date, width=4cm, value = {{SIGN_DATE}}]{}
+    \hspace{6cm}Date: \TextField[name= approved_date, width=4cm, value = {{APPROVE\_DATE}}]{}
 \end{Form}
 
 \includegraphics[width=10cm, height=2.5cm]{signature}

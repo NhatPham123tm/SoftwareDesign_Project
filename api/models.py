@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.exceptions import ValidationError
-
+from django.utils.timezone import now
 class roles(models.Model):
     role_name = models.CharField(max_length=30, unique=True)
 
@@ -64,6 +64,7 @@ class PayrollAssignment(models.Model):
         ('Payroll Change', 'Payroll Change'),
     ]
     FORM_STATUS = [
+        ('Draft', 'Draft'),
         ('Pending', 'Pending'),
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
@@ -79,7 +80,10 @@ class PayrollAssignment(models.Model):
 
     job_title = models.CharField(max_length=100, blank=True, null=True)
     position_number = models.CharField(max_length=50, blank=True, null=True)
-    
+
+    # Track number of positions (new field)
+    number_of_positions = models.PositiveIntegerField(default=1)
+
     # Termination 
     termination_date = models.DateField(blank=True, null=True)
     termination_reason = models.TextField(blank=True, null=True)
@@ -91,13 +95,13 @@ class PayrollAssignment(models.Model):
     
     # FTE change 
     fte_change_effective_date = models.DateField(blank=True, null=True)
-    from_fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    to_fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    from_fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, default=0.00)
+    to_fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, default=0.00)
     
     # Pay rate change 
     pay_rate_change_effective_date = models.DateField(blank=True, null=True)
-    current_rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    new_pay_rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    current_rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, default=0.00)
+    new_pay_rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, default=0.00)
     pay_rate_change_reason = models.TextField(blank=True, null=True)
     
     # Reallocation 
@@ -106,21 +110,21 @@ class PayrollAssignment(models.Model):
     reallocation_to_position = models.CharField(max_length=50, blank=True, null=True)
     
     # Other payroll change
-    other_specification = models.TextField(blank=True, null=True)
+    other_specification = models.TextField(blank=True, null=True)  # Fixed spelling
 
     # Verification
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
     signature_url = models.URLField(blank=True, null=True)
     approve_date = models.DateField(blank=True, null=True)
-    
+    pdf_url = models.URLField(blank=True, null=True)  # Added missing field for PDF storage
+
     def __str__(self):
         return f"{self.id} ({self.employee_name})"
 
-
 class PositionInformation(models.Model):
-    BENEFITS_TYPE_CHOICES = [
+    BENEFIT_TYPE_CHOICES = [
         ('Benefits Eligible', 'Benefits Eligible'),
-        ('NonBenefits Eligible', 'NonBenefits Eligible'),
+        ('Non-Benefits Eligible', 'Non-Benefits Eligible'),
         ('Insurance Only', 'Insurance Only'),
     ]
     SALARY_UNIT_CHOICES = [
@@ -131,19 +135,17 @@ class PositionInformation(models.Model):
     payroll_assignment = models.ForeignKey(
         PayrollAssignment, on_delete=models.CASCADE, related_name='positions'
     )
-    start_date = models.DateField()
+    start_date = models.DateField(default=now)
     end_date = models.DateField(blank=True, null=True)
-    salary_value = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    salary_value = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, default=0.00)
     salary_unit = models.CharField(max_length=20, choices=SALARY_UNIT_CHOICES, blank=True, null=True)
-    fte = models.DecimalField(max_digits=5, decimal_places=2,blank=True, null=True)
+    fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, default=0.00)
     speed_type = models.CharField(max_length=50, blank=True, null=True)
-    budget_percentage = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    budget_percentage = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, default=0.00)
     position_title = models.CharField(max_length=100, blank=True, null=True)
-    benefits_type = models.CharField(max_length=30, choices=BENEFITS_TYPE_CHOICES, blank=True, null=True)
+    benefit_type = models.CharField(max_length=30, choices=BENEFIT_TYPE_CHOICES, blank=True, null=True)  # Fixed field name
     pcn = models.CharField(max_length=50, blank=True, null=True)
-    
-    def __str__(self):
-        return f"Position for {self.payroll_assignment.id} {self.payroll_assignment.employee_name}"
+
 
 class ReimbursementRequest(models.Model):
     FORM_STATUS = [

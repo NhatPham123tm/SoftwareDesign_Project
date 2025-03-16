@@ -1,5 +1,5 @@
 from django import forms
-from api.models import ReimbursementRequest
+from api.models import ReimbursementRequest, PositionInformation, PayrollAssignment
 
 class RimburseForm(forms.Form):
     name = forms.CharField(max_length=100)
@@ -86,3 +86,75 @@ class ReimbursementStep3Form(forms.ModelForm):
     class Meta:
         model = ReimbursementRequest
         fields = ['cost_center_1', 'amount_1', 'cost_center_2', 'amount_2', 'total_reimbursement']
+
+## Payroll form
+# Step 1: Employee Information
+class PayrollStep1Form(forms.ModelForm):
+    class Meta:
+        model = PayrollAssignment
+        fields = ['employee_name', 'employee_id', 'todays_date', 'education_level', 'requested_action']
+
+# Step 2: Job Information
+class PayrollStep2Form(forms.ModelForm):
+    class Meta:
+        model = PayrollAssignment
+        fields = ['job_title', 'position_number']
+
+# Step 3: Budget Change
+class PayrollStep3Form(forms.ModelForm):
+    class Meta:
+        model = PayrollAssignment
+        fields = ['budget_change_effective_date', 'from_speed_type', 'to_speed_type']
+
+# Step 4: FTE Change
+class PayrollStep4Form(forms.ModelForm):
+    class Meta:
+        model = PayrollAssignment
+        fields = ['fte_change_effective_date', 'from_fte', 'to_fte']
+
+# Step 5: Pay Rate Change
+class PayrollStep5Form(forms.ModelForm):
+    class Meta:
+        model = PayrollAssignment
+        fields = ['pay_rate_change_effective_date', 'current_rate', 'new_pay_rate', 'pay_rate_change_reason']
+
+# Step 6: Reallocation
+class PayrollStep6Form(forms.ModelForm):
+    class Meta:
+        model = PayrollAssignment
+        fields = ['reallocation_dates', 'reallocation_from_position', 'reallocation_to_position', 'other_specification']
+
+# Step 7: First Position Basic Information
+class PayrollStep7Form(forms.ModelForm):
+    class Meta:
+        model = PositionInformation
+        fields = ['start_date', 'end_date', 'salary_value', 'salary_unit']
+    
+    def clean_start_date(self):
+        start_date = self.cleaned_data.get('start_date')
+        if not start_date:
+            raise forms.ValidationError("Start date is required.")
+        return start_date
+
+# Step 8: First Position Details
+class PayrollStep8Form(forms.ModelForm):
+    class Meta:
+        model = PositionInformation
+        fields = ['fte', 'speed_type', 'budget_percentage', 'position_title', 'benefit_type', 'pcn']
+
+# Step 9: Second Position (Optional)
+class PayrollStep9Form(forms.ModelForm):
+    class Meta:
+        model = PositionInformation
+        fields = ['start_date', 'end_date', 'salary_value', 'salary_unit']
+
+# Step 10: Second Position Details (Optional)
+class PayrollStep10Form(forms.ModelForm):
+    class Meta:
+        model = PositionInformation
+        fields = ['fte', 'speed_type', 'budget_percentage', 'position_title', 'benefit_type', 'pcn']
+
+class PayrollVeritificationStepForm(forms.ModelForm):
+    class Meta:
+        model = PayrollAssignment
+        fields = ['status', 'signature_url', 'approve_date']
