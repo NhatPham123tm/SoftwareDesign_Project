@@ -1,4 +1,5 @@
 from django import forms
+from api.models import ReimbursementRequest
 
 class RimburseForm(forms.Form):
     name = forms.CharField(max_length=100)
@@ -63,3 +64,25 @@ class PayrollForm(forms.Form):
     OTHER = forms.CharField(max_length=100)
 
     SIGN_DATE = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), required=False)
+
+# Implement with database model
+class ReimbursementForm(forms.ModelForm):
+    class Meta:
+        model = ReimbursementRequest
+        exclude = ['status', 'signature_url', 'approve_date']
+
+# Implement with database model
+class ReimbursementStep1Form(forms.ModelForm):
+    class Meta:
+        model = ReimbursementRequest
+        fields = ['employee_name', 'employee_id', 'today_date']
+
+class ReimbursementStep2Form(forms.ModelForm):
+    class Meta:
+        model = ReimbursementRequest
+        fields = ['reimbursement_items', 'purpose', 'meal_info']
+
+class ReimbursementStep3Form(forms.ModelForm):
+    class Meta:
+        model = ReimbursementRequest
+        fields = ['cost_center_1', 'amount_1', 'cost_center_2', 'amount_2', 'total_reimbursement']
