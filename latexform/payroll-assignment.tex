@@ -58,7 +58,7 @@
         \hspace{0.3cm} \textbf{Today’s Date:} \TextField[name=today_date, width=3cm, value = {{TODAYS\_DATE}}]{}
 
         \vspace{0.2cm}
-        \def\selectedEducation{{{education\_level}}}
+        \def\selectedEducation{{{EDUCATION\_LEVEL}}}
         {Check one:}%
         \hspace{2cm}\ChoiceMenu[radio,radiosymbol=\ding{52},name=education, default=\selectedEducation]{}{Undergraduate=Undergraduate}
         \ChoiceMenu[radio,radiosymbol=\ding{52},name=education, default=\selectedEducation]{}{Graduate=Graduate}
@@ -104,23 +104,23 @@
 monthly or
 hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 FTE & PCN\\ 
 \hline
- \TextField[name=start1, width=1.5cm, value = {{START\_DATE}}]{}& \TextField[name=end1, width=1.5cm, value = {{END\_DATE}}]{} & \TextField[name=sal1, width=2cm, value = {{SALARY\_VALUE}}]{} \scriptsize Month/hour & \TextField[name=fte1, width=0.88cm, value = {{FTE}}]{} & \TextField[name=speed1, width=2.45cm, value = {{SPEED\_TYPE}}]{} & \TextField[name=bud1, width=0.96cm, value = {{BUDGET\_PERCENTAGE}}]{} & \TextField[name=pos1, width=2.19cm, value = {{POSITION\_TITLE}}]{} & {}%
- \def\selectedBenefit1{{{BENEFIT\_TYPE}}}
+ \TextField[name=start1, width=1.5cm, value = {{START\_DATE1}}]{}& \TextField[name=end1, width=1.5cm, value = {{END\_DATE1}}]{} & \TextField[name=sal1, width=2cm, value = {{SALARY1}}]{} \scriptsize Month/hour & \TextField[name=fte1, width=0.88cm, value = {{FTE1}}]{} & \TextField[name=speed1, width=2.45cm, value = {{SPEED\_TYPE1}}]{} & \TextField[name=bud1, width=0.96cm, value = {{BUDGET\_PERCENTAGE1}}]{} & \TextField[name=pos1, width=2.19cm, value = {{POSITION\_TITLE1}}]{} & {}%
+ \def\selectedBenefit1{{{BENEFIT\_TYPE1}}}
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit1]{}{\scriptsize Eligible    = eligible}
  
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit1]{}{\scriptsize No-Eligible= no_eligible}
  
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit1]{}{\scriptsize Insurance  = insurance}
- & \TextField[name=s_fte1, width=0.8cm, value = {{FTE}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN}}]{} \\ 
+ & \TextField[name=s_fte1, width=0.8cm, value = {{SALARY_FTE1}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN1}}]{} \\ 
 \hline
- \TextField[name=start2, width=1.5cm, value = {{START\_DATE}}]{} & \TextField[name=end2, width=1.5cm, value = {{END\_DATE}}]{} & \TextField[name=sal2, width=2cm, value = {{SALARY\_VALUE}}]{} \scriptsize Month/hour & \TextField[name=fte2, width=0.8cm, value = {{FTE}}]{}  & \TextField[name=speed1, width=2.45cm, value = {{SPEED\_TYPE}}]{} & \TextField[name=bud2, width=0.96cm, value = {{BUDGET\_PERCENTAGE}}]{} & \TextField[name=pos2, width=2.19cm, value = {{POSITION\_TITLE}}]{} & {}%
- \def\selectedBenefit2{{{BENEFIT\_TYPE}}}
+ \TextField[name=start2, width=1.5cm, value = {{START\_DATE2}}]{} & \TextField[name=end2, width=1.5cm, value = {{END\_DATE2}}]{} & \TextField[name=sal2, width=2cm, value = {{SALARY\_VALUE}}]{} \scriptsize Month/hour & \TextField[name=fte2, width=0.8cm, value = {{FTE}}]{}  & \TextField[name=speed1, width=2.45cm, value = {{SPEED\_TYPE2}}]{} & \TextField[name=bud2, width=0.96cm, value = {{BUDGET\_PERCENTAGE2}}]{} & \TextField[name=pos2, width=2.19cm, value = {{POSITION\_TITLE2}}]{} & {}%
+ \def\selectedBenefit2{{{BENEFIT\_TYPE2}}}
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit2]{}{\scriptsize Eligible    = eligible}
  
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit2]{}{\scriptsize No-Eligible= no\_eligible}
  
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit2]{}{\scriptsize Insurance  = insurance} 
- & \TextField[name=s_fte2, width=0.8cm, value = {{FTE}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN}}]{} \\
+ & \TextField[name=s_fte2, width=0.8cm, value = {{SALARY_FTE2}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN2}}]{} \\
 \hline
 
 \end{tabular}
@@ -180,7 +180,7 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
 
             \CheckBox[name=action6]{} Other (specify): \vspace{0.1cm}
             
-            \TextField[name=pay_other, width=9cm, height=0.7cm, value = {{OTHER}}]{}\vspace{0.19cm}
+            \TextField[name=pay_other, width=9cm, height=0.7cm, value = {{OTHER\_SPECTIFICATION}}]{}\vspace{0.19cm}
         \end{Form}
     \end{tcolorbox}
 \end{minipage}
