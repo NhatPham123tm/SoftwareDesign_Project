@@ -5,6 +5,11 @@ from authentication.views import microsoft_callback, dashboard, user_login, regi
 from authentication import views
 from django.contrib.auth import views as auth_views
 from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_pdf, generate_payroll_pdf
+from formProcessor.views import (
+    payroll_step1, payroll_step2, payroll_step3, payroll_step4,
+    payroll_step5, payroll_step6, payroll_step7, payroll_step8,
+    payroll_step9, payroll_step10, payroll_review, delete_payroll, view_payroll_pdf
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,4 +39,19 @@ urlpatterns = [
     path('generate_reimbursement_pdf/<int:reimbursement_id>/', generate_reimbursement_pdf, name='generate_reimbursement_pdf'),
     path('reimbursement/delete/<int:reimbursement_id>/', delete_reimbursement, name='delete_reimbursement'),
     path('view_pdf/', view_pdf, name='view_pdf'),
+    # payroll
+    path('payroll/step1/', payroll_step1, name='payroll_step1'),
+    path('payroll/step2/<int:payroll_id>/', payroll_step2, name='payroll_step2'),
+    path('payroll/step3/<int:payroll_id>/', payroll_step3, name='payroll_step3'),
+    path('payroll/step4/<int:payroll_id>/', payroll_step4, name='payroll_step4'),
+    path('payroll/step5/<int:payroll_id>/', payroll_step5, name='payroll_step5'),
+    path('payroll/step6/<int:payroll_id>/', payroll_step6, name='payroll_step6'),
+    path('payroll/step7/<int:payroll_id>/', payroll_step7, name='payroll_step7'),
+    path('payroll/step8/<int:payroll_id>/', payroll_step8, name='payroll_step8'),
+    path('payroll/step9/<int:payroll_id>/', payroll_step9, name='payroll_step9'),
+    path('payroll/step10/<int:payroll_id>/', payroll_step10, name='payroll_step10'),
+    path('payroll/review/<int:payroll_id>/', payroll_review, name='payroll_review'),
+    path('payroll/delete/<int:payroll_id>/', delete_payroll, name='delete_payroll'),
+    path('view_payroll_pdf/', view_payroll_pdf, name='view_payroll_pdf'),
+
 ]

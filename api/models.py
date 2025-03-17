@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.exceptions import ValidationError
-
+from django.utils.timezone import now
 class roles(models.Model):
     role_name = models.CharField(max_length=30, unique=True)
 
@@ -64,6 +64,7 @@ class PayrollAssignment(models.Model):
         ('Payroll Change', 'Payroll Change'),
     ]
     FORM_STATUS = [
+        ('Draft', 'Draft'),
         ('Pending', 'Pending'),
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
@@ -76,8 +77,16 @@ class PayrollAssignment(models.Model):
     ]
 
     
+    BENEFITS_TYPE_CHOICES = [
+        ('eligible', 'Eligible'),
+        ('no_eligible', 'Not Eligible'),
+        ('insurance', 'Insurance'),
+    ]
+
+    
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
-    form_link = models.URLField(blank=True, null=True)
+
+    pdf_url = models.URLField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
 
     # Employee Information
@@ -96,6 +105,7 @@ class PayrollAssignment(models.Model):
     budget_percentage1 = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     position_title1 = models.CharField(max_length=100, blank=True, null=True)
     benefits_type1 = models.CharField(max_length=30, choices=BENEFITS_TYPE_CHOICES, blank=True, null=True)
+    salary_fte1 = models.CharField(max_length=50, blank=True, null=True)
     pcn1 = models.CharField(max_length=50, blank=True, null=True)
 
     # Position Information 2 (for rehire/transfer)
@@ -107,6 +117,8 @@ class PayrollAssignment(models.Model):
     budget_percentage2 = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     position_title2 = models.CharField(max_length=100, blank=True, null=True)
     benefits_type2 = models.CharField(max_length=30, choices=BENEFITS_TYPE_CHOICES, blank=True, null=True)
+    salary_fte1 = models.CharField(max_length=50, blank=True, null=True)
+
     pcn2 = models.CharField(max_length=50, blank=True, null=True)
 
     # Job Information
@@ -147,7 +159,6 @@ class PayrollAssignment(models.Model):
     
     def __str__(self):
         return f"{self.id} ({self.employee_name})"
-
 
 class ReimbursementRequest(models.Model):
     FORM_STATUS = [

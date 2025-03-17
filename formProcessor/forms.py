@@ -1,6 +1,7 @@
 from django import forms
-from api.models import ReimbursementRequest
+from api.models import ReimbursementRequest, PayrollAssignment
 
+# just for testing not use
 class RimburseForm(forms.Form):
     name = forms.CharField(max_length=100)
     empl_id = forms.CharField(max_length=50)
@@ -12,7 +13,7 @@ class RimburseForm(forms.Form):
     cost_center_2 = forms.CharField(max_length=50, required=False)
     amount_2 = forms.CharField(max_length=20, required=False)
     total_reimbursement = forms.CharField(max_length=20)
-
+# just for testing not use
 class PayrollForm(forms.Form):
     emp_name = forms.CharField(max_length=100)
     emp_id = forms.CharField(max_length=50)
@@ -65,6 +66,7 @@ class PayrollForm(forms.Form):
 
     SIGN_DATE = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), required=False)
 
+# using below
 # Implement with database model
 class ReimbursementForm(forms.ModelForm):
     class Meta:
@@ -86,3 +88,77 @@ class ReimbursementStep3Form(forms.ModelForm):
     class Meta:
         model = ReimbursementRequest
         fields = ['cost_center_1', 'amount_1', 'cost_center_2', 'amount_2', 'total_reimbursement']
+
+## Payroll form
+class PayrollStep1Form(forms.ModelForm):
+    """ Employee Information """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['employee_name', 'employee_id', 'todays_date', 'education_level', 'requested_action']
+
+class PayrollStep2Form(forms.ModelForm):
+    """ Job Information """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['job_title', 'position_number']
+
+
+class PayrollStep3Form(forms.ModelForm):
+    """ Termination Information """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['termination_date', 'termination_reason']
+
+
+class PayrollStep4Form(forms.ModelForm):
+    """ Budget Change """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['budget_change_effective_date', 'from_speed_type', 'to_speed_type']
+
+
+class PayrollStep5Form(forms.ModelForm):
+    """ FTE Change """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['fte_change_effective_date', 'from_fte', 'to_fte']
+
+
+class PayrollStep6Form(forms.ModelForm):
+    """ Pay Rate Change """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['pay_rate_change_effective_date', 'current_rate', 'new_pay_rate', 'pay_rate_change_reason']
+
+
+class PayrollStep7Form(forms.ModelForm):
+    """ Position 1 Information """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['start_date1', 'end_date1', 'salary1', 'fte1', 'speed_type1', 'budget_percentage1', 'position_title1', 'benefits_type1', 'pcn1']
+
+
+class PayrollStep8Form(forms.ModelForm):
+    """ Position 2 Information (for Rehire/Transfer) """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['start_date2', 'end_date2', 'salary2', 'fte2', 'speed_type2', 'budget_percentage2', 'position_title2', 'benefits_type2', 'pcn2']
+
+
+class PayrollStep9Form(forms.ModelForm):
+    """ Reallocation Information """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['reallocation_dates', 'reallocation_from_position', 'reallocation_to_position']
+
+
+class PayrollStep10Form(forms.ModelForm):
+    """ Other Payroll Change """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['other_specification']
+
+class PayrollVeritificationStepForm(forms.ModelForm):
+    class Meta:
+        model = PayrollAssignment
+        fields = ['status', 'signature_url', 'approve_date']

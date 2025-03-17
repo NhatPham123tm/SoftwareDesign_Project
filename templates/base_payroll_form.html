@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ step_title }}</title>
+</head>
+<body>
+    <h2>{{ step_title }}</h2>
+
+    <form id="payroll-form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        
+        <!-- Hidden User ID Field -->
+        <input type="hidden" id="user_id" name="user_id">
+
+        <!-- Buttons -->
+        <button type="submit">Next Step →</button>
+        <a href="{% url 'dashboard' %}">Return to dashboard</a>
+    </form>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let userId = localStorage.getItem("user_id");
+            if (userId) {
+                document.getElementById("user_id").value = userId;
+            }
+        });
+    </script>
+</body>
+</html>

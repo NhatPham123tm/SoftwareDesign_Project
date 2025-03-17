@@ -63,4 +63,3 @@ class PermissionViewSet(viewsets.ModelViewSet):
 class PayrollAssignmentViewSet(viewsets.ModelViewSet):
     queryset = PayrollAssignment.objects.all()
     serializer_class = PayrollAssignmentSerializer
-
