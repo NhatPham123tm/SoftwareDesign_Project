@@ -108,6 +108,11 @@
                     <p><a href="{% url 'view_pdf' %}" target="_blank">View Generated PDF</a></p>
                 {% endif %}
 
+                {% if reimbursement.status == "Draft" %}
+                <a href="{% url 'reimbursement_step1' payroll.id %}">
+                    <button>Continue Payroll Form</button>
+                </a>
+                {% endif %}
                 <!-- Show delete button only for Draft or Pending forms -->
                 {% if reimbursement.status == "Draft" or reimbursement.status == "Pending" %}
                     <form method="post" action="{% url 'delete_reimbursement' reimbursement.id %}">
@@ -132,13 +137,15 @@
                 <p><strong>Status:</strong> {{ payroll.status }}</p>
 
                 {% if payroll.pdf_url %}
-                    <p><a href="{{ payroll.pdf_url }}" target="_blank">View Generated Payroll PDF</a></p>
+                    <p><a href="{% url 'view_payroll_pdf' %}" target="_blank">View Generated Payroll PDF</a></p>
                 {% endif %}
 
+                {% if payroll.status == "Draft" %}
+                <a href="{% url 'payroll_step2' payroll.id %}">
+                    <button>Continue Payroll Form</button>
+                {% endif %}
+                </a>
                 {% if payroll.status == "Draft" or payroll.status == "Pending" %}
-                    <a href="{% url 'payroll_step7' payroll.id %}">
-                        <button>Continue Payroll Form</button>
-                    </a>
                     <form method="post" action="{% url 'delete_payroll' payroll.id %}">
                         {% csrf_token %}
                         <button type="submit" onclick="return confirm('Are you sure you want to delete this payroll request?');">
