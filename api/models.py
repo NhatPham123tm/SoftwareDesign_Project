@@ -70,6 +70,12 @@ class PayrollAssignment(models.Model):
         ('Rejected', 'Rejected'),
         ('Cancelled', 'Cancelled'),
     ]
+    BENEFITS_TYPE_CHOICES = [
+        ('eligible', 'Eligible'),
+        ('no_eligible', 'Not Eligible'),
+        ('insurance', 'Insurance'),
+    ]
+
     
     BENEFITS_TYPE_CHOICES = [
         ('eligible', 'Eligible'),
@@ -79,6 +85,7 @@ class PayrollAssignment(models.Model):
 
     
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
+
     pdf_url = models.URLField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
 
@@ -111,6 +118,7 @@ class PayrollAssignment(models.Model):
     position_title2 = models.CharField(max_length=100, blank=True, null=True)
     benefits_type2 = models.CharField(max_length=30, choices=BENEFITS_TYPE_CHOICES, blank=True, null=True)
     salary_fte1 = models.CharField(max_length=50, blank=True, null=True)
+
     pcn2 = models.CharField(max_length=50, blank=True, null=True)
 
     # Job Information
