@@ -1,6 +1,7 @@
 from django import forms
 from api.models import ReimbursementRequest, PayrollAssignment
 
+# just for testing not use
 class RimburseForm(forms.Form):
     name = forms.CharField(max_length=100)
     empl_id = forms.CharField(max_length=50)
@@ -12,7 +13,7 @@ class RimburseForm(forms.Form):
     cost_center_2 = forms.CharField(max_length=50, required=False)
     amount_2 = forms.CharField(max_length=20, required=False)
     total_reimbursement = forms.CharField(max_length=20)
-
+# just for testing not use
 class PayrollForm(forms.Form):
     emp_name = forms.CharField(max_length=100)
     emp_id = forms.CharField(max_length=50)
@@ -65,6 +66,7 @@ class PayrollForm(forms.Form):
 
     SIGN_DATE = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), required=False)
 
+# using below
 # Implement with database model
 class ReimbursementForm(forms.ModelForm):
     class Meta:
