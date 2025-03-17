@@ -1,5 +1,5 @@
 from django import forms
-from api.models import ReimbursementRequest, PositionInformation, PayrollAssignment
+from api.models import ReimbursementRequest, PayrollAssignment
 
 class RimburseForm(forms.Form):
     name = forms.CharField(max_length=100)
@@ -88,71 +88,73 @@ class ReimbursementStep3Form(forms.ModelForm):
         fields = ['cost_center_1', 'amount_1', 'cost_center_2', 'amount_2', 'total_reimbursement']
 
 ## Payroll form
-# Step 1: Employee Information
 class PayrollStep1Form(forms.ModelForm):
+    """ Employee Information """
     class Meta:
         model = PayrollAssignment
         fields = ['employee_name', 'employee_id', 'todays_date', 'education_level', 'requested_action']
 
-# Step 2: Job Information
 class PayrollStep2Form(forms.ModelForm):
+    """ Job Information """
     class Meta:
         model = PayrollAssignment
         fields = ['job_title', 'position_number']
 
-# Step 3: Budget Change
+
 class PayrollStep3Form(forms.ModelForm):
+    """ Termination Information """
+    class Meta:
+        model = PayrollAssignment
+        fields = ['termination_date', 'termination_reason']
+
+
+class PayrollStep4Form(forms.ModelForm):
+    """ Budget Change """
     class Meta:
         model = PayrollAssignment
         fields = ['budget_change_effective_date', 'from_speed_type', 'to_speed_type']
 
-# Step 4: FTE Change
-class PayrollStep4Form(forms.ModelForm):
+
+class PayrollStep5Form(forms.ModelForm):
+    """ FTE Change """
     class Meta:
         model = PayrollAssignment
         fields = ['fte_change_effective_date', 'from_fte', 'to_fte']
 
-# Step 5: Pay Rate Change
-class PayrollStep5Form(forms.ModelForm):
+
+class PayrollStep6Form(forms.ModelForm):
+    """ Pay Rate Change """
     class Meta:
         model = PayrollAssignment
         fields = ['pay_rate_change_effective_date', 'current_rate', 'new_pay_rate', 'pay_rate_change_reason']
 
-# Step 6: Reallocation
-class PayrollStep6Form(forms.ModelForm):
+
+class PayrollStep7Form(forms.ModelForm):
+    """ Position 1 Information """
     class Meta:
         model = PayrollAssignment
-        fields = ['reallocation_dates', 'reallocation_from_position', 'reallocation_to_position', 'other_specification']
+        fields = ['start_date1', 'end_date1', 'salary1', 'fte1', 'speed_type1', 'budget_percentage1', 'position_title1', 'benefits_type1', 'pcn1']
 
-# Step 7: First Position Basic Information
-class PayrollStep7Form(forms.ModelForm):
-    class Meta:
-        model = PositionInformation
-        fields = ['start_date', 'end_date', 'salary_value', 'salary_unit']
-    
-    def clean_start_date(self):
-        start_date = self.cleaned_data.get('start_date')
-        if not start_date:
-            raise forms.ValidationError("Start date is required.")
-        return start_date
 
-# Step 8: First Position Details
 class PayrollStep8Form(forms.ModelForm):
+    """ Position 2 Information (for Rehire/Transfer) """
     class Meta:
-        model = PositionInformation
-        fields = ['fte', 'speed_type', 'budget_percentage', 'position_title', 'benefit_type', 'pcn']
+        model = PayrollAssignment
+        fields = ['start_date2', 'end_date2', 'salary2', 'fte2', 'speed_type2', 'budget_percentage2', 'position_title2', 'benefits_type2', 'pcn2']
 
-# Step 9: Second Position (Optional)
+
 class PayrollStep9Form(forms.ModelForm):
+    """ Reallocation Information """
     class Meta:
-        model = PositionInformation
-        fields = ['start_date', 'end_date', 'salary_value', 'salary_unit']
+        model = PayrollAssignment
+        fields = ['reallocation_dates', 'reallocation_from_position', 'reallocation_to_position']
 
-# Step 10: Second Position Details (Optional)
+
 class PayrollStep10Form(forms.ModelForm):
+    """ Other Payroll Change """
     class Meta:
-        model = PositionInformation
-        fields = ['fte', 'speed_type', 'budget_percentage', 'position_title', 'benefit_type', 'pcn']
+        model = PayrollAssignment
+        fields = ['other_specification']
 
 class PayrollVeritificationStepForm(forms.ModelForm):
     class Meta:
