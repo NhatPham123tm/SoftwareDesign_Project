@@ -8,7 +8,7 @@ from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbu
 from formProcessor.views import (
     payroll_step1, payroll_step2, payroll_step3, payroll_step4,
     payroll_step5, payroll_step6, payroll_step7, payroll_step8,
-    payroll_step9, payroll_step10, payroll_review
+    payroll_step9, payroll_step10, payroll_review, delete_payroll, view_payroll_pdf
 )
 
 urlpatterns = [
@@ -51,5 +51,7 @@ urlpatterns = [
     path('payroll/step9/<int:payroll_id>/', payroll_step9, name='payroll_step9'),
     path('payroll/step10/<int:payroll_id>/', payroll_step10, name='payroll_step10'),
     path('payroll/review/<int:payroll_id>/', payroll_review, name='payroll_review'),
+    path('payroll/delete/<int:payroll_id>/', delete_payroll, name='delete_payroll'),
+    path('view_payroll_pdf/', view_payroll_pdf, name='view_payroll_pdf'),
 
 ]
