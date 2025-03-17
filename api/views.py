@@ -2,8 +2,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
-from .models import user_accs, roles, permission, PayrollAssignment, PositionInformation
-from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, PositionInformationSerializer
+from .models import user_accs, roles, permission, PayrollAssignment
+from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = roles.objects.all()
@@ -63,13 +63,3 @@ class PermissionViewSet(viewsets.ModelViewSet):
 class PayrollAssignmentViewSet(viewsets.ModelViewSet):
     queryset = PayrollAssignment.objects.all()
     serializer_class = PayrollAssignmentSerializer
-
-class PositionInformationViewSet(viewsets.ModelViewSet):
-    serializer_class = PositionInformationSerializer
-
-    def get_queryset(self):
-        """
-        Filters PositionInformation records based on the PayrollAssignment ID.
-        """
-        payroll_assignment_id = self.kwargs.get('payroll_assignment_pk')
-        return PositionInformation.objects.filter(payroll_assignment_id=payroll_assignment_id)
