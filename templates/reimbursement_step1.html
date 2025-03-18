@@ -27,20 +27,21 @@
     <section class="title4">
         <div class="container">
             <div class="row">
+                <h2>Step 1: Info</h2>
                 <form id="reimbursement-form" method="post">
                     {% csrf_token %}
                     <div>
-                        <label for="{{ form.employee_name.id_for_label }}">{{ form.employee_name.label }}</label>
+                        <label for="{{ form.employee_name.id_for_label }}">{{ form.employee_name.label }}:</label>
                         {{ form.employee_name }}
                     </div>
             
                     <div>
-                        <label for="employee_id">Employee ID</label>
+                        <label for="employee_id">Employee ID:</label>
                         <input type="text" id="employee_id" name="employee_id" value="{{ request.user.employee_id }}">
                     </div>
             
                     <div>
-                        <label for="today_date">Today's Date</label>
+                        <label for="today_date">Today's Date:</label>
                         <input type="date" id="today_date" name="today_date">
                     </div>
                     <input type="hidden" id="user_id" name="user_id">
