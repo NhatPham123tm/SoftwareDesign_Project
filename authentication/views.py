@@ -36,7 +36,7 @@ def basicuser(request):
 def forms(request):
     reimbursement = ReimbursementRequest.objects.filter(user=request.user).exclude(status="Approved").first()
     payroll = PayrollAssignment.objects.filter(user=request.user).exclude(status="Approved").first()
-    return render(request, "forms.html", {"user": request.user, 'reimbursement': reimbursement})
+    return render(request, "forms.html", {'reimbursement': reimbursement,'payroll': payroll})
 
 def is_admin(user):
     print(user)
