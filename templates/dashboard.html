@@ -76,11 +76,12 @@
 <body>
     <nav class="top">
         <div class="topbox toplink">
-            <a>Trois-Rivières User</a>
+            <a href="{% url 'dashboard' %}">Trois-Rivières</a>
             <div class="dropdown">
                 <button class="dropbtn">View</button>
                 <div class="dropdown-content">
                   <a href="{% url 'basicuser' %}">Profile</a>
+                  <a href="{% url 'forms' %}">Form</a>
                   <a href="{% url 'adminpage' %}" id = "admin_link">Admin</a>
                   <a href="#" onclick=logoutUser()>Logout</a>
                 </div>
