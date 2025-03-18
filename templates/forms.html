@@ -1,0 +1,159 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <title>Form</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+             console.log("Fetching user data...");
+ 
+             fetch('/api/microsoft-login/', {
+                 method: 'GET',
+                 headers: {
+                     'Accept': 'application/json',
+                 }
+             })
+             .then(response => response.json())
+             .then(data => {
+ 
+                 console.log("Fetched user data:", data);
+                 if (!localStorage.getItem("access_token")){
+                     localStorage.setItem("access_token", data.access_token);
+                     localStorage.setItem("user", JSON.stringify(data.user)); 
+                 }
+ 
+                 // Update the UI after data is fetched
+                 updateUserUI();
+             })
+             .catch(error => {
+                 //console.error("Error fetching user data:", error);
+                 updateUserUI();
+             });
+        })
+         function updateUserUI() {
+             console.log("Checking for user data in localStorage...");
+ 
+             // Try fetching "user_data" first, if not available, fall back to "user"
+             let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
+             
+             if (userDataString) {
+                 try {
+                     const userData = JSON.parse(userDataString);
+                     const userRole = userData.role;
+                     if (userData && userData.role) {
+                         console.log("User role:", userRole);
+                         if (userRole === 1) {
+                             document.getElementById("admin_link").style.display = "block";
+                         } else {
+                             document.getElementById("admin_link").style.display = "none";
+                         }
+                     }
+                     if (userData && userData.name) {
+                         document.getElementById("welcome").textContent = `Welcome, ${userData.name} (ID: ${userData.id})!`;
+                         console.log("User data displayed:", userData.name);
+                     }
+                 } catch (error) {
+                     console.error("Error parsing user data:", error);
+                 }
+             } else {
+                 console.warn("No user data found in localStorage.");
+             }
+         }
+ 
+         function logoutUser() {
+                 localStorage.removeItem("access_token");
+                 localStorage.removeItem("refresh_token");
+                 localStorage.removeItem("user");
+                 localStorage.removeItem("user_data");
+                 window.location.href = "/logout/";
+         }
+         </script>
+</head>
+<body>
+    <nav class="top">
+        <div class="topbox toplink">
+            <a href="{% url 'dashboard' %}">Trois-Rivières</a>
+            <div class="dropdown">
+                <button class="dropbtn">View</button>
+                <div class="dropdown-content">
+                  <a href="{% url 'basicuser' %}">Profile</a>
+                  <a href="{% url 'forms' %}">Form</a>
+                  <a href="{% url 'adminpage' %}" id = "admin_link">Admin</a>
+                  <a href="#" onclick=logoutUser()>Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <section class="title">
+        <div class="container">
+                <div class="box">
+                    <img src="{% static 'pic/payroll.png' %}" class="Image1">
+                    <br>
+                    <section class="content">
+                        {% if payroll %}
+                            <h3>Current Payroll Request</h3>
+                            <p><strong>Status:</strong> {{ payroll.status }}</p>
+            
+                            {% if payroll.pdf_url %}
+                                <p><a href="{% url 'view_payroll_pdf' %}" target="_blank">View Generated Payroll PDF</a></p>
+                            {% endif %}
+            
+                            {% if payroll.status == "Draft" or payroll.status == "Pending" %}
+                                <form method="post" action="{% url 'delete_payroll' payroll.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this request?');">
+                                        Delete Payroll Form
+                                    </button>
+                                </form>
+                                <a href="{% url 'payroll_step2' payroll.id %}">
+                                    <button>Continue</button>
+                            {% endif %}
+                        {% else %}
+                            <p>No active payroll request.</p>
+                            <a href="{% url 'payroll_step1' %}">
+                                <button>Start a New Payroll Request</button>
+                            </a>
+                        {% endif %}
+                    </section>
+                </div>
+                <div class="box">
+                    <img src="{% static 'pic/reimburse.png' %}" class="Image2">
+                    <br>
+                    <section class="content">
+                        <!-- Check if the user has a reimbursement request -->
+                        {% if reimbursement %}
+                            <h3>Current Reimbursement Request</h3>
+                            <p><strong>Status:</strong> {{ reimbursement.status }}</p>
+            
+                            {% if reimbursement.pdf_url %}
+                                <p><a href="{% url 'view_pdf' %}" target="_blank">View Generated Reimbursement PDF</a></p>
+                            {% endif %}
+            
+                            <!-- Show delete button only for Draft or Pending forms -->
+                            {% if reimbursement.status == "Draft" or reimbursement.status == "Pending" %}
+                                <form method="post" action="{% url 'delete_reimbursement' reimbursement.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this request?');">
+                                        Delete Reimbursement Form
+                                    </button>
+                                </form>
+                                <a href="{% url 'reimbursement_step1' %}">
+                                    <button>Continue</button>
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <p>No active Reimbursement request.</p>
+                            <a href="{% url 'reimbursement_step1' %}">
+                                <button>Start a New Reimbursement Form</button>
+                            </a>
+                        {% endif %}
+                    </section>
+                </div>
+            </div>
+    </section>
+</body>
+</html>
