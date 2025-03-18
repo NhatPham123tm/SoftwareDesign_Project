@@ -1,26 +1,148 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Reimbursement - Step 1</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/reimburst1.css' %}">
+    <title>Reimbursement</title>
 </head>
 <body>
-    <h2>Step 1: Employee Info</h2>
-    
-    <form id="reimbursement-form" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <input type="hidden" id="user_id" name="user_id">
-        <button type="submit">Next Step →</button>
-        <a href="{% url 'dashboard' %}">Return to dashboard</a>
-    </form>
+
+    <nav class="top">
+        <div class="topbox toplink">
+            <a href="{% url 'dashboard' %}">Trois-Rivières</a>
+            <div class="dropdown">
+                <button class="dropbtn">View</button>
+                <div class="dropdown-content">
+                  <a href="{% url 'basicuser' %}">Profile</a>
+                  <a href="{% url 'forms' %}">Form</a>
+                  <a href="{% url 'adminpage' %}" id = "admin_link">Admin</a>
+                  <a href="#" onclick=logoutUser()>Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="title4">
+        <div class="container">
+            <div class="row">
+                <form id="reimbursement-form" method="post">
+                    {% csrf_token %}
+                    <div>
+                        <label for="{{ form.employee_name.id_for_label }}">{{ form.employee_name.label }}</label>
+                        {{ form.employee_name }}
+                    </div>
+            
+                    <div>
+                        <label for="employee_id">Employee ID</label>
+                        <input type="text" id="employee_id" name="employee_id" value="{{ request.user.employee_id }}">
+                    </div>
+            
+                    <div>
+                        <label for="today_date">Today's Date</label>
+                        <input type="date" id="today_date" name="today_date">
+                    </div>
+                    <input type="hidden" id="user_id" name="user_id">
+                    <button type="submit">Continue</button>
+                </form>
+                    <a href="{% url 'dashboard' %}"><button>Return to dashboard</button></a>
+            </div>
+        </div>
+    </section>
+
 
     <script>
+
+document.addEventListener("DOMContentLoaded", function () {
+            console.log("Fetching user data...");
+
+            fetch('/api/microsoft-login/', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+
+                console.log("Fetched user data:", data);
+                if (!localStorage.getItem("access_token")){
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("user", JSON.stringify(data.user)); 
+                }
+
+                // Update the UI after data is fetched
+                updateUserUI();
+            })
+            .catch(error => {
+                //console.error("Error fetching user data:", error);
+                updateUserUI();
+            });
+       })
+
+               // Set today's date dynamically
+        document.addEventListener("DOMContentLoaded", function() {
+            let today = new Date().toISOString().split('T')[0];  // Format YYYY-MM-DD
+            document.getElementById("today_date").value = today;
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
+            const userData = JSON.parse(userDataString);
+
+            if (userData) {
+                console.log('exists');
+                console.log(userData.id);
+                document.getElementById("employee_id").value = userData.id;
+            }
+        });
+
+        function updateUserUI() {
+            console.log("Checking for user data in localStorage...");
+
+            // Try fetching "user_data" first, if not available, fall back to "user"
+            let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
+            
+            if (userDataString) {
+                try {
+                    const userData = JSON.parse(userDataString);
+                    const userRole = userData.role;
+                    if (userData && userData.role) {
+                        console.log("User role:", userRole);
+                        if (userRole === 1) {
+                            document.getElementById("admin_link").style.display = "block";
+                        } else {
+                            document.getElementById("admin_link").style.display = "none";
+                        }
+                    }
+                    if (userData && userData.name) {
+                        document.getElementById("welcome").textContent = `Welcome, ${userData.name} (ID: ${userData.id})!`;
+                        console.log("User data displayed:", userData.name);
+                    }
+                } catch (error) {
+                    console.error("Error parsing user data:", error);
+                }
+            } else {
+                console.warn("No user data found in localStorage.");
+            }
+        }
+
+        function logoutUser() {
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
+                localStorage.removeItem("user");
+                localStorage.removeItem("user_data");
+                window.location.href = "/logout/";
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             let userId = localStorage.getItem("user_id");
             if (userId) {
                 document.getElementById("user_id").value = userId;
             }
         });
+
     </script>
 </body>
 </html>
