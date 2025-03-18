@@ -33,6 +33,11 @@ def register_page(request):
 def basicuser(request):
     return render(request, 'basicuser.html')
 
+def forms(request):
+    reimbursement = ReimbursementRequest.objects.filter(user=request.user).exclude(status="Approved").first()
+    payroll = PayrollAssignment.objects.filter(user=request.user).exclude(status="Approved").first()
+    return render(request, "forms.html", {"user": request.user, 'reimbursement': reimbursement})
+
 def is_admin(user):
     print(user)
     if not user.is_authenticated:
