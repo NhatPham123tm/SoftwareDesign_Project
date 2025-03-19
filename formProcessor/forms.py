@@ -135,14 +135,14 @@ class PayrollStep7Form(forms.ModelForm):
     """ Position 1 Information """
     class Meta:
         model = PayrollAssignment
-        fields = ['start_date1', 'end_date1', 'salary1', 'fte1', 'speed_type1', 'budget_percentage1', 'position_title1', 'benefits_type1', 'pcn1']
+        fields = ['start_date1', 'end_date1', 'salary1', 'fte1', 'speed_type1', 'budget_percentage1', 'position_title1', 'benefits_type1']
 
 
 class PayrollStep8Form(forms.ModelForm):
     """ Position 2 Information (for Rehire/Transfer) """
     class Meta:
         model = PayrollAssignment
-        fields = ['start_date2', 'end_date2', 'salary2', 'fte2', 'speed_type2', 'budget_percentage2', 'position_title2', 'benefits_type2', 'pcn2']
+        fields = ['start_date2', 'end_date2', 'salary2', 'fte2', 'speed_type2', 'budget_percentage2', 'position_title2', 'benefits_type2']
 
 
 class PayrollStep9Form(forms.ModelForm):
