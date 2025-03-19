@@ -355,11 +355,7 @@ def payroll_step8(request, payroll_id):
         if form.is_valid():
             form.save()
 
-            # Skip second position if not needed
-            if payroll.requested_action == "Rehire/Transfer":
-                return redirect('payroll_step9', payroll_id=payroll.id)
-            else:
-                return redirect('payroll_review', payroll_id=payroll.id)  
+            return redirect('payroll_review', payroll_id=payroll.id)  
 
     else:
         form = PayrollStep8Form(instance=payroll)
