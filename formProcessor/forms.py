@@ -87,7 +87,7 @@ class ReimbursementStep2Form(forms.ModelForm):
 class ReimbursementStep3Form(forms.ModelForm):
     class Meta:
         model = ReimbursementRequest
-        fields = ['cost_center_1', 'amount_1', 'cost_center_2', 'amount_2', 'total_reimbursement']
+        fields = ['cost_center_1', 'amount_1', 'cost_center_2', 'amount_2', 'total_reimbursement' , 'signature_url', 'approve_date']
 
 ## Payroll form
 class PayrollStep1Form(forms.ModelForm):
