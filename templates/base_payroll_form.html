@@ -28,11 +28,10 @@
         <div class="container">
             <div class="row">
                 <h2>{{ step_title }}</h2>
-                    <form id="payroll-form" method="post">
+                <form id="payroll-form" method="post">
                     {% csrf_token %}
                     {{ form.as_p }}
-                    <!-- Hidden User ID Field -->
-                    <input type="hidden" id="user_id" name="user_id">
+                    
                     <!-- Buttons -->
                     <button type="submit">Continue</button>
                 </form>
