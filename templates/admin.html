@@ -328,6 +328,7 @@
         fetch(`/api/reimburse/${userId}/`)
             .then(response => response.json())
             .then(user => {
+                console.log(user)
                 // Set current info
                 document.getElementById('currenID').textContent = user.employee_id;
                 document.getElementById('currenName').textContent = user.name;
