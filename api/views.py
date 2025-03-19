@@ -73,6 +73,14 @@ class PayrollAssignmentViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except PayrollAssignment.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            user = PayrollAssignment.objects.get(user_id=kwargs['pk'])
+            serializer = PayrollAssignmentSerializer(user)
+            return Response(serializer.data)
+        except PayrollAssignment.DoesNotExist:
+            return Response({'detail': 'User form not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 class ReimbursementRequestViewSet(viewsets.ModelViewSet):
     queryset = ReimbursementRequest.objects.all()
@@ -88,3 +96,11 @@ class ReimbursementRequestViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except ReimbursementRequest.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            user = ReimbursementRequest.objects.get(user_id=kwargs['pk'])
+            serializer = ReimbursementRequestSerializer(user)
+            return Response(serializer.data)
+        except ReimbursementRequest.DoesNotExist:
+            return Response({'detail': 'User form not found.'}, status=status.HTTP_404_NOT_FOUND)
