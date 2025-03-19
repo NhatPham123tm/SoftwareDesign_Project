@@ -236,7 +236,13 @@ def payroll_step1(request):
             payroll.user = user
             payroll.status = "Draft"
             payroll.save()
-            return redirect('payroll_step2', payroll_id=payroll.id)
+
+            # Check the requested_action and redirect accordingly
+            if payroll.requested_action == 'New Hire' or payroll.requested_action == 'Rehire/Transfer':
+                return redirect('payroll_step7', payroll_id=payroll.id)
+            else:
+                return redirect('payroll_step2', payroll_id=payroll.id)
+
     else:
         form = PayrollStep1Form(instance=draft_payroll)
 
@@ -316,7 +322,7 @@ def payroll_step6(request, payroll_id):
         form = PayrollStep6Form(request.POST, instance=payroll)
         if form.is_valid():
             form.save()
-            return redirect('payroll_step7', payroll_id=payroll.id)
+            return redirect('payroll_step9', payroll_id=payroll.id)
     else:
         form = PayrollStep6Form(instance=payroll)
 
@@ -366,9 +372,6 @@ def payroll_step9(request, payroll_id):
     """ Step 9: Second Position (Only for Rehire/Transfer) """
     payroll = get_object_or_404(PayrollAssignment, id=payroll_id, user=request.user)
 
-    if payroll.requested_action != "Rehire/Transfer":
-        return redirect('payroll_review', payroll_id=payroll.id)
-
     if request.method == 'POST':
         form = PayrollStep9Form(request.POST, instance=payroll)
         if form.is_valid():
@@ -384,9 +387,6 @@ def payroll_step9(request, payroll_id):
 def payroll_step10(request, payroll_id):
     """ Step 10: Second Position Details (Only for Rehire/Transfer) """
     payroll = get_object_or_404(PayrollAssignment, id=payroll_id, user=request.user)
-
-    if payroll.requested_action != "Rehire/Transfer":
-        return redirect('payroll_review', payroll_id=payroll.id)
 
     if request.method == 'POST':
         form = PayrollStep10Form(request.POST, instance=payroll)
