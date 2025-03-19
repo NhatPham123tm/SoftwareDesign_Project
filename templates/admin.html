@@ -241,7 +241,24 @@
             tbody.innerHTML += `
             <tr>
                 <td>${user.employee_name}</td>
-                <td></td>
+                <td>
+                    <button class="bts" onclick="openEditPanel2('${user.id}')">PDF Info</button>
+                    <div id="editPanel2" class="edit-panel2">
+                        <div class="panel-content">
+                            <span class="close-btn" onclick="closeEditPanel2()">&times;</span>
+                            
+                            <!-- Current User Info Section -->
+                            <div class="current-info">
+                                <h3>Current User Information</h3>
+                                <p>User ID: <span id="currenID"></span></p>
+                                <p>Name: <span id="currenName"></span></p>
+                                <p>Email: <span id="currenEmail"></span></p>
+                                
+                                
+                            </div>
+                        </div>
+                    </div>
+                </td>
                 <td>Reimburse Form</td>
                 <td>
                     <select onchange="changeStatus(${user.id}, this.value)" id="newRole2">
@@ -305,6 +322,33 @@
         .catch(error => {
             console.error("Error updating status:", error);
         });
+    }
+
+    function openEditPanel2(userId) {
+        fetch(`/api/reimburse/${userId}/`)
+            .then(response => response.json())
+            .then(user => {
+                // Set current info
+                document.getElementById('currenID').textContent = user.employee_id;
+                document.getElementById('currenName').textContent = user.name;
+                document.getElementById('currenEmail').textContent = user.email;
+                
+                
+                
+    
+                // Set hidden user ID
+                document.getElementById('userId').value = userId;
+                
+    
+                // Show the panel
+                document.getElementById('editPanel2').style.display = 'block';
+    
+            });
+    }
+
+    function closeEditPanel2() {
+        document.getElementById('editPanel2').style.display = 'none';
+        
     }
     
     </script>
