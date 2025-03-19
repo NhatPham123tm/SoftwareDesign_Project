@@ -76,7 +76,7 @@ class PayrollAssignmentViewSet(viewsets.ModelViewSet):
         
     def retrieve(self, request, *args, **kwargs):
         try:
-            user = PayrollAssignment.objects.get(user_id=kwargs['pk'])
+            user = PayrollAssignment.objects.get(id=kwargs['pk'])
             serializer = PayrollAssignmentSerializer(user)
             return Response(serializer.data)
         except PayrollAssignment.DoesNotExist:
@@ -99,7 +99,7 @@ class ReimbursementRequestViewSet(viewsets.ModelViewSet):
         
     def retrieve(self, request, *args, **kwargs):
         try:
-            user = ReimbursementRequest.objects.get(user_id=kwargs['pk'])
+            user = ReimbursementRequest.objects.get(id=kwargs['pk'])
             serializer = ReimbursementRequestSerializer(user)
             return Response(serializer.data)
         except ReimbursementRequest.DoesNotExist:
