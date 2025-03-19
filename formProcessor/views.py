@@ -425,8 +425,17 @@ def payroll_review(request, payroll_id):
         with open(filled_tex_path, "r") as file:
             print("\n".join(file.readlines()[:20]))
 
-        # Compile LaTeX to PDF using Makefile
-        subprocess.run(["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # Compile LaTeX to PDF using pdflatex
+        try:
+            subprocess.run(
+                ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"],
+                check=True,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+        except subprocess.CalledProcessError as e:
+            print("Warning: pdflatex returned a non-zero exit status")
+            print("Stdout:", e.stdout.decode())
+            print("Stderr:", e.stderr.decode())
 
         # Rename the generated PDF file
         if os.path.exists(OUTPUT_PDF_PATH):
