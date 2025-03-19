@@ -98,7 +98,7 @@
         {% endif %}
 
         <div class="btn-container">
-            <a href="{% url 'payroll_step6' payroll.id %}" class="btn btn-edit">← Edit</a>
+            <a href="{% url 'payroll_step1'%}" class="btn btn-edit">← Edit</a>
             <form method="post" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-submit">Submit Payroll →</button>
