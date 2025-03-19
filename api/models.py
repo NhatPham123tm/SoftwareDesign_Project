@@ -57,6 +57,7 @@ class PayrollAssignment(models.Model):
         ('Undergraduate', 'Undergraduate'),
         ('Graduate', 'Graduate'),
         ('PostDoc', 'PostDoc'),
+        ('Other', 'Other'),
     ]
     REQUESTED_ACTION_CHOICES = [
         ('New Hire', 'New Hire'),
@@ -71,19 +72,11 @@ class PayrollAssignment(models.Model):
         ('Cancelled', 'Cancelled'),
     ]
     BENEFITS_TYPE_CHOICES = [
-        ('eligible', 'Eligible'),
-        ('no_eligible', 'Not Eligible'),
-        ('insurance', 'Insurance'),
+        ('Eligible', 'Eligible'),
+        ('Not Eligible', 'Not Eligible'),
+        ('Insurance', 'Insurance'),
     ]
-
-    
-    BENEFITS_TYPE_CHOICES = [
-        ('eligible', 'Eligible'),
-        ('no_eligible', 'Not Eligible'),
-        ('insurance', 'Insurance'),
-    ]
-
-    
+ 
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
 
     pdf_url = models.URLField(blank=True, null=True)
@@ -125,7 +118,8 @@ class PayrollAssignment(models.Model):
     job_title = models.CharField(max_length=100, blank=True, null=True)
     position_number = models.CharField(max_length=50, blank=True, null=True)
     
-    # Termination 
+    # Termination
+    is_terminated = models.BooleanField(default=False) 
     termination_date = models.DateField(blank=True, null=True)
     termination_reason = models.TextField(blank=True, null=True)
     
