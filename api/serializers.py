@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import user_accs, roles, permission, PayrollAssignment
+from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,3 +34,9 @@ class PayrollAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = PayrollAssignment
         fields = '__all__'
+
+class ReimbursementRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReimbursementRequest
+        fields = '__all__'
+
