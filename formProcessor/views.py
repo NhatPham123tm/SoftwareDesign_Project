@@ -487,3 +487,39 @@ def view_payroll_pdf(request):
 
     # Serve the PDF file
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+
+@login_required
+def view_payroll_pdf2(request, user_id):
+    
+    # Get the latest payroll request with a generated PDF URL
+    payroll = PayrollAssignment.objects.filter(id=user_id, pdf_url__isnull=False).order_by('-id').first()
+
+    if not payroll or not payroll.pdf_url:
+        return HttpResponse("No Payroll PDF available.", status=404)
+
+    # Convert stored URL to an absolute file path
+    pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(payroll.pdf_url))
+
+    # Ensure the file exists
+    if not os.path.exists(pdf_path):
+        return HttpResponse("Payroll PDF file not found.", status=404)
+
+    # Serve the PDF file
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+
+@login_required
+def view_pdf2(request, user_id):
+
+    # Get the latest reimbursement for the specified user
+    reimbursement = ReimbursementRequest.objects.filter(id=user_id, pdf_url__isnull=False).order_by('-id').first()
+
+    if not reimbursement or not reimbursement.pdf_url:
+        return HttpResponse("No PDF available.", status=404)
+
+    # Convert the stored URL to an absolute file path
+    pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(reimbursement.pdf_url))
+
+    if not os.path.exists(pdf_path):
+        return HttpResponse("PDF file not found.", status=404)
+
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
