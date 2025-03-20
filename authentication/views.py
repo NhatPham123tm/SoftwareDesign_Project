@@ -5,7 +5,7 @@ from django.shortcuts import render
 import msal
 import requests
 from django.conf import settings
-from api.models import user_accs, roles
+from api.models import user_accs, roles, ReimbursementRequest, PayrollAssignment
 from django.contrib.auth.decorators import user_passes_test
 import json
 from django.contrib.auth.decorators import user_passes_test
@@ -32,6 +32,11 @@ def register_page(request):
 
 def basicuser(request):
     return render(request, 'basicuser.html')
+
+def forms(request):
+    reimbursement = ReimbursementRequest.objects.filter(user=request.user).exclude(status="Approved").first()
+    payroll = PayrollAssignment.objects.filter(user=request.user).exclude(status="Approved").first()
+    return render(request, "forms.html", {'reimbursement': reimbursement,'payroll': payroll})
 
 def is_admin(user):
     print(user)
@@ -111,10 +116,11 @@ def user_logout(request):
     logout(request)
     return redirect('/login')
 
-#@login_required
+@login_required
 def dashboard(request):
-    return render(request, "dashboard.html", {"user": request.user})
-
+    reimbursement = ReimbursementRequest.objects.filter(user=request.user).exclude(status="Approved").first()
+    payroll = PayrollAssignment.objects.filter(user=request.user).exclude(status="Approved").first()
+    return render(request, 'dashboard.html', {'reimbursement': reimbursement,'payroll': payroll},)
 
 # Initialize MSAL
 def get_msal_app():

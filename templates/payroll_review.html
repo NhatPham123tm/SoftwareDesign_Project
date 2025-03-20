@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payroll Review</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        h2 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .btn-container { text-align: center; margin-top: 20px; }
+        .btn { padding: 10px 15px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-edit { background-color: #ffc107; color: black; }
+        .btn-submit { background-color: #28a745; color: white; }
+        .btn-dashboard { background-color: #007BFF; color: white; }
+        .btn:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Payroll Review</h2>
+
+        <h3>Employee Information</h3>
+        <table>
+            <tr><th>Name</th><td>{{ payroll.employee_name }}</td></tr>
+            <tr><th>Employee ID</th><td>{{ payroll.employee_id }}</td></tr>
+            <tr><th>Today's Date</th><td>{{ payroll.todays_date }}</td></tr>
+            <tr><th>Education Level</th><td>{{ payroll.education_level }}</td></tr>
+            <tr><th>Requested Action</th><td>{{ payroll.requested_action }}</td></tr>
+        </table>
+
+        <h3>Job Information</h3>
+        <table>
+            <tr><th>Job Title</th><td>{{ payroll.job_title }}</td></tr>
+            <tr><th>Position Number</th><td>{{ payroll.position_number }}</td></tr>
+        </table>
+
+        <h3>Budget Change</h3>
+        <table>
+            <tr><th>Effective Date</th><td>{{ payroll.budget_change_effective_date }}</td></tr>
+            <tr><th>From Speed Type</th><td>{{ payroll.from_speed_type }}</td></tr>
+            <tr><th>To Speed Type</th><td>{{ payroll.to_speed_type }}</td></tr>
+        </table>
+
+        <h3>FTE Change</h3>
+        <table>
+            <tr><th>Effective Date</th><td>{{ payroll.fte_change_effective_date }}</td></tr>
+            <tr><th>From FTE</th><td>{{ payroll.from_fte }}</td></tr>
+            <tr><th>To FTE</th><td>{{ payroll.to_fte }}</td></tr>
+        </table>
+
+        <h3>Pay Rate Change</h3>
+        <table>
+            <tr><th>Effective Date</th><td>{{ payroll.pay_rate_change_effective_date }}</td></tr>
+            <tr><th>Current Rate</th><td>{{ payroll.current_rate }}</td></tr>
+            <tr><th>New Pay Rate</th><td>{{ payroll.new_pay_rate }}</td></tr>
+            <tr><th>Reason</th><td>{{ payroll.pay_rate_change_reason }}</td></tr>
+        </table>
+
+        <h3>Reallocation</h3>
+        <table>
+            <tr><th>Reallocation Dates</th><td>{{ payroll.reallocation_dates }}</td></tr>
+            <tr><th>From Position</th><td>{{ payroll.reallocation_from_position }}</td></tr>
+            <tr><th>To Position</th><td>{{ payroll.reallocation_to_position }}</td></tr>
+        </table>
+
+        <h3>Position Information</h3>
+        {% if payroll.positions.all %}
+            <table>
+                <tr>
+                    <th>Title</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Salary</th>
+                    <th>Salary Unit</th>
+                    <th>FTE</th>
+                    <th>Budget %</th>
+                    <th>Benefit Type</th>
+                    <th>PCN</th>
+                </tr>
+                {% for position in payroll.positions.all %}
+                <tr>
+                    <td>{{ position.position_title }}</td>
+                    <td>{{ position.start_date }}</td>
+                    <td>{{ position.end_date }}</td>
+                    <td>{{ position.salary_value }}</td>
+                    <td>{{ position.salary_unit }}</td>
+                    <td>{{ position.fte }}</td>
+                    <td>{{ position.budget_percentage }}</td>
+                    <td>{{ position.benefit_type }}</td>
+                    <td>{{ position.pcn }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No positions assigned.</p>
+        {% endif %}
+
+        <div class="btn-container">
+            <a href="{% url 'payroll_step1'%}" class="btn btn-edit">← Edit</a>
+            <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-submit">Submit Payroll →</button>
+            </form>
+            <a href="{% url 'dashboard' %}" class="btn btn-dashboard">Return to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-
+from django.core.exceptions import ValidationError
+from django.utils.timezone import now
 class roles(models.Model):
     role_name = models.CharField(max_length=30, unique=True)
 
@@ -56,6 +57,7 @@ class PayrollAssignment(models.Model):
         ('Undergraduate', 'Undergraduate'),
         ('Graduate', 'Graduate'),
         ('PostDoc', 'PostDoc'),
+        ('Other', 'Other'),
     ]
     REQUESTED_ACTION_CHOICES = [
         ('New Hire', 'New Hire'),
@@ -63,23 +65,61 @@ class PayrollAssignment(models.Model):
         ('Payroll Change', 'Payroll Change'),
     ]
     FORM_STATUS = [
+        ('Draft', 'Draft'),
         ('Pending', 'Pending'),
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected'),
         ('Cancelled', 'Cancelled'),
     ]
-    
+    BENEFITS_TYPE_CHOICES = [
+        ('Eligible', 'Eligible'),
+        ('Not Eligible', 'Not Eligible'),
+        ('Insurance', 'Insurance'),
+    ]
+ 
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
+
+    pdf_url = models.URLField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
+
+    # Employee Information
     employee_name = models.CharField(max_length=100)
     employee_id = models.CharField(max_length=50)
     todays_date = models.DateField()
     education_level = models.CharField(max_length=20, choices=EDUCATION_LEVEL_CHOICES)
     requested_action = models.CharField(max_length=20, choices=REQUESTED_ACTION_CHOICES)
 
+    # Position Information 1
+    start_date1 = models.DateField(blank=True, null=True)
+    end_date1 = models.DateField(blank=True, null=True)
+    salary1 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    fte1 = models.DecimalField(max_digits=5, decimal_places=2,blank=True, null=True)
+    speed_type1 = models.CharField(max_length=50, blank=True, null=True)
+    budget_percentage1 = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    position_title1 = models.CharField(max_length=100, blank=True, null=True)
+    benefits_type1 = models.CharField(max_length=30, choices=BENEFITS_TYPE_CHOICES, blank=True, null=True)
+    salary_fte1 = models.CharField(max_length=50, blank=True, null=True)
+    pcn1 = models.CharField(max_length=50, blank=True, null=True)
+
+    # Position Information 2 (for rehire/transfer)
+    start_date2 = models.DateField(blank=True, null=True)
+    end_date2 = models.DateField(blank=True, null=True)
+    salary2 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    fte2 = models.DecimalField(max_digits=5, decimal_places=2,blank=True, null=True)
+    speed_type2 = models.CharField(max_length=50, blank=True, null=True)
+    budget_percentage2 = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    position_title2 = models.CharField(max_length=100, blank=True, null=True)
+    benefits_type2 = models.CharField(max_length=30, choices=BENEFITS_TYPE_CHOICES, blank=True, null=True)
+    salary_fte1 = models.CharField(max_length=50, blank=True, null=True)
+
+    pcn2 = models.CharField(max_length=50, blank=True, null=True)
+
+    # Job Information
     job_title = models.CharField(max_length=100, blank=True, null=True)
     position_number = models.CharField(max_length=50, blank=True, null=True)
     
-    # Termination 
+    # Termination
+    is_terminated = models.BooleanField(default=False) 
     termination_date = models.DateField(blank=True, null=True)
     termination_reason = models.TextField(blank=True, null=True)
     
@@ -108,39 +148,60 @@ class PayrollAssignment(models.Model):
     other_specification = models.TextField(blank=True, null=True)
 
     # Verification
-    status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
     signature_url = models.URLField(blank=True, null=True)
     approve_date = models.DateField(blank=True, null=True)
     
     def __str__(self):
         return f"{self.id} ({self.employee_name})"
 
+class ReimbursementRequest(models.Model):
+    FORM_STATUS = [
+        ('Draft', 'Draft'),
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+        ('Cancelled', 'Cancelled'),
+    ]
+    
+    user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
+    employee_name = models.CharField(max_length=100, blank=True, null=True)
+    employee_id = models.CharField(max_length=50, blank=True, null=True)
+    today_date = models.DateField(blank=True, null=True)
+    reimbursement_items = models.TextField(blank=True, null=True)
+    purpose = models.TextField(blank=True, null=True)
+    meal_info = models.TextField(blank=True, null=True)
+    
+    # Cost Center Information
+    cost_center_1 = models.CharField(max_length=50, blank=True, null=True)
+    amount_1 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    cost_center_2 = models.CharField(max_length=50, blank=True, null=True)
+    amount_2 = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    total_reimbursement = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
-class PositionInformation(models.Model):
-    BENEFITS_TYPE_CHOICES = [
-        ('Benefits Eligible', 'Benefits Eligible'),
-        ('NonBenefits Eligible', 'NonBenefits Eligible'),
-        ('Insurance Only', 'Insurance Only'),
-    ]
-    SALARY_UNIT_CHOICES = [
-        ('Monthly', 'Monthly'),
-        ('Hourly', 'Hourly'),
-    ]
-    
-    payroll_assignment = models.ForeignKey(
-        PayrollAssignment, on_delete=models.CASCADE, related_name='positions'
-    )
-    start_date = models.DateField()
-    end_date = models.DateField(blank=True, null=True)
-    salary_value = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    salary_unit = models.CharField(max_length=20, choices=SALARY_UNIT_CHOICES, blank=True, null=True)
-    fte = models.DecimalField(max_digits=5, decimal_places=2,blank=True, null=True)
-    speed_type = models.CharField(max_length=50, blank=True, null=True)
-    budget_percentage = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    position_title = models.CharField(max_length=100, blank=True, null=True)
-    benefits_type = models.CharField(max_length=30, choices=BENEFITS_TYPE_CHOICES, blank=True, null=True)
-    pcn = models.CharField(max_length=50, blank=True, null=True)
-    
+    # Approval Process
+    status = models.CharField(max_length=20, choices=FORM_STATUS, default='Draft')
+    signature_url = models.URLField(blank=True, null=True)
+    approve_date = models.DateField(blank=True, null=True)
+    pdf_url = models.URLField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'], condition=models.Q(status="Pending"),
+                name='unique_pending_reimbursement_per_user'
+            )
+        ]
+
     def __str__(self):
-        return f"Position for {self.payroll_assignment.id} {self.payroll_assignment.employee_name}"
+        return f"Reimbursement {self.id} - {self.status}"
 
+    def clean(self):
+        """ Ensure only one 'Pending' form per user """
+        if self.status == "Pending":
+            existing_pending = ReimbursementRequest.objects.filter(user=self.user, status="Pending").exclude(id=self.id)
+            if existing_pending.exists():
+                raise ValidationError("You can only have one pending reimbursement request at a time.")
+
+    def save(self, *args, **kwargs):
+        self.clean()  # Enforce constraint before saving
+        super().save(*args, **kwargs)

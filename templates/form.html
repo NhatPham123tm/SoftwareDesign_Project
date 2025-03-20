@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate PDF</title>
+</head>
+<body>
+    <h2>Fill the Form to Generate PDF</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Generate PDF</button>
+    </form>
+</body>
+</html>

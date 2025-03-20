@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="{% static 'css/admin.css' %}">
-    <script src="{% static 'js/admin.js' %}" defer></script>
+    
 </head>
 <body>
     
@@ -28,6 +28,7 @@
         <ul class="sidebar-menu">
             <li><a href="#dashboard" class="active">Dashboard</a></li>
             <li><a href="#users" onclick="userLoad(); return false;">Users</a></li>
+            <li><a href="#forms" onclick="stuff(); return false;">Forms</a></li>
             <li><a href="" id="userLink">User View</a></li>
             <li><a href="#" onclick=logoutUser() id="logoutBtn">Logout</a></li>
         </ul>
@@ -170,7 +171,187 @@
             </div>
         </div>
 
+        <div class="part" id="forms">
+            <div class="container">
+                <div class="tabldgn">
+                    
+
+                    <!-- Create User section -->
+                    
+                    <!-- End of Create User section -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>PDF</th>
+                                <th>PDFType</th>
+                                <th>Status Change</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody2">
+                            <!-- Insert Users -->
+                            
+                        </tbody>
+                    </table>
+                    <!-- Edit users -->
+                    
+                    <!-- Edit end -->
+                </div>
+            </div>
+        </div>
+
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/admin.js' %}" defer></script>
+    <script>
+        function stuff() {
+            fetch("/api/payroll/")
+    .then(response => response.json())
+    .then(data => {
+        console.log("API Response (payroll):", data);
+        tbody = document.getElementById('userTableBody2');
+        tbody.innerHTML = '';
+        data.forEach(user => {
+            if(user.status != "Draft") {
+            tbody.innerHTML += `
+            <tr>
+                <td>${user.employee_name}</td>
+                <td><a id="pdf-link" href="/view_payroll_pdf2/${user.id}/" target="_blank">Open PDF</a></td>
+                <td>Payroll Form</td>
+                <td>
+                    
+                    <p>${user.status}</p>
+                    <select onchange="updateStatus(${user.id}, this.value)" id="newRole3">
+                        option value="Draft" ${user.status === "Draft" ? "selected" : ""}>Draft</option>
+                        <option value="Pending" ${user.status === "Pending" ? "selected" : ""}>Pending</option>
+                        <option value="Approved" }>Approve</option>
+                        <option value="Rejected" }>Reject</option>
+                        <option value="Cancelled" }>Cancell</option>
+                    </select>
+                </td>
+            </tr>`;
+            }
+        });
+
+        // Now, fetch the second API after payroll data is loaded
+        return fetch("/api/reimburse/");
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("API Response (reimburse):", data);
+        tbody = document.getElementById('userTableBody2');
+        
+        data.forEach(user => {
+            if(user.status != "Draft") {
+            tbody.innerHTML += `
+            <tr>
+                <td>${user.employee_name}</td>
+                <td>  
+                    <a id="pdf-link" href="/view_pdf2/${user.id}/" target="_blank">Open PDF</a>
+                </td>
+                <td>Reimburse Form</td>
+                <td>
+                    <p>${user.status}</p>
+                    <select onchange="changeStatus(${user.id}, this.value)" id="newRole2">
+                        
+                        <option value="Pending" }></option>
+                        <option value="Approved" }>Approve</option>
+                        <option value="Rejected" }>Reject</option>
+                        <option value="Cancelled" }>Cancell</option>
+                    </select>
+                </td>
+            </tr>`;
+            }
+            
+        });
+    })
+    .catch(error => {
+        console.error('Error loading users:', error);
+    });
+
+    }
+    
+    function changeStatus(id, newStatus) {
+        const newData = {
+            status: document.getElementById('newRole2').value
+        };
+        console.log(document.getElementById('newRole2').value)
+        fetch(`/api/reimburse/${id}/`, {
+            method: "PATCH",  // Use PATCH to update only the status
+            credentials: "same-origin",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Content-Type": "application/json"               
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(`Updated status for ID ${id}:`, data);
+            stuff();
+        })
+        .catch(error => {
+            console.error("Error updating status:", error);
+        });
+    }
+
+    function updateStatus(id, newStatus) {
+        const newData = {
+            status: document.getElementById('newRole3').value
+        };
+        console.log(document.getElementById('newRole3').value)
+        fetch(`/api/payroll/${id}/`, {
+            method: "PATCH",  // Use PATCH to update only the status
+            credentials: "same-origin",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Content-Type": "application/json"               
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(`Updated status for ID ${id}:`, data);
+            stuff();
+        })
+        .catch(error => {
+            console.error("Error updating status:", error);
+        });
+    }
+
+    function openEditPanel2(userId) {
+        document.getElementById('userId').value = userId;
+                
+    
+                // Show the panel
+        document.getElementById('editPanel2').style.display = 'block';
+        fetch(`/api/reimburse/${userId}/`)
+            .then(response => response.json())
+            .then(user => {
+                console.log(user)
+                // Set current info
+                document.getElementById('currenID').textContent = user.employee_id;
+                document.getElementById('currenName').textContent = user.name;
+                document.getElementById('currenEmail').textContent = user.email;
+                
+                
+                
+    
+                // Set hidden user ID
+                document.getElementById('userId').value = userId;
+                
+    
+                // Show the panel
+                document.getElementById('editPanel2').style.display = 'block';
+    
+            });
+    }
+
+    function closeEditPanel2() {
+        document.getElementById('editPanel2').style.display = 'none';
+        
+    }
+    
+    </script>
 </body>
 </html>
