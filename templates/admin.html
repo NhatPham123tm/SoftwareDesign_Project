@@ -212,21 +212,25 @@
         tbody = document.getElementById('userTableBody2');
         tbody.innerHTML = '';
         data.forEach(user => {
+            if(user.status != "Draft") {
             tbody.innerHTML += `
             <tr>
                 <td>${user.employee_name}</td>
-                <td></td>
+                <td><a id="pdf-link" href="/view_payroll_pdf2/${user.id}/" target="_blank">Open PDF</a></td>
                 <td>Payroll Form</td>
                 <td>
+                    
+                    <p>${user.status}</p>
                     <select onchange="updateStatus(${user.id}, this.value)" id="newRole3">
                         option value="Draft" ${user.status === "Draft" ? "selected" : ""}>Draft</option>
                         <option value="Pending" ${user.status === "Pending" ? "selected" : ""}>Pending</option>
-                        <option value="Approved" ${user.status === "Approved" ? "selected" : ""}>Approve</option>
-                        <option value="Rejected" ${user.status === "Rejected" ? "selected" : ""}>Reject</option>
-                        <option value="Cancelled" ${user.status === "Cancelled" ? "selected" : ""}>Cancell</option>
+                        <option value="Approved" }>Approve</option>
+                        <option value="Rejected" }>Reject</option>
+                        <option value="Cancelled" }>Cancell</option>
                     </select>
                 </td>
             </tr>`;
+            }
         });
 
         // Now, fetch the second API after payroll data is loaded
@@ -238,38 +242,27 @@
         tbody = document.getElementById('userTableBody2');
         
         data.forEach(user => {
+            if(user.status != "Draft") {
             tbody.innerHTML += `
             <tr>
                 <td>${user.employee_name}</td>
-                <td>
-                    <button class="bts" onclick="openEditPanel2('${user.id}')">PDF Info</button>
-                    <div id="editPanel2" class="edit-panel2">
-                        <div class="panel-content">
-                            <span class="close-btn" onclick="closeEditPanel2()">&times;</span>
-                            
-                            <!-- Current User Info Section -->
-                            <div class="current-info">
-                                <h3>Current User Information</h3>
-                                <p>User ID: <span id="currenID"></span></p>
-                                <p>Name: <span id="currenName"></span></p>
-                                <p>Email: <span id="currenEmail"></span></p>
-                                
-                                
-                            </div>
-                        </div>
-                    </div>
+                <td>  
+                    <a id="pdf-link" href="/view_pdf2/${user.id}/" target="_blank">Open PDF</a>
                 </td>
                 <td>Reimburse Form</td>
                 <td>
+                    <p>${user.status}</p>
                     <select onchange="changeStatus(${user.id}, this.value)" id="newRole2">
-                        <option value="Draft" ${user.status === "Draft" ? "selected" : ""}>Draft</option>
-                        <option value="Pending" ${user.status === "Pending" ? "selected" : ""}>Pending</option>
-                        <option value="Approved" ${user.status === "Approved" ? "selected" : ""}>Approve</option>
-                        <option value="Rejected" ${user.status === "Rejected" ? "selected" : ""}>Reject</option>
-                        <option value="Cancelled" ${user.status === "Cancelled" ? "selected" : ""}>Cancell</option>
+                        
+                        <option value="Pending" }></option>
+                        <option value="Approved" }>Approve</option>
+                        <option value="Rejected" }>Reject</option>
+                        <option value="Cancelled" }>Cancell</option>
                     </select>
                 </td>
             </tr>`;
+            }
+            
         });
     })
     .catch(error => {
@@ -295,6 +288,7 @@
         .then(response => response.json())
         .then(data => {
             console.log(`Updated status for ID ${id}:`, data);
+            stuff();
         })
         .catch(error => {
             console.error("Error updating status:", error);
@@ -318,6 +312,7 @@
         .then(response => response.json())
         .then(data => {
             console.log(`Updated status for ID ${id}:`, data);
+            stuff();
         })
         .catch(error => {
             console.error("Error updating status:", error);
@@ -325,6 +320,11 @@
     }
 
     function openEditPanel2(userId) {
+        document.getElementById('userId').value = userId;
+                
+    
+                // Show the panel
+        document.getElementById('editPanel2').style.display = 'block';
         fetch(`/api/reimburse/${userId}/`)
             .then(response => response.json())
             .then(user => {
