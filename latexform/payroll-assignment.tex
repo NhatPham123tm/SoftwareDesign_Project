@@ -1,0 +1,202 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage[letterpaper,top=0.1cm,bottom=0.1cm,left=0.45cm,right=0.45cm,marginparwidth=0.1cm]{geometry}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\PassOptionsToPackage{pdfencoding=auto,unicode}{hyperref}
+\usepackage{hyperref}
+\usepackage{array}
+
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+\hypersetup{
+    pdfcreator={},
+    pdfproducer={},
+    pdfauthor={Phu Tien Tran},
+    pdfsubject={Payroll Assignment Form},
+    pdfborder={0 0 0}
+}
+
+\title{payroll-assignment}
+\author{Phu Tien Tran}
+\date{March 2025}
+\def\changemargin#1#2{\list{}{\rightmargin#2\leftmargin#1}\item[]}
+\let\endchangemargin=\endlist 
+\graphicspath{ {./static/signature/} }
+\newenvironment{temp}
+{}
+{}
+
+
+\begin{document}
+\thispagestyle{empty}
+
+\begin{center}
+    \LARGE
+    Payroll Assignment Form\vspace{-0.2cm}
+\end{center}
+
+\begin{center}
+    \color{Bittersweet}
+    \scriptsize
+    \rmfamily
+    Please keep in mind that all assignments for RA, IA \& RA/TE are \underline {4 1/2 months}. Fall assignment effective dates are 9/1-1/15 \& Spring Assignments are from 1/16-5/31. \\    
+    Position funding must cover the entire period or the termination box should be checked in the payroll change section with the last day worked indicated.
+    \color{black}\par\rule{\textwidth}{0.1pt}
+    \vspace{-0.6cm}
+    \begin{changemargin}{4cm}{4cm} 
+    \color{blue}\normalsize\centering
+    This form must be completed by the hiring supervisor and submitted to the DBA (as appropriate) in order to hire an employee or change an existing assignment.
+    \end{changemargin}
+\end{center}
+\vspace{-0.6cm}
+\begin{tcolorbox}[standard jigsaw, opacityback=0]
+    \begin{Form}
+        \textbf{Employee Name:} \TextField[name=emp_name, width=5cm, value= {{EMPLOYEE\_NAME}}]{} 
+        \hspace{0.3cm} \textbf{EmpID:} \TextField[name=emp_id, width=3cm, value = {{EMPLOYEE\_ID}}]{}
+        \hspace{0.3cm} \textbf{Today’s Date:} \TextField[name=today_date, width=3cm, value = {{TODAYS\_DATE}}]{}
+
+        \vspace{0.2cm}
+        \def\selectedEducation{{{EDUCATION\_LEVEL}}}
+        {Check one:}%
+        \hspace{2cm}\ChoiceMenu[radio,radiosymbol=\ding{52},name=education, default=\selectedEducation]{}{Undergraduate=Undergraduate}
+        \ChoiceMenu[radio,radiosymbol=\ding{52},name=education, default=\selectedEducation]{}{Graduate=Graduate}
+        \ChoiceMenu[radio,radiosymbol=\ding{52},name=education, default=\selectedEducation]{}{PostDoc=PostDoc}
+        \ChoiceMenu[radio,radiosymbol=\ding{52},name=education, default=\selectedEducation]{}{Other=Other}
+    \end{Form}
+\end{tcolorbox}
+
+\begin{tcolorbox}[standard jigsaw, opacityback=0]
+    \begin{temp}
+        \LARGE\textbf{Requested Action:}
+    \end{temp}
+    \large
+    \begin{Form}
+
+    {}%
+    \def\selectedAction{{{REQUESTED\_ACTION}}}
+    \ChoiceMenu[radio,radiosymbol=\ding{52},name=action, default=\selectedAction]{}{New Hire = newHire}
+    \hspace{4cm}\ChoiceMenu[radio,radiosymbol=\ding{52},name=action, default=\selectedAction]{}{Rehire/Transfer= rehireTransfer}
+    \hspace{4cm}\ChoiceMenu[radio,radiosymbol=\ding{52},name=action, default=\selectedAction]{}{Payroll Change = payrollChange} 
+    \end{Form}
+    \\
+    \scriptsize
+    \hspace{-0.2cm}(No Prior UH Employment)\hspace{3.3cm}(Current or Former UH Employee)\hspace{3.5cm}(Changes to existing assignments)\\
+    Complete Position Information Section\hspace{2cm}Complete Position Information Section\hspace{3cm}Complete Payroll Change Section
+\end{tcolorbox}
+\begin{tcolorbox}[standard jigsaw, opacityback=0]
+    \vspace{-0.2cm}
+    \LARGE
+    \textbf{Position Information:}
+    \normalsize
+    \hspace{9cm}\textbf{(for Dept use)}\vspace{-0.2cm}
+\end{tcolorbox}
+
+\vspace{-0.6cm}
+
+\begin{Form}
+\renewcommand{\arraystretch}{2}
+\begin{center}
+\begin{tabular}{ |m{1.6cm}|m{1.5cm}|m{2cm}|m{0.9cm}|m{2.5cm}|m{1cm}|m{2.2cm}|m{1.9cm}|m{0.7cm}|m{2cm}| } 
+ \hline
+ Start Date & End Date & Salary (indicate
+monthly or
+hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 FTE & PCN\\ 
+\hline
+ \TextField[name=start1, width=1.5cm, value = {{START\_DATE1}}]{}& \TextField[name=end1, width=1.5cm, value = {{END\_DATE1}}]{} & \TextField[name=sal1, width=2cm, value = {{SALARY1}}]{} \scriptsize Month/hour & \TextField[name=fte1, width=0.88cm, value = {{FTE1}}]{} & \TextField[name=speed1, width=2.45cm, value = {{SPEED\_TYPE1}}]{} & \TextField[name=bud1, width=0.96cm, value = {{BUDGET\_PERCENTAGE1}}]{} & \TextField[name=pos1, width=2.19cm, value = {{POSITION\_TITLE1}}]{} & {}%
+ \def\selectedBenefit1{{{BENEFIT\_TYPE1}}}
+ \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit1]{}{\scriptsize Eligible    = eligible}
+ 
+ \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit1]{}{\scriptsize No-Eligible= no_eligible}
+ 
+ \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit1]{}{\scriptsize Insurance  = insurance}
+ & \TextField[name=s_fte1, width=0.8cm, value = {{SALARY_FTE1}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN1}}]{} \\ 
+\hline
+ \TextField[name=start2, width=1.5cm, value = {{START\_DATE2}}]{} & \TextField[name=end2, width=1.5cm, value = {{END\_DATE2}}]{} & \TextField[name=sal2, width=2cm, value = {{SALARY\_VALUE}}]{} \scriptsize Month/hour & \TextField[name=fte2, width=0.8cm, value = {{FTE}}]{}  & \TextField[name=speed1, width=2.45cm, value = {{SPEED\_TYPE2}}]{} & \TextField[name=bud2, width=0.96cm, value = {{BUDGET\_PERCENTAGE2}}]{} & \TextField[name=pos2, width=2.19cm, value = {{POSITION\_TITLE2}}]{} & {}%
+ \def\selectedBenefit2{{{BENEFIT\_TYPE2}}}
+ \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit2]{}{\scriptsize Eligible    = eligible}
+ 
+ \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit2]{}{\scriptsize No-Eligible= no\_eligible}
+ 
+ \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\selectedBenefit2]{}{\scriptsize Insurance  = insurance} 
+ & \TextField[name=s_fte2, width=0.8cm, value = {{SALARY_FTE2}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN2}}]{} \\
+\hline
+
+\end{tabular}
+\end{center}
+\end{Form}
+
+
+\begin{tcolorbox}[standard jigsaw, opacityback=0]
+    \begin{temp}
+        \LARGE\textbf{Payroll Change} \normalsize\color{blue}\textbf{(Complete this section for changes to an existing payroll assignment)}
+    \end{temp}
+    
+    \begin{Form}
+        \vspace{0.1cm}
+        \textbf{Job Title} \TextField[name=jobTitle, width=9cm, value = {{JOB\_TITLE}}]{} 
+        \hspace{0.3cm} \textbf{Position Number} \TextField[name= positionNumber, width=5cm, value = {{POSITION\_NUMBER}}]{}
+    \end{Form}
+\end{tcolorbox}
+\vspace{-0.2cm}
+\noindent
+\begin{minipage}{0.50\textwidth} % Left box
+    \begin{tcolorbox}[standard jigsaw, opacityback=0, width=\textwidth]
+        \begin{Form}
+            \vspace{-0.1cm}
+            \CheckBox[name=action1]{} Termination* \tiny Benefits eligible employee must complete
+            Termination Clearance with DBA.
+            
+            \normalsize
+            Last date of work: \TextField[name=ter_date, width=4cm, value = {{TERMINATION\_DATE}}]{}\vspace{0.2cm}
+
+            Reason for termination: \TextField[name=ter_reason, width=5.5cm, value = {{TERMINATION\_REASON}}]{}\vspace{0.3cm}
+
+            \CheckBox[name=action2]{} Budget Change:\hspace{0.2cm} Effective Date \TextField[name=buDate, width=3cm, value = {{BUDGET\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
+
+            From Speed Type: \TextField[name=bufrom_speed, width=1.7cm, value = {{FROM\_SPEED\_TYPE}}]{} To Speed Type: \TextField[name=buto_speed, width=1.7cm, value = {{TO\_SPEED\_TYPE}}]{}\vspace{0.3cm}
+
+            \CheckBox[name=action3]{} FTE Change:\hspace{0.2cm} Effective Date: \TextField[name=fteDate, width=3cm, value = {{FTE\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
+
+            From \TextField[name=fteFrom, width=3cm, value = {{FROM\_FTE}}]{} \% \hspace{0.1cm} To \TextField[name=fteTo, width=3cm, value = {{to\_fte}}]{} \% 
+        \end{Form}
+    \end{tcolorbox}
+\end{minipage}
+\hfill
+\begin{minipage}{0.50\textwidth} % Right box
+    \begin{tcolorbox}[standard jigsaw, opacityback=0, width=\textwidth]
+        \begin{Form}
+            \vspace{-0.1cm}
+            \CheckBox[name=action4]{} Pay Rate Change:
+            \hspace{0.5cm}Effective Date \TextField[name=payDate, width=2.5cm, value = {{PAY\_RATE\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
+            
+            Current Rate \$ \TextField[name=cur_rate, width=1cm, value = {{CURRENT\_RATE}}]{}mo/hr\hspace{0.3cm}New Pay Rate \$ \TextField[name=new_rate, width=1cm, value = {{NEW\_PAY\_RATE}}]{}mo/hr
+            \vspace{0.1cm}
+
+            \CheckBox[name=action5]{} Reallocation: \hspace{0.5cm} Dates: \TextField[name=reDate, width=2.5cm, value = {{REALLOCATION\_DATES}}]{}\vspace{0.2cm}
+
+            From Speed Type: \TextField[name=refrom_speed, width=1.7cm, value = {{REALLOCATION\_FROM\_POSITION}}]{} To Speed Type: \TextField[name=reto_speed, width=1.7cm, value = {{REALLOCATION\_TO\_POSITION}}]{}\vspace{0.3cm}
+
+            \CheckBox[name=action6]{} Other (specify): \vspace{0.1cm}
+            
+            \TextField[name=pay_other, width=9cm, height=0.7cm, value = {{OTHER\_SPECTIFICATION}}]{}\vspace{0.19cm}
+        \end{Form}
+    \end{tcolorbox}
+\end{minipage}
+
+\vspace{0.2cm}
+\large\textbf{SIGNATURES:}
+
+\begin{Form}
+    Supervisor/Hiring Authority:
+    \hspace{6cm}Date: \TextField[name= approved_date, width=4cm, value = {{APPROVE\_DATE}}]{}
+\end{Form}
+
+\includegraphics[width=10cm, height=2.5cm]{signature}
+
+\vspace{0.1cm}\underline{\hspace{10cm}}\\
+
+\vspace{-0.5cm}\hspace{4cm}Signatures
+
+\end{document}
