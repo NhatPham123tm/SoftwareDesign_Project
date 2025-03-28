@@ -21,3 +21,6 @@ media/
 # IDE settings
 .vscode/
 .idea/
+
+#pdf output
+output/

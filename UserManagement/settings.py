@@ -35,7 +35,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+# Media settings (for storing uploaded/generated PDFs)
+MEDIA_URL = '/media/'  
+MEDIA_ROOT = os.path.join(BASE_DIR, 'output')  # Set output/ as media folder
 # Application definition
 
 INSTALLED_APPS = [

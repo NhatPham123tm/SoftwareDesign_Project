@@ -2,8 +2,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
-from .models import user_accs, roles, permission, PayrollAssignment, PositionInformation
-from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, PositionInformationSerializer
+from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest
+from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = roles.objects.all()
@@ -63,13 +63,44 @@ class PermissionViewSet(viewsets.ModelViewSet):
 class PayrollAssignmentViewSet(viewsets.ModelViewSet):
     queryset = PayrollAssignment.objects.all()
     serializer_class = PayrollAssignmentSerializer
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            user = PayrollAssignment.objects.get(id=kwargs['pk'])
+            serializer = PayrollAssignmentSerializer(user, data=request.data, partial=True) 
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except PayrollAssignment.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            user = PayrollAssignment.objects.get(id=kwargs['pk'])
+            serializer = PayrollAssignmentSerializer(user)
+            return Response(serializer.data)
+        except PayrollAssignment.DoesNotExist:
+            return Response({'detail': 'User form not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-class PositionInformationViewSet(viewsets.ModelViewSet):
-    serializer_class = PositionInformationSerializer
+class ReimbursementRequestViewSet(viewsets.ModelViewSet):
+    queryset = ReimbursementRequest.objects.all()
+    serializer_class = ReimbursementRequestSerializer
 
-    def get_queryset(self):
-        """
-        Filters PositionInformation records based on the PayrollAssignment ID.
-        """
-        payroll_assignment_id = self.kwargs.get('payroll_assignment_pk')
-        return PositionInformation.objects.filter(payroll_assignment_id=payroll_assignment_id)
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            user = ReimbursementRequest.objects.get(id=kwargs['pk'])
+            serializer = ReimbursementRequestSerializer(user, data=request.data, partial=True) 
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ReimbursementRequest.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            user = ReimbursementRequest.objects.get(id=kwargs['pk'])
+            serializer = ReimbursementRequestSerializer(user)
+            return Response(serializer.data)
+        except ReimbursementRequest.DoesNotExist:
+            return Response({'detail': 'User form not found.'}, status=status.HTTP_404_NOT_FOUND)
