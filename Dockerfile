@@ -13,7 +13,9 @@ ENV PYTHONUNBUFFERED=1
  
 # Upgrade pip and install dependencies
 RUN pip install --upgrade pip 
-RUN apt-get update && apt-get install -y build-essential
+RUN apt-get update && \
+    apt-get install -y build-essential texlive-latex-base && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy the requirements file first (better caching)
 COPY requirements.txt /app/
