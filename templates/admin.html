@@ -12,7 +12,7 @@
     
     <nav class="top">
         <div class="topbox toplink">
-            <a id="id_bar">Name</a>
+            <a href="" id="userLink">← Back to Dashboard</a>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
                 </li>
@@ -23,13 +23,12 @@
     <!-- Sidepanel -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h2>Admin Panel</h2>
+            <h3>Admin Panel</h3>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="#dashboard" class="active">Dashboard</a></li>
+            <li><a href="#dashboard" class="active">Summary</a></li>
             <li><a href="#users" onclick="userLoad(); return false;">Users</a></li>
             <li><a href="#forms" onclick="stuff(); return false;">Forms</a></li>
-            <li><a href="" id="userLink">User View</a></li>
             <li><a href="#" onclick=logoutUser() id="logoutBtn">Logout</a></li>
         </ul>
     </div>
@@ -39,19 +38,28 @@
         <!-- Dashboard -->
         <div id="dashboard" class="part active">
             <div>
-                <h1>Dashboard</h1>
+                <h1>Summary Report</h1>
                 <div class="dashboard-stats">
                     <div class="stat-box">Total Users: <span id="totalUsers">0</span></div>
                     <div class="stat-box">Total Admins: <span id="totalAdmins">0</span></div>
                     <div class="stat-box">Total Basic Users: <span id="totalBasicUsers">0</span></div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="userStatsChart"></canvas>
+                </div>
+
+                <div class="dashboard-stats">
+                    <div class="stat-box">Total Users: <span id="totalUsers">0</span></div>
                     <div class="stat-box">Active Users: <span id="totalActiveUsers">0</span></div>
                     <div class="stat-box">Inactive Users: <span id="totalInactiveUsers">0</span></div>
                     <div class="stat-box">Banned Users: <span id="totalBannedUsers">0</span></div>
                 </div>
 
                 <div class="chart-container">
-                    <canvas id="userStatsChart"></canvas>
+                    <canvas id="userStatsChart_AIB"></canvas>
                 </div>
+
             </div>
         </div>
 
