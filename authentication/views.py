@@ -237,9 +237,7 @@ def microsoft_callback(request):
     }
     
     # Clear cookies after user creation and login
-    if user.role_id == 1 and user.status == "active":
-        response = redirect("/adminpage/")
-    elif user.role_id == 2 and user.status == "active":
+    if user.status == "active":
         response = redirect(f"/dashboard/")
     else:
         response = redirect("/suspend")
