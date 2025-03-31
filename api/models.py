@@ -78,7 +78,7 @@ class PayrollAssignment(models.Model):
     ]
  
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
-
+    created_at = models.DateTimeField(auto_now_add=True)
     pdf_url = models.URLField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
 
@@ -148,12 +148,22 @@ class PayrollAssignment(models.Model):
     other_specification = models.TextField(blank=True, null=True)
 
     # Verification
+    message = models.TextField(blank=True, null=True)
     signature_url = models.URLField(blank=True, null=True)
     approve_date = models.DateField(blank=True, null=True)
     
     def __str__(self):
         return f"{self.id} ({self.employee_name})"
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(status='Pending'),
+                name='unique_pending_form_per_user'
+            )
+        ]
+        
 class ReimbursementRequest(models.Model):
     FORM_STATUS = [
         ('Draft', 'Draft'),
@@ -164,6 +174,7 @@ class ReimbursementRequest(models.Model):
     ]
     
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
     employee_name = models.CharField(max_length=100, blank=True, null=True)
     employee_id = models.CharField(max_length=50, blank=True, null=True)
     today_date = models.DateField(blank=True, null=True)
