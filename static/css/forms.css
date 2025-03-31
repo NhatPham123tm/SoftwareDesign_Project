@@ -130,13 +130,14 @@ body {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
+    height: 100%; /* Ensure all boxes have the same height */
 }
 .box img {
     width: 100%;
     border-radius: 10px;
 }
 .box button {
-    margin-top: 10px;
+    margin-top: auto;
     padding: 5px 10px;
     border: none;
     background: #007BFF;
@@ -211,4 +212,8 @@ body {
   .nav-links a:hover {
     color: rgba(255, 255, 255, 0.7); 
     border-bottom: 2px solid rgba(255, 255, 255, 0.7);
+  }
+
+  #payroll_click{
+
   }
