@@ -47,12 +47,15 @@
                         console.log("User role:", userRole);
                         if (userRole === 1) {
                             document.getElementById("admin_link").style.display = "block";
+                            document.getElementById("user-role").textContent = `Role: Admin`;
                         } else {
                             document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("user-role").textContent = `Role: Basic User`;
                         }
                     }
                     if (userData && userData.name) {
-                        document.getElementById("welcome").textContent = `Welcome, ${userData.name} (ID: ${userData.id})!`;
+                        document.getElementById("welcome").textContent = `Welcome ${userData.name}!`;
+                        document.getElementById("welcome_id").textContent = `User ID: ${userData.id}`;
                         console.log("User data displayed:", userData.name);
                     }
                 } catch (error) {
@@ -74,30 +77,34 @@
         
 </head>
 <body>
+    <div id="app_name">
+        <img id="app-image" src="{% static 'pic/hero.png' %}" alt="App Image" class="app-image"> 
+        <div id="app-name"> Trois-Rivières Application </div>
+    </div>
     <nav class="top">
         <div class="topbox toplink">
-            <a href="{% url 'dashboard' %}">Trois-Rivières</a>
-            <div class="dropdown">
-                <button class="dropbtn">View</button>
-                <div class="dropdown-content">
-                  <a href="{% url 'basicuser' %}">Profile</a>
-                  <a href="{% url 'forms' %}">Form</a>
-                  <a href="{% url 'adminpage' %}" id = "admin_link">Admin</a>
-                  <a href="#" onclick=logoutUser()>Logout</a>
-                </div>
+            <div id="user-role"></div>
+            <div class="nav-links">
+                <a href="{% url 'adminpage' %}" id="admin_link">USER MANAGEMENT</a>
+                <a href="{% url 'basicuser' %}">PROFILE</a>
+                <a href="{% url 'forms' %}">FORMS</a>
+                <a href="#" onclick="logoutUser()">LOGOUT</a>
             </div>
         </div>
     </nav>
     
-    <main>
-        <section class="title">
-            <div class="container">
-                <div class="row">
-                    <h1 id="welcome">Welcome to the Dashboard!</h1>
+    <section class="title">
+        <div class="container">
+            <div class="row user-info">
+                <img id="user-image" src="{% static 'pic/default-avatar-profile-picture-male-icon.webp' %}" alt="User Image" class="user-image">
+                <div id="sub1">
+                    <h1 id="welcome"></h1>
+                    <h3 id="welcome_id"></h3>
                 </div>
+                
             </div>
-        </section>
-    </main>
+        </div>
+    </section>
 </body>
 </html>
 {% if messages %}
@@ -111,7 +118,7 @@
         // Automatically close the popup after 3 seconds
         setTimeout(function () {
             document.getElementById("message-popup").style.display = "none";
-        }, 3000);
+        }, 2000);
     </script>
 
     <style>
