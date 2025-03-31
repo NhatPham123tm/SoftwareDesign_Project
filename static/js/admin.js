@@ -38,24 +38,6 @@ if (!localStorage.getItem("access_token")) {
 
 const user_data = localStorage.getItem("user_data") || localStorage.getItem("user");
 
-if (user_data) {
-    try {
-        const user = JSON.parse(user_data); 
-        const idBar = document.getElementById('id_bar');
-        if (idBar) {
-            idBar.textContent = `${user.name} (ID: ${user.id})`; // Use innerText
-        } else {
-            console.error("Element with ID 'id_bar' not found!");
-        }
-    } catch (error) {
-        console.error("Error parsing user_data from localStorage:", error);
-    }
-} else {
-    console.error("No user_data found in localStorage");
-}
-
-
-
 function switchPanel(viewerId) {
     // Remove active class from all views and links
     document.querySelectorAll('.part').forEach(s => s.classList.remove('active'));
@@ -350,7 +332,8 @@ function loadDashboardStats() {
             document.getElementById("totalBannedUsers").textContent = totalBannedUsers;
 
             // Create the pie chart
-            createUserStatsChart(totalAdmins, totalBasicUsers, totalActiveUsers, totalInactiveUsers, totalBannedUsers);
+            createUserStatsChart(totalAdmins, totalBasicUsers);
+            createUserStatsChart_AIB(totalActiveUsers, totalInactiveUsers, totalBannedUsers);
         })
         .catch(error => {
             console.error("Error fetching user stats:", error);
@@ -358,11 +341,11 @@ function loadDashboardStats() {
 }
 
 // Function to create a Pie Chart with Chart.js
-function createUserStatsChart(admins, basicUsers, activeUsers, inactiveUsers, bannedUsers) {
+function createUserStatsChart(admins, basicUsers) {
     const ctx = document.getElementById("userStatsChart").getContext("2d");
 
     // Total users (sum of all categories)
-    let totalUsers = admins + basicUsers + activeUsers + inactiveUsers + bannedUsers;
+    let totalUsers = admins + basicUsers;
 
     // Format percentages for labels
     function calculatePercentage(value) {
@@ -375,14 +358,58 @@ function createUserStatsChart(admins, basicUsers, activeUsers, inactiveUsers, ba
             labels: [
                 `Admins (${calculatePercentage(admins)})`,
                 `Basic Users (${calculatePercentage(basicUsers)})`,
+            ],
+            datasets: [{
+                label: "User Distribution",
+                data: [admins, basicUsers],
+                backgroundColor: ["#FF5733", "#33B5E5"],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: "bottom"
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            let value = tooltipItem.raw;
+                            let percentage = calculatePercentage(value);
+                            return ` ${tooltipItem.label.split(" (")[0]}: ${percentage}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createUserStatsChart_AIB(activeUsers, inactiveUsers, bannedUsers) {
+    const ctx = document.getElementById("userStatsChart_AIB").getContext("2d");
+
+    // Total users (sum of all categories)
+    let totalUsers = activeUsers + inactiveUsers + bannedUsers;
+
+    // Format percentages for labels
+    function calculatePercentage(value) {
+        return totalUsers > 0 ? ((value / totalUsers) * 100).toFixed(1) + "%" : "0%";
+    }
+
+    new Chart(ctx, {
+        type: "pie",
+        data: {
+            labels: [
                 `Active Users (${calculatePercentage(activeUsers)})`,
                 `Inactive Users (${calculatePercentage(inactiveUsers)})`,
                 `Banned Users (${calculatePercentage(bannedUsers)})`
             ],
             datasets: [{
                 label: "User Distribution",
-                data: [admins, basicUsers, activeUsers, inactiveUsers, bannedUsers],
-                backgroundColor: ["#FF5733", "#33B5E5", "#4CAF50", "#FFC107", "#E91E63"],
+                data: [activeUsers, inactiveUsers, bannedUsers],
+                backgroundColor: ["#4CAF50", "#FFC107", "#E91E63"],
                 borderWidth: 1
             }]
         },
