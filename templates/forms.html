@@ -118,8 +118,8 @@
                                 </a>
                             {% endif %}
                         {% else %}
-                            <p>No active payroll request.</p>
-                            <a href="{% url 'payroll_step1' %}">
+                            <p></p>
+                            <a href="{% url 'payroll_step1' %}" id="payroll_click">
                                 <button>Start a New Payroll Request</button>
                             </a>
                         {% endif %}
@@ -151,7 +151,7 @@
                                 </a>
                             {% endif %}
                         {% else %}
-                            <p>No active Reimbursement request.</p>
+                            <p></p>
                             <a href="{% url 'reimbursement_step1' %}">
                                 <button>Start a New Reimbursement Form</button>
                             </a>
