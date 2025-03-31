@@ -41,8 +41,8 @@ th {
 }
 
 .sidebar {
-    width: 200px;
-    height: 60vh;
+    width: 250px;
+    height: 100vh;
     background-color: #1a1a1a;
     color: white;
     position: fixed;
@@ -50,7 +50,6 @@ th {
     overflow-y: auto;
     display: flex; /* Enables flexbox */
     flex-direction: column; /* Aligns items vertically */
-    justify-content: center; /* Centers content vertically */
 }
 
 .sidebar-header {
@@ -365,6 +364,12 @@ canvas {
 #userLink {
     transition: all 0.3s ease;
     margin-left: 10px;
+    color: white;
+    text-decoration: none;
+    font-size: 20px;
+    margin-top: 175px;
+    margin-bottom: 30px;
+
 }
 
 #userLink:hover {
