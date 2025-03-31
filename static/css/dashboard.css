@@ -127,7 +127,7 @@ align-items: center; /* Vertically center the content */
   padding: 7px 10px;
   background-color: #444;
   border-radius: 5px;
-  margin-left: -40px; 
+  margin-left: 0px; 
 }
 
 .nav-links {
