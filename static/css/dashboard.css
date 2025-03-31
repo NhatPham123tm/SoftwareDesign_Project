@@ -12,6 +12,10 @@ width: 100%;
 gap: 10px;
 }
 
+.app_url {
+  text-decoration: none;
+}
+
 .app-image {
 width: 30px;  /* Adjust width for the image */
 height: 30px; /* Adjust height for the image */
