@@ -78,8 +78,8 @@
 </head>
 <body>
     <div id="app_name">
-        <img id="app-image" src="{% static 'pic/hero.png' %}" alt="App Image" class="app-image"> 
-        <div id="app-name"> Trois-Rivières Application </div>
+        <a href="{% url 'dashboard' %}" class="app_url"><img id="app-image" src="{% static 'pic/hero.png' %}" alt="App Image" class="app-image"></a>
+        <a href="{% url 'dashboard' %}" class="app_url"><div id="app-name"> Trois-Rivières Application </div></a>
     </div>
     <nav class="top">
         <div class="topbox toplink">
