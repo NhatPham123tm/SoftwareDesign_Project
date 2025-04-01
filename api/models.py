@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.exceptions import ValidationError
-from django.utils.timezone import now
+from django.utils import timezone
 class roles(models.Model):
     role_name = models.CharField(max_length=30, unique=True)
 
@@ -78,7 +78,7 @@ class PayrollAssignment(models.Model):
     ]
  
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     pdf_url = models.URLField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
 
@@ -163,7 +163,7 @@ class PayrollAssignment(models.Model):
                 name='unique_pending_form_per_user'
             )
         ]
-        
+
 class ReimbursementRequest(models.Model):
     FORM_STATUS = [
         ('Draft', 'Draft'),
@@ -174,7 +174,7 @@ class ReimbursementRequest(models.Model):
     ]
     
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     employee_name = models.CharField(max_length=100, blank=True, null=True)
     employee_id = models.CharField(max_length=50, blank=True, null=True)
     today_date = models.DateField(blank=True, null=True)
@@ -193,6 +193,8 @@ class ReimbursementRequest(models.Model):
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Draft')
     signature_url = models.URLField(blank=True, null=True)
     approve_date = models.DateField(blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
+    
     pdf_url = models.URLField(blank=True, null=True)
 
     class Meta:
