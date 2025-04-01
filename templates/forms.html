@@ -136,6 +136,7 @@
                     <section class="content">
                         <!-- Check if the user has a reimbursement request -->
                         {% if reimbursement %}
+                            {% with reimbursement=reimbursement.0 %}
                             <h3>Current Reimbursement Request</h3>
                             <p><strong>Status:</strong> {{ reimbursement.status }}</p>
             
@@ -154,11 +155,18 @@
                                 <a href="{% url 'reimbursement_step1'%}">
                                     <button>Continue</button>
                                 </a>
+                            {% elif reimbursement.status == "Rejected"  or reimbursement.status == "Approved" %}
+                                <a href="{% url 'reimbursement_step1'%}">
+                                    <button>Start a New Reimbursement Request</button>
+                                </a>
                             {% endif %}
+
+                            {% endwith %}
+
                         {% else %}
-                            <p>No active Reimbursement request.</p>
-                            <a href="{% url 'reimbursement_step1' %}">
-                                <button>Start a New Reimbursement Form</button>
+                            <p>No active reimbursement request.</p>
+                            <a href="{% url 'reimbursement_step1'%}">
+                                <button>Start a New Reimbursement Request</button>
                             </a>
                         {% endif %}
                     </section>
@@ -177,7 +185,7 @@
                         <p><strong>Date:</strong> {{ past_payroll.created_at|date:"M d, Y" }}</p>
                         <p><strong>Status:</strong> {{ past_payroll.status }}</p>
                         {% if past_payroll.pdf_url %}
-                            <a href="{% url 'view_payroll_pdf' past_payroll.id %}" target="_blank">
+                            <a href="{% url 'view_payroll_pdf3' past_payroll.id %}" target="_blank">
                                 <button>View Generated Payroll PDF</button>
                             </a>
                         {% else %}
@@ -200,7 +208,7 @@
                         <p><strong>Date:</strong> {{ past_reimbursement.created_at|date:"M d, Y" }}</p>
                         <p><strong>Status:</strong> {{ past_reimbursement.status }}</p>
                         {% if past_reimbursement.pdf_url %}
-                            <a href="{% url 'view_pdf' past_reimbursement.id %}" target="_blank">
+                            <a href="{% url 'view_pdf3' past_reimbursement.id %}" target="_blank">
                                 <button>View Generated Payroll PDF</button>
                             </a>
                         {% else %}
