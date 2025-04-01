@@ -20,6 +20,7 @@ from .serializers import UserRegisterSerializer, UserLoginSerializer
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
 from api.serializers import UserSerializer
+from django.views.decorators.csrf import csrf_exempt
 
 def home(request):
     return render(request, 'home.html')
@@ -300,3 +301,15 @@ def reset_password(request):
 
     # For GET requests, just display the form
     return render(request, 'reset_password.html')
+
+@api_view(["GET"])
+def check_id_exists(request, user_id):
+    """
+    Check if the user ID already exists in the database.
+    Returns a JSON response with `isUnique` field indicating if the ID is unique.
+    """
+    # Check if the user ID exists in the database
+    id_exists = user_accs.objects.filter(id=user_id).exists()
+
+    # Return response based on whether the ID is unique or already taken
+    return JsonResponse({'isUnique': not id_exists})
