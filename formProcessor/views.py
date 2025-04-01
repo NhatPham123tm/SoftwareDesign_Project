@@ -2,7 +2,7 @@ import os, time
 import subprocess
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import FileResponse, HttpResponse
-from .forms import PayrollForm, ReimbursementForm
+from .forms import PayrollForm
 from .forms import ReimbursementStep1Form, ReimbursementStep2Form, ReimbursementStep3Form,PayrollStep1Form, PayrollStep2Form, PayrollStep3Form, PayrollStep4Form, PayrollStep5Form, PayrollStep6Form, PayrollStep7Form, PayrollStep8Form, PayrollStep9Form, PayrollStep10Form
 from api.models import ReimbursementRequest, PayrollAssignment
 import re
@@ -12,12 +12,23 @@ from django.contrib import messages
 from django.conf import settings
 import datetime
 from django.utils.html import escape
+import base64
+from django.core.files.base import ContentFile
 
+# utility functions for latex and pdf
 def escape_latex(value):
     """ Escapes LaTeX special characters in user input """
     if not isinstance(value, str):
         return value
     return value.replace('_', '\\_').replace('&', '\\&').replace('%', '\\%')
+
+def save_signature_image(base64_data, output_path):
+    """Save base64-encoded signature to an image file."""
+    if base64_data and base64_data.startswith("data:image"):
+        format, imgstr = base64_data.split(';base64,')
+        img_data = base64.b64decode(imgstr)
+        with open(output_path, 'wb') as f:
+            f.write(img_data)
 
 #Generates a PDF from the form model using a LaTeX template and given form ID
 def generate_pdf_from_form_id(request, form_id, ModelClass, latex_template_path, output_dir="output"):
@@ -115,8 +126,12 @@ def generate_reimbursement_pdf(request, reimbursement_id):
     NEW_PDF_NAME = f"reimbursement_{reimbursement_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
     NEW_PDF_PATH = os.path.join("output/", NEW_PDF_NAME)
     PDF_URL = f"output/{NEW_PDF_NAME}" 
-
+    
     reimbursement = get_object_or_404(ReimbursementRequest, id=reimbursement_id)
+
+    # Save signature image if available
+    signature_output_path = os.path.join("output", "signature.png")
+    save_signature_image(reimbursement.signature_base64, signature_output_path)
 
     # Convert model fields to a dictionary and escape LaTeX special characters
     context = {field.name.upper(): escape_latex(str(getattr(reimbursement, field.name, ''))) for field in ReimbursementRequest._meta.fields}

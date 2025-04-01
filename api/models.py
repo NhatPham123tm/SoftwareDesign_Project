@@ -191,7 +191,7 @@ class ReimbursementRequest(models.Model):
 
     # Approval Process
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Draft')
-    signature_url = models.URLField(blank=True, null=True)
+    signature_base64 = models.TextField(null=True, blank=True)
     approve_date = models.DateField(blank=True, null=True)
     message = models.TextField(blank=True, null=True)
     

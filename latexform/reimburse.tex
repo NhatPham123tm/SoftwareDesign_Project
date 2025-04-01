@@ -150,11 +150,41 @@ Charges to University of Houston Funds must be reasonable and allowable. Accordi
 Attach Receipts
 
 \vspace{0.5cm}
+\hspace*{-2cm}
 \begin{tabular}{l l}
-    \makebox[1.0in]{\hrulefill}\includegraphics[width=5cm, keepaspectratio]{signature}\makebox[1.0in]{\hrulefill}\hspace{2cm} & \makebox[0.5in]{\hrulefill}\normalsize {{APPROVE\_DATE}}\makebox[0.5in]{\hrulefill}\hspace{5cm}\\
-    \large Payee Signature & \large Date \\ % Aligned within table columns
-    \makebox[2.5in]{\hrulefill} &  \makebox[1.5in]{\hrulefill} \\
-    \large Supervisor Approval Signature & \large Date \\ % Aligned within table columns
+    % First signature block
+    \parbox[c]{2.5in}{
+        \centering
+        \includegraphics[width=5cm, keepaspectratio]{signature.png}\\[0.1cm]
+        \makebox[2.5in]{\hrulefill}\\
+        \large Payee Signature
+    } 
+    &
+    \raisebox{-1cm}{ % Only shifts the date box downward
+        \parbox[c]{2.5in}{
+            \centering
+            \normalsize {{TODAY\_DATE}}\\[-0.1cm]
+            \makebox[1in]{\hrulefill}\\
+            \large Date
+        }
+    } \\[0.7cm]
+
+    % Second signature block
+    \parbox[c]{2.5in}{
+        \centering
+        \includegraphics[width=5cm, keepaspectratio]{signature.png}\\[0.1cm]
+        \makebox[2.5in]{\hrulefill}\\
+        \large Supervisor Approval Signature
+    } 
+    &
+    \raisebox{-1cm}{
+        \parbox[c]{2.5in}{
+            \centering
+            \normalsize {{APPROVE\_DATE}}\\[-0.1cm]
+            \makebox[1in]{\hrulefill}\\
+            \large Date
+        }
+    }
 \end{tabular}
 
 \end{document}
