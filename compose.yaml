@@ -11,6 +11,11 @@ services:
      - postgres_data:/var/lib/postgresql/data
    env_file:
      - .env
+   logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
  
  django-web:
    build: .
@@ -33,5 +38,10 @@ services:
      DATABASE_PORT: ${DB_PORT}
    env_file:
      - .env
+   logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 volumes:
    postgres_data:
