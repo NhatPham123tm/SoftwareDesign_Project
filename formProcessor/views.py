@@ -87,7 +87,16 @@ def generate_reimbursement_pdf(request, reimbursement_id):
         print("\n".join(file.readlines()[:20]))
 
     # Compile LaTeX to PDF
-    subprocess.run(["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"],
+            check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+    except subprocess.CalledProcessError as e:
+        print("Warning: pdflatex returned a non-zero exit status")
+        print("Stdout:", e.stdout.decode())
+        print("Stderr:", e.stderr.decode())
     
     # Ensure the file exists before renaming
     if os.path.exists(OUTPUT_PDF_PATH):
