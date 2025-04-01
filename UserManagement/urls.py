@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from authentication.views import home  # Import the home view
-from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data, forms
+from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data, forms, check_id_exists
 from authentication import views
 from django.contrib.auth import views as auth_views
 from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_pdf, generate_payroll_pdf, view_pdf2, view_payroll_pdf2
@@ -56,5 +56,5 @@ urlpatterns = [
     path('forms/', forms, name='forms'),
     path('view_pdf2/<int:user_id>/', view_pdf2, name='view_pdf2'),
     path('view_payroll_pdf2/<int:user_id>/', view_payroll_pdf2, name='view_payroll_pdf2'),
-
+    path('check_id_exists/<int:user_id>/', check_id_exists, name='check_id_exists'),
 ]
