@@ -304,12 +304,13 @@ def reset_password(request):
 
 @api_view(["GET"])
 def check_id_exists(request, user_id):
-    """
-    Check if the user ID already exists in the database.
-    Returns a JSON response with `isUnique` field indicating if the ID is unique.
-    """
     # Check if the user ID exists in the database
     id_exists = user_accs.objects.filter(id=user_id).exists()
 
     # Return response based on whether the ID is unique or already taken
     return JsonResponse({'isUnique': not id_exists})
+
+@api_view(["GET"])
+def check_email_exists(request, email):
+    email_exists = user_accs.objects.filter(email=email).exists()
+    return JsonResponse({'isUnique': not email_exists})
