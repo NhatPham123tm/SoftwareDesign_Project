@@ -1,4 +1,4 @@
-import os
+import os, time
 import subprocess
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import FileResponse, HttpResponse
@@ -19,6 +19,58 @@ def escape_latex(value):
         return value
     return value.replace('_', '\\_').replace('&', '\\&').replace('%', '\\%')
 
+#Generates a PDF from the form model using a LaTeX template and given form ID
+def generate_pdf_from_form_id(request, form_id, ModelClass, latex_template_path, output_dir="output"):
+    instance = get_object_or_404(ModelClass, id=form_id)
+    
+    new_pdf_name = f"{ModelClass.__name__.lower()}_{form_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    new_pdf_path = os.path.join(output_dir, new_pdf_name)
+    output_pdf_path = os.path.join(output_dir, "filled_template.pdf")
+    pdf_url = os.path.join(output_dir, new_pdf_name)
+
+    # Prepare LaTeX-safe context from model fields
+    context = {
+        field.name.upper(): escape_latex(str(getattr(instance, field.name, '')))
+        for field in ModelClass._meta.fields
+    }
+
+    # Read and fill LaTeX template
+    with open(latex_template_path, "r") as file:
+        tex_content = file.read()
+
+    for key, value in context.items():
+        tex_content = re.sub(r'\{\{' + key.replace('_', r'\\_') + r'\}\}', value, tex_content)
+
+    # Write the filled LaTeX content
+    filled_tex_path = os.path.join(output_dir, "filled_template.tex")
+    with open(filled_tex_path, "w") as file:
+        file.write(tex_content)
+
+    # Compile LaTeX to PDF
+    try:
+        subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", "-output-directory", output_dir, filled_tex_path],
+            check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+    except subprocess.CalledProcessError as e:
+        print("LaTeX compilation failed:")
+        print("Stdout:", e.stdout.decode())
+        print("Stderr:", e.stderr.decode())
+
+    # Rename compiled PDF if successful
+    if os.path.exists(output_pdf_path):
+        os.rename(output_pdf_path, new_pdf_path)
+
+    # Save URL/path to model 
+    if hasattr(instance, "pdf_url"):
+        instance.pdf_url = pdf_url
+        instance.save()
+
+    #messages.success(request, f"PDF generated successfully.")
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+##---------------------------------------------------------------------------------
 #for testing only
 def generate_payroll_pdf(request):
     LATEX_TEMPLATE_PATH = "latexform/payroll-assignment.tex"
@@ -213,14 +265,26 @@ def view_pdf(request):
     if not reimbursement or not reimbursement.pdf_url:
         return HttpResponse("No PDF available.", status=404)
 
-    # Convert the stored URL to an absolute file path
+    # Generate or regenerate the PDF
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=reimbursement.id,
+        ModelClass=ReimbursementRequest,
+        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+    )
+
+    # Refresh from DB to get updated pdf_url
+    reimbursement.refresh_from_db()
+    time.sleep(0.1)
+
+    # Get the updated path
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(reimbursement.pdf_url))
 
-    # Ensure the file exists
+    # Ensure the PDF exists
     if not os.path.exists(pdf_path):
         return HttpResponse("PDF file not found.", status=404)
 
-    # Serve the PDF file
+    # Serve the PDF
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
 
 #-------------------------------------------------------------
@@ -473,11 +537,9 @@ def delete_payroll(request, payroll_id):
 
     return redirect('dashboard')
 
-
+# Opens the latest payroll request PDF for the logged-in user 
 @login_required
 def view_payroll_pdf(request):
-    """ Opens the latest payroll request PDF for the logged-in user """
-    
     # Get the latest payroll request with a generated PDF URL
     payroll = PayrollAssignment.objects.filter(
         user=request.user,
@@ -487,16 +549,27 @@ def view_payroll_pdf(request):
     if not payroll or not payroll.pdf_url:
         return HttpResponse("No Payroll PDF available.", status=404)
 
-    # Convert stored URL to an absolute file path
+    # Generate the PDF (even if already exists, for consistency)
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=payroll.id,
+        ModelClass=PayrollAssignment,
+        latex_template_path="latexform/payroll-assignment.tex"  # Update if your template path is different
+    )
+
+    # Refresh from DB to get updated pdf_url
+    payroll.refresh_from_db()
+    time.sleep(0.1)
+
+    # Use updated URL from payroll instance
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(payroll.pdf_url))
 
-    # Ensure the file exists
     if not os.path.exists(pdf_path):
         return HttpResponse("Payroll PDF file not found.", status=404)
 
-    # Serve the PDF file
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
 
+# Open latest form base on user
 @login_required
 def view_payroll_pdf2(request, user_id):
     
@@ -506,16 +579,27 @@ def view_payroll_pdf2(request, user_id):
     if not payroll or not payroll.pdf_url:
         return HttpResponse("No Payroll PDF available.", status=404)
 
-    # Convert stored URL to an absolute file path
+    # Generate the PDF (even if already exists, for consistency)
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=payroll.id,
+        ModelClass=PayrollAssignment,
+        latex_template_path="latexform/payroll-assignment.tex"  # Update if your template path is different
+    )
+
+    # Refresh from DB to get updated pdf_url
+    payroll.refresh_from_db()
+    time.sleep(0.1)
+
+    # Use updated URL from payroll instance
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(payroll.pdf_url))
 
-    # Ensure the file exists
     if not os.path.exists(pdf_path):
         return HttpResponse("Payroll PDF file not found.", status=404)
 
-    # Serve the PDF file
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
 
+# Open latest form base on user
 @login_required
 def view_pdf2(request, user_id):
 
@@ -525,10 +609,78 @@ def view_pdf2(request, user_id):
     if not reimbursement or not reimbursement.pdf_url:
         return HttpResponse("No PDF available.", status=404)
 
-    # Convert the stored URL to an absolute file path
+    # Generate or regenerate the PDF
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=reimbursement.id,
+        ModelClass=ReimbursementRequest,
+        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+    )
+
+    # Refresh from DB to get updated pdf_url
+    reimbursement.refresh_from_db()
+    time.sleep(0.1)
+
+    # Get the updated path
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(reimbursement.pdf_url))
 
+    # Ensure the PDF exists
     if not os.path.exists(pdf_path):
         return HttpResponse("PDF file not found.", status=404)
 
+    # Serve the PDF
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+
+# Open specific form base on id
+@login_required
+def view_payroll_pdf3(request, form_id):
+    # Retrieve the payroll form using its specific form ID (and ensure pdf_url is set)
+    payroll = get_object_or_404(PayrollAssignment, id=form_id, pdf_url__isnull=False)
+    
+    # Generate the PDF (even if already exists, for consistency)
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=payroll.id,
+        ModelClass=PayrollAssignment,
+        latex_template_path="latexform/payroll-assignment.tex.tex"  # Update if your template path is different
+    )
+
+    # Refresh from DB to get updated pdf_url
+    payroll.refresh_from_db()
+    time.sleep(0.1)
+
+    # Use updated URL from payroll instance
+    pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(payroll.pdf_url))
+
+    if not os.path.exists(pdf_path):
+        return HttpResponse("Payroll PDF file not found.", status=404)
+
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+
+# Open specific form base on id
+@login_required
+def view_pdf3(request, form_id):
+    # Retrieve the reimbursement form using its specific form ID (and ensure pdf_url is set)
+    reimbursement = get_object_or_404(ReimbursementRequest, id=form_id, pdf_url__isnull=False)
+    
+   # Generate or regenerate the PDF
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=reimbursement.id,
+        ModelClass=ReimbursementRequest,
+        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+    )
+
+    # Refresh from DB to get updated pdf_url
+    reimbursement.refresh_from_db()
+    time.sleep(0.1)
+
+    # Get the updated path
+    pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(reimbursement.pdf_url))
+
+    # Ensure the PDF exists
+    if not os.path.exists(pdf_path):
+        return HttpResponse("PDF file not found.", status=404)
+
+    # Serve the PDF
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
