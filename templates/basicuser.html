@@ -7,209 +7,203 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="{% static 'css/basicuser.css' %}">
     <title>User Profile</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            updateUserUI();
+            updateUserData()
+            document.getElementById("save-btn").addEventListener("click", handleEdit);
+        });
+        function updateUserUI() {
+            console.log("Checking for user data in localStorage...");
+            
+            // Try fetching "user_data" first, if not available, fall back to "user"
+            let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
+            
+            if (userDataString) {
+                try {
+                    const userData = JSON.parse(userDataString);
+                    const userRole = userData.role;
+                    if (userData && userData.role) {
+                        console.log("User role:", userRole);
+                        if (userRole === 1) {
+                            document.getElementById("admin_link").style.display = "block";
+                            document.getElementById("user-role").textContent = `Role: Admin`;
+                        } else {
+                            document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("user-role").textContent = `Role: Basic User`;
+                        }
+                    }
+                    display_current_info(userData.id);
+                } catch (error) {
+                    console.error("Error parsing user data:", error);
+                }
+            } else {
+                console.warn("No user data found in localStorage.");
+            }
+        }
+
+        function display_current_info(userId) {
+            fetch(`/api/users/${userId}/`)
+                .then(response => response.json())
+                .then(user => {
+                    document.getElementById('userID').value = user.id;
+                    document.getElementById('name').value = user.name;
+                    document.getElementById('email').value = user.email;
+                    document.getElementById('phone').value = user.phone_number;
+                    document.getElementById('address').value = user.address;
+                })
+                .catch(error => {
+                    console.error("Error loading user details:", error);
+                    alert("Failed to load user details. Please try again.");
+                });
+        }
+
+        function handleEdit(event) {
+            event.preventDefault();
+            const userId = document.getElementById('userID').value;
+            
+            const newData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone_number: document.getElementById('phone').value,
+                address: document.getElementById('address').value
+            };
+
+            fetch(`/api/users/${userId}/`, {
+                method: 'PATCH',
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(newData)
+            })
+            .then(response => response.json())
+            .then(() => {
+                showSuccessMessage("Profile updated successfully!");
+            })
+            .catch(error => console.error('Error updating user:', error));
+        }
+
+        function showSuccessMessage(message) {
+            document.getElementById("modal-message").textContent = message;
+            document.getElementById("success-modal").style.display = "block";
+
+            setTimeout(closeModal, 1000);
+        }
+
+        function closeModal() {
+            document.getElementById("success-modal").style.display = "none";
+            setTimeout(() => {
+                window.location.reload(true); // Force page reload
+            }, 100); // Small delay to ensure smooth UI experience
+        }
+
+        function updateUserData() {
+            let storedUser = localStorage.getItem("user_data") || localStorage.getItem("user");
+
+            if (storedUser) {
+                try {
+                    let userData = JSON.parse(storedUser); // Parse the string into an object
+                    let userId = userData.id;
+
+                    fetch(`/api/users/${userId}/`)
+                        .then(response => response.json())
+                        .then(fetchedUser => {
+                            // Store updated user data in localStorage
+                            let updatedUserData = {
+                                id: fetchedUser.id,
+                                name: fetchedUser.name,
+                                email: fetchedUser.email,
+                                role: fetchedUser.role.id,
+                                status: fetchedUser.status
+                            };
+                            
+                            localStorage.removeItem("user");
+                            localStorage.setItem("user_data", JSON.stringify(updatedUserData));
+                            console.log("Updated user data stored in localStorage:", updatedUserData);
+                        })
+                        .catch(error => console.error("Error fetching user data:", error));
+                } catch (error) {
+                    console.error("Error parsing stored user data:", error);
+                }
+            } else {
+                console.warn("No user data found in localStorage.");
+            }
+        }
+
+
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                document.cookie.split(';').forEach(cookie => {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    }
+                });
+            }
+            return cookieValue;
+        }
+ 
+        function logoutUser() {
+                 localStorage.removeItem("access_token");
+                 localStorage.removeItem("refresh_token");
+                 localStorage.removeItem("user");
+                 localStorage.removeItem("user_data");
+                 window.location.href = "/logout/";
+         }
+    </script>
 </head>
 <body>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
-    let userData = JSON.parse(userDataString);
-
-    fetch(`/api/users/${userData.id}/`)
-        .then(response => response.json())
-        .then(user => {
-            let tbody = document.getElementById('userTableBody');
-            if (!tbody) return;
-
-            tbody.innerHTML = `
-                <tr>
-                    <td>${user.name}</td>
-                    <td>${user.email}</td>
-                    <td><button onclick="openEditPanel('${user.id}')">Edit</button></td>
-                </tr>`;
-
-            document.getElementById("username").textContent = user.name;
-            document.getElementById("email").textContent = user.email;
-            document.getElementById("user_id").textContent = user.id;
-            document.getElementById("phone").textContent = user.phone_number || "Not provided";
-            document.getElementById("DOB").textContent = user.address || "Not provided";
-        })
-        .catch(error => console.error('Error loading user:', error));
-});
-
-function openTab(event, tabId) {
-    document.querySelectorAll('.tablinks').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tabcontent').forEach(content => content.classList.remove('active'));
-
-    event.target.classList.add('active');
-    document.getElementById(tabId).classList.add('active');
-}
-
-function openEditPanel(userId) {
-    fetch(`/api/users/${userId}/`)
-        .then(response => response.json())
-        .then(user => {
-            document.getElementById('currentName').textContent = user.name;
-            document.getElementById('currentEmail').textContent = user.email;
-            document.getElementById('newName').value = user.name;
-            document.getElementById('newEmail').value = user.email;
-            document.getElementById('userId').value = userId;
-            document.getElementById('newPhone').value = user.phone_number;
-            document.getElementById('newAddress').value = user.address;
-
-            document.getElementById('editPanel').style.display = 'block';
-        })
-        .catch(error => {
-            console.error("Error loading user details:", error);
-            alert("Failed to load user details. Please try again.");
-        });
-}
-
-function closeEditPanel() {
-    document.getElementById('editPanel').style.display = 'none';
-    document.getElementById('editForm').reset();
-}
-
-function handleEdit(event) {
-    event.preventDefault();
-    const userId = document.getElementById('userId').value;
-    
-    const newData = {
-        name: document.getElementById('newName').value,
-        email: document.getElementById('newEmail').value,
-        phone_number: document.getElementById('newPhone').value,
-        address: document.getElementById('newAddress').value
-    };
-
-    fetch(`/api/users/${userId}/`, {
-        method: 'PATCH',
-        credentials: "same-origin",
-        headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(newData)
-    })
-    .then(response => response.json())
-    .then(() => {
-        location.reload();  // Reload the user table
-    })
-    .catch(error => console.error('Error updating user:', error));
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        document.cookie.split(';').forEach(cookie => {
-            cookie = cookie.trim();
-            if (cookie.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            }
-        });
-    }
-    return cookieValue;
-}
-</script>
-
-<div class="profile-container">
-    <div class="left-column">
-        <div class="profile-box user-info">
-            <img src="{% static 'pic/default-avatar-profile-picture-male-icon.webp' %}" alt="User Avatar" class="user-avatar">
-            <h2 id="username"></h2>
-            <a href="{% url 'dashboard' %}" class="home-button">Home</a>
-        </div>
-        <div class="profile-box social-links">
-            <h3>Social Media</h3>
-            <a href="#" class="fa fa-twitter"> Twitter</a><br/>
-            <a href="#" class="fa fa-instagram"> Instagram</a><br/>
-            <a href="#" class="fa fa-facebook"> Facebook</a><br/>
-        </div>
+    <div id="app_name">
+        <a href="{% url 'dashboard' %}" class="app_url"><img id="app-image" src="{% static 'pic/hero.png' %}" alt="App Image" class="app-image"></a>
+        <a href="{% url 'dashboard' %}" class="app_url"><div id="app-name"> Trois-Rivières Application </div></a>
     </div>
-
-    <div class="profile-tab">
-        <div class="tab">
-            <button class="tablinks active" onclick="openTab(event, 'Bio')">Bio</button>
-            <button class="tablinks" onclick="openTab(event, 'info')">Info</button>
-            <button class="tablinks" onclick="openTab(event, 'Edit')">Edit</button>
-        </div>
-
-        <div id="Bio" class="tabcontent active">
-            <p id="biosing">This is your bio. Add something interesting about yourself.</p>
-        </div>
-        
-        <div id="info" class="tabcontent">
-            <div>
-                <div class="col-md-6"><label><b>User ID</b></label></div>
-                <div class="col-md-6"><p id="user_id"></p></div>
-            </div>
-            <div>
-                <div class="col-md-6"><label><b>Email</b></label></div>
-                <div class="col-md-6"><p id="email"></p></div>
-            </div>
-            <div>
-                <div class="col-md-6"><label><b>Phone</b></label></div>
-                <div class="col-md-6"><p id="phone"></p></div>
-            </div>
-            <div>
-                <div class="col-md-6"><label><b>Address</b></label></div>
-                <div class="col-md-6"><p id="DOB"></p></div>
+    <nav class="top">
+        <div class="topbox toplink">
+            <div id="user-role"></div>
+            <div class="nav-links">
+                <a href="{% url 'adminpage' %}" id="admin_link">USER MANAGEMENT</a>
+                <a href="{% url 'dashboard' %}">HOME</a>
+                <a href="{% url 'basicuser' %}">PROFILE</a>
+                <a href="{% url 'forms' %}">FORMS</a>
+                <a href="#" onclick="logoutUser()">LOGOUT</a>
             </div>
         </div>
+    </nav>
+    
+    <section class="title">
+        <div class="container">
+            <form id="user-profile-form">
+                <h2 id="title_name">PROFILE</h2>
 
-        <div id="Edit" class="tabcontent">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Edit</th>
-                    </tr>
-                </thead>
-                <tbody id="userTableBody">
-                    <!-- User Data Loads Here -->
-                </tbody>
-            </table>
+                <label for="userID">User ID:</label>
+                <input type="text" id="userID" name="userID" disabled>
 
-            <!-- Edit Panel -->
-            <div id="editPanel" class="edit-panel" style="display: none;">
-                <div class="panel-content">
-                    <span class="close-btn" onclick="closeEditPanel()">&times;</span>
-                    
-                    <div class="current-info">
-                        <h3>Current User Information</h3>
-                        <p>Name: <span id="currentName"></span></p>
-                        <p>Email: <span id="currentEmail"></span></p>
-                    </div>
-            
-                    <div class="edit-section">
-                        <h3>Update Information</h3>
-                        <form id="editForm" onsubmit="handleEdit(event)">
-                            <input type="hidden" id="userId">
-                            <div class="form-group">
-                                <label for="newName">New Name:</label>
-                                <input type="text" id="newName">
-                            </div>
-                            <div class="form-group">
-                                <label for="newEmail">New Email:</label>
-                                <input type="email" id="newEmail">
-                            </div>
-                            <div class="form-group">
-                                <label for="newPhone">New Phone:</label>
-                                <input type="text" id="newPhone">
-                            </div>
-                            <div class="form-group">
-                                <label for="newAddress">New Address:</label>
-                                <input type="text" id="newAddress">
-                            </div>
-                            <button type="submit">Update User</button>
-                        </form>
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name">
+    
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email">
+    
+                <label for="phone">Phone:</label>
+                <input type="tel" id="phone" name="phone">
+    
+                <label for="address">Address:</label>
+                <input type="text" id="address" name="address">
+
+                <button type="button" id="save-btn">Save</button>
+                <div id="success-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-btn" onclick="closeModal()">&times;</span>
+                        <p id="modal-message"></p>
                     </div>
                 </div>
-            </div>
-            <!-- End Edit Panel -->
+            </form>
         </div>
-    </div>
-</div>
-
+    </section>
+    
 </body>
 </html>

@@ -1,88 +1,182 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 2;
+body, html {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 2;
+  height: 100%; /* Ensure full height of the page */
+}
+
+#app_name {
+display: flex;
+justify-content: center;
+align-items: center;
+width: 100%;
+gap: 10px;
+}
+
+.app_url {
+  text-decoration: none;
+}
+
+.app-image {
+width: 30px;  /* Adjust width for the image */
+height: 30px; /* Adjust height for the image */
+}
+
+#app-name {
+font-size: 18px;
+color: #000;
+font-weight: bold;
 }
 
 .containered {
-    display: block;
-    overflow: hidden;
-    
+  display: block;
+  overflow: hidden;
 }
 
 .top {
-    
-    width: 100%;
-    background-color: black;
-    box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
-    top: 0;
-    z-index: 1000;
+  
+  width: 100%;
+  background-color: black;
+  box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
+  top: 0;
+  z-index: 1000;
+  border-top-left-radius: 10px; 
+  border-top-right-radius: 10px; 
+  overflow: hidden; 
 }
 
 .topbox {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .toplink {
-    display: flex;
-    gap: 2rem;
+  display: flex;
+  gap: 2rem;
 }
 
 .toplink a {
-    text-decoration: none;
-    color: white;
-    font-weight: 500;
-    
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+  
 }
 
-
 .title {
-    text-align: center;
-    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
-    color: white;
-    padding: 80px 0;
-    margin-bottom: 24px;
+text-align: center;
+background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+color: white;
+padding: 80px 40px;
+border-bottom-left-radius: 10px; 
+border-bottom-right-radius: 10px;
+display: flex;
+justify-content: space-between; /* Space out the content */
+align-items: center; /* Vertically center the content */
 }
 
 .dropbtn {
-    background-color: #6495ED;
-    color: white;
-    padding: 16px;
-    font-size: 16px;
-    border: none;
-  }
-  
-  .dropdown {
-    position: relative;
-    display: inline-block;
-  }
-  
-  .dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #6495ED;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-  }
-  
-  .dropdown-content a {
-    color: white;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-  }
-  
-  .dropdown-content a:hover {background-color: #00008B;}
-  
-  .dropdown:hover .dropdown-content {display: block;}
-  
-  .dropdown:hover .dropbtn {background-color: #6495ED;}
+  background-color: #6495ED;
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+}
 
-  .admin {
-    display: hidden;
-  }
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  position: absolute;
+  background-color: #6495ED;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 5px;
+  padding: 5px;
+  display: flex;  /* Makes all links appear in a single row */
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.dropdown-content a {
+  color: white;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content a:hover {background-color: #00008B;}
+
+.dropdown:hover .dropdown-content {display: block;}
+
+.dropdown:hover .dropbtn {background-color: #6495ED;}
+
+.admin {
+  display: hidden;
+}
+
+#user-role {
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 7px 10px;
+  background-color: #444;
+  border-radius: 5px;
+  margin-left: 0px; 
+}
+
+.nav-links {
+  display: flex;  
+  gap: 40px; 
+  align-items: center;
+  padding-left: 20px; 
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+  padding: 10px 15px; 
+  transition: color 0.3s ease, border-bottom 0.3s ease;
+  border-bottom: 2px solid transparent; 
+}
+
+.nav-links a:hover {
+  color: rgba(255, 255, 255, 0.7); 
+  border-bottom: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+.user-info {
+display: flex;
+justify-content: space-between;  
+align-items: center;  
+width: 100%;
+gap: 35px;
+}
+
+#sub1 {
+text-align: left;  
+}
+
+h1, h3 {
+margin: 0;  
+color: white;
+font-size: 24px;  
+}
+
+h3 {
+font-size: 18px;  
+color: #ccc;  
+}
+
+.user-image {
+width: 150px;  
+height: 150px;  
+border-radius: 10%;  
+
+}

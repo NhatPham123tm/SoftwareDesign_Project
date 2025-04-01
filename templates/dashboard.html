@@ -27,11 +27,14 @@
 
                 // Update the UI after data is fetched
                 updateUserUI();
+                updateUserData();
             })
             .catch(error => {
                 //console.error("Error fetching user data:", error);
                 updateUserUI();
             });
+            updateUserData();
+            
        })
         function updateUserUI() {
             console.log("Checking for user data in localStorage...");
@@ -47,16 +50,52 @@
                         console.log("User role:", userRole);
                         if (userRole === 1) {
                             document.getElementById("admin_link").style.display = "block";
+                            document.getElementById("user-role").textContent = `Role: Admin`;
                         } else {
                             document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("user-role").textContent = `Role: Basic User`;
                         }
                     }
                     if (userData && userData.name) {
-                        document.getElementById("welcome").textContent = `Welcome, ${userData.name} (ID: ${userData.id})!`;
+                        document.getElementById("welcome").textContent = `Welcome ${userData.name}!`;
+                        document.getElementById("welcome_id").textContent = `User ID: ${userData.id}`;
                         console.log("User data displayed:", userData.name);
                     }
                 } catch (error) {
                     console.error("Error parsing user data:", error);
+                }
+            } else {
+                console.warn("No user data found in localStorage.");
+            }
+        }
+
+        function updateUserData() {
+            let storedUser = localStorage.getItem("user_data") || localStorage.getItem("user");
+
+            if (storedUser) {
+                try {
+                    let userData = JSON.parse(storedUser); // Parse the string into an object
+                    let userId = userData.id;
+
+                    fetch(`/api/users/${userId}/`)
+                        .then(response => response.json())
+                        .then(fetchedUser => {
+                            // Store updated user data in localStorage
+                            let updatedUserData = {
+                                id: fetchedUser.id,
+                                name: fetchedUser.name,
+                                email: fetchedUser.email,
+                                role: fetchedUser.role.id,
+                                status: fetchedUser.status
+                            };
+                            
+                            localStorage.removeItem("user");
+                            localStorage.setItem("user_data", JSON.stringify(updatedUserData));
+                            console.log("Updated user data stored in localStorage:", updatedUserData);
+                        })
+                        .catch(error => console.error("Error fetching user data:", error));
+                } catch (error) {
+                    console.error("Error parsing stored user data:", error);
                 }
             } else {
                 console.warn("No user data found in localStorage.");
@@ -74,30 +113,35 @@
         
 </head>
 <body>
+    <div id="app_name">
+        <a href="{% url 'dashboard' %}" class="app_url"><img id="app-image" src="{% static 'pic/hero.png' %}" alt="App Image" class="app-image"></a>
+        <a href="{% url 'dashboard' %}" class="app_url"><div id="app-name"> Trois-Rivières Application </div></a>
+    </div>
     <nav class="top">
         <div class="topbox toplink">
-            <a href="{% url 'dashboard' %}">Trois-Rivières</a>
-            <div class="dropdown">
-                <button class="dropbtn">View</button>
-                <div class="dropdown-content">
-                  <a href="{% url 'basicuser' %}">Profile</a>
-                  <a href="{% url 'forms' %}">Form</a>
-                  <a href="{% url 'adminpage' %}" id = "admin_link">Admin</a>
-                  <a href="#" onclick=logoutUser()>Logout</a>
-                </div>
+            <div id="user-role"></div>
+            <div class="nav-links">
+                <a href="{% url 'adminpage' %}" id="admin_link">USER MANAGEMENT</a>
+                <a href="{% url 'dashboard' %}">HOME</a>
+                <a href="{% url 'basicuser' %}">PROFILE</a>
+                <a href="{% url 'forms' %}">FORMS</a>
+                <a href="#" onclick="logoutUser()">LOGOUT</a>
             </div>
         </div>
     </nav>
     
-    <main>
-        <section class="title">
-            <div class="container">
-                <div class="row">
-                    <h1 id="welcome">Welcome to the Dashboard!</h1>
+    <section class="title">
+        <div class="container">
+            <div class="row user-info">
+                <img id="user-image" src="{% static 'pic/default-avatar-profile-picture-male-icon.webp' %}" alt="User Image" class="user-image">
+                <div id="sub1">
+                    <h1 id="welcome"></h1>
+                    <h3 id="welcome_id"></h3>
                 </div>
+                
             </div>
-        </section>
-    </main>
+        </div>
+    </section>
 </body>
 </html>
 {% if messages %}
@@ -111,7 +155,7 @@
         // Automatically close the popup after 3 seconds
         setTimeout(function () {
             document.getElementById("message-popup").style.display = "none";
-        }, 3000);
+        }, 2000);
     </script>
 
     <style>
