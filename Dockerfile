@@ -28,7 +28,7 @@ FROM python:3.13-slim
 
 # Install LaTeX in the production stage so pdflatex is available
 RUN apt-get update && \
-    apt-get install -y texlive-latex-base texlive-fonts-recommended && \
+    apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user and setup app directory
