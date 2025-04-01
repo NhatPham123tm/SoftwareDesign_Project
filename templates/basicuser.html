@@ -8,12 +8,15 @@
     <link rel="stylesheet" href="{% static 'css/basicuser.css' %}">
     <title>User Profile</title>
     <script>
-        document.addEventListener("DOMContentLoaded", updateUserUI)
+        document.addEventListener("DOMContentLoaded", function () {
+            updateUserUI();
+            document.getElementById("save-btn").addEventListener("click", handleEdit);
+        });
         function updateUserUI() {
             console.log("Checking for user data in localStorage...");
-
+            
             // Try fetching "user_data" first, if not available, fall back to "user"
-            let userDataString = localStorage.getItem("user");
+            let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
             
             if (userDataString) {
                 try {
@@ -29,18 +32,81 @@
                             document.getElementById("user-role").textContent = `Role: Basic User`;
                         }
                     }
-                    if (userData && userData.name) {
-                        document.getElementById("welcome").textContent = `Welcome ${userData.name}!`;
-                        document.getElementById("welcome_id").textContent = `User ID: ${userData.id}`;
-                        console.log("User data displayed:", userData.name);
-                    }
+                    display_current_info(userData.id);
                 } catch (error) {
                     console.error("Error parsing user data:", error);
                 }
             } else {
                 console.warn("No user data found in localStorage.");
             }
-         }
+        }
+
+        function display_current_info(userId) {
+            fetch(`/api/users/${userId}/`)
+                .then(response => response.json())
+                .then(user => {
+                    document.getElementById('userID').value = user.id;
+                    document.getElementById('name').value = user.name;
+                    document.getElementById('email').value = user.email;
+                    document.getElementById('phone').value = user.phone_number;
+                    document.getElementById('address').value = user.address;
+                })
+                .catch(error => {
+                    console.error("Error loading user details:", error);
+                    alert("Failed to load user details. Please try again.");
+                });
+        }
+
+        function handleEdit(event) {
+            event.preventDefault();
+            const userId = document.getElementById('userID').value;
+            
+            const newData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone_number: document.getElementById('phone').value,
+                address: document.getElementById('address').value
+            };
+
+            fetch(`/api/users/${userId}/`, {
+                method: 'PATCH',
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(newData)
+            })
+            .then(response => response.json())
+            .then(() => {
+                showSuccessMessage("Profile updated successfully!");
+            })
+            .catch(error => console.error('Error updating user:', error));
+        }
+
+        function showSuccessMessage(message) {
+            document.getElementById("modal-message").textContent = message;
+            document.getElementById("success-modal").style.display = "block";
+
+            setTimeout(closeModal, 3000);
+        }
+
+        function closeModal() {
+            document.getElementById("success-modal").style.display = "none";
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                document.cookie.split(';').forEach(cookie => {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    }
+                });
+            }
+            return cookieValue;
+        }
  
         function logoutUser() {
                  localStorage.removeItem("access_token");
@@ -71,8 +137,34 @@
     
     <section class="title">
         <div class="container">
-            <div id="title_name">USER PROFILE</div>
+            <form id="user-profile-form">
+                <h2 id="title_name">PROFILE</h2>
+
+                <label for="userID">User ID:</label>
+                <input type="text" id="userID" name="userID">
+
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name">
+    
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email">
+    
+                <label for="phone">Phone:</label>
+                <input type="tel" id="phone" name="phone">
+    
+                <label for="address">Address:</label>
+                <input type="text" id="address" name="address">
+
+                <button type="button" id="save-btn">Save</button>
+                <div id="success-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-btn" onclick="closeModal()">&times;</span>
+                        <p id="modal-message"></p>
+                    </div>
+                </div>
+            </form>
         </div>
     </section>
+    
 </body>
 </html>
