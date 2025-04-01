@@ -27,11 +27,14 @@
 
                 // Update the UI after data is fetched
                 updateUserUI();
+                updateUserData();
             })
             .catch(error => {
                 //console.error("Error fetching user data:", error);
                 updateUserUI();
             });
+            updateUserData();
+            
        })
         function updateUserUI() {
             console.log("Checking for user data in localStorage...");
@@ -60,6 +63,39 @@
                     }
                 } catch (error) {
                     console.error("Error parsing user data:", error);
+                }
+            } else {
+                console.warn("No user data found in localStorage.");
+            }
+        }
+
+        function updateUserData() {
+            let storedUser = localStorage.getItem("user_data") || localStorage.getItem("user");
+
+            if (storedUser) {
+                try {
+                    let userData = JSON.parse(storedUser); // Parse the string into an object
+                    let userId = userData.id;
+
+                    fetch(`/api/users/${userId}/`)
+                        .then(response => response.json())
+                        .then(fetchedUser => {
+                            // Store updated user data in localStorage
+                            let updatedUserData = {
+                                id: fetchedUser.id,
+                                name: fetchedUser.name,
+                                email: fetchedUser.email,
+                                role: fetchedUser.role.id,
+                                status: fetchedUser.status
+                            };
+                            
+                            localStorage.removeItem("user");
+                            localStorage.setItem("user_data", JSON.stringify(updatedUserData));
+                            console.log("Updated user data stored in localStorage:", updatedUserData);
+                        })
+                        .catch(error => console.error("Error fetching user data:", error));
+                } catch (error) {
+                    console.error("Error parsing stored user data:", error);
                 }
             } else {
                 console.warn("No user data found in localStorage.");
