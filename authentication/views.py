@@ -5,15 +5,14 @@ from django.shortcuts import render
 import msal
 import requests
 from django.conf import settings
-from api.models import user_accs, roles, ReimbursementRequest, PayrollAssignment
+from api.models import user_accs, ReimbursementRequest, PayrollAssignment
 from django.contrib.auth.decorators import user_passes_test
 import json
 from django.contrib.auth.decorators import user_passes_test
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from django.contrib.auth.decorators import login_required
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from .serializers import UserRegisterSerializer, UserLoginSerializer
@@ -34,9 +33,11 @@ def basicuser(request):
     return render(request, 'basicuser.html')
 
 def forms(request):
-    reimbursement = ReimbursementRequest.objects.filter(user=request.user).exclude(status="Approved").first()
-    payroll = PayrollAssignment.objects.filter(user=request.user).exclude(status="Approved").first()
-    return render(request, "forms.html", {'reimbursement': reimbursement,'payroll': payroll})
+    reimbursement = ReimbursementRequest.objects.filter(user=request.user).order_by('-created_at')[:5]
+    payroll = PayrollAssignment.objects.filter(user=request.user).order_by('-created_at')[:5]
+    past_payrolls = payroll[1:] if payroll.count() > 1 else []
+    past_reimbursements = reimbursement[1:] if reimbursement.count() > 1 else []
+    return render(request, "forms.html", {'reimbursement': reimbursement,'payroll': payroll, 'past_payroll': past_payrolls, 'past_reimbursement': past_reimbursements})
 
 def is_admin(user):
     print(user)
