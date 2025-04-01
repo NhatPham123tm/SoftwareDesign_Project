@@ -82,23 +82,30 @@
 
         // Function to handle registration or Microsoft login
         function nextStep() {
-            const id = document.getElementById('id').value.trim();
-            const password = document.getElementById('password').value;
-            const retypePassword = document.getElementById('retypePassword').value;
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('user_email').value.trim();
-            const microsoftAuth = document.getElementById('microsoftAuth').checked;
+        const id = document.getElementById('id').value.trim();
+        const password = document.getElementById('password').value;
+        const retypePassword = document.getElementById('retypePassword').value;
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('user_email').value.trim();
+        const microsoftAuth = document.getElementById('microsoftAuth').checked;
 
-            if (!id || !password || !retypePassword) {
-                showModal('Please fill in all required fields.');
-                return;
-            }
-            if (password.length < 7) {
-                showModal('Password must be at least 7 characters long.');
-                return;
-            }
-            if (password !== retypePassword) {
-                showModal('Passwords do not match.');
+        if (!id || !password || !retypePassword) {
+            showModal('Please fill in all required fields.');
+            return;
+        }
+        if (password.length < 7) {
+            showModal('Password must be at least 7 characters long.');
+            return;
+        }
+        if (password !== retypePassword) {
+            showModal('Passwords do not match.');
+            return;
+        }
+
+        // Check if the ID is unique
+        checkUniqueId(id, function(isUnique) {
+            if (!isUnique) {
+                showModal('The UH ID is already taken. Please choose a different ID.');
                 return;
             }
 
@@ -148,7 +155,24 @@
                 document.cookie = `password=${password}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
                 window.location.href = '/login/microsoft/';
             }
-        }
+        });
+    }
+
+    // Function to check if UH ID is unique
+    function checkUniqueId(id, callback) {
+        fetch(`/check_id_exists/${id}/`, {
+            method: 'GET',
+            credentials: "same-origin",  // 🔹 Ensures session cookies are sent
+        })
+        .then(response => response.json())
+        .then(data => {
+            callback(data.isUnique);  // Pass the result to the callback function
+        })
+        .catch(error => {
+            console.error('Error checking unique ID:', error);
+            callback(false);  // Default to false if there's an error
+        });
+    }
 
         // Function to show modal with message
         function showModal(message) {
