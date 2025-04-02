@@ -376,3 +376,22 @@ canvas {
     color: #007bff; 
     transform: translateX(-5px); 
 }
+
+.del-button {
+    background-color: #ff4d4d; /* Bright red color */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    padding: 8px 12px; /* Padding for the button */
+    font-size: 14px; /* Font size */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.del-button:hover {
+    background-color: #e60000; /* Darker red on hover */
+}
+
+.del-button:active {
+    background-color: #cc0000; /* Even darker red when clicked */
+}
