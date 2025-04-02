@@ -149,7 +149,7 @@ class PayrollAssignment(models.Model):
 
     # Verification
     message = models.TextField(blank=True, null=True)
-    signature_url = models.URLField(blank=True, null=True)
+    signatureAdmin_base64 = models.TextField(null=True, blank=True)
     approve_date = models.DateField(blank=True, null=True)
     
     def __str__(self):
@@ -181,6 +181,7 @@ class ReimbursementRequest(models.Model):
     reimbursement_items = models.TextField(blank=True, null=True)
     purpose = models.TextField(blank=True, null=True)
     meal_info = models.TextField(blank=True, null=True)
+    signatureAdmin_base64 = models.TextField(null=True, blank=True)
     
     # Cost Center Information
     cost_center_1 = models.CharField(max_length=50, blank=True, null=True)
