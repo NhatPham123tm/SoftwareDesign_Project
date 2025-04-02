@@ -54,7 +54,14 @@ Ensure that these variables are correctly set in your `.env` file.
 
 ## 3. Start Up the App and Database
 
-To start the app and database containers run (For first time running, should use --build (Second command)):
+For first time running:
+```
+chmod +x /app/entrypoint.sh
+docker-compose up --build
+```
+This gonna take a while
+
+After that, whenever to start the app and database containers run :
 
 ```
 docker-compose up
