@@ -114,9 +114,9 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\expandeBenefita]{}{\scriptsize Not Eligible=Not Eligible}
  
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\expandeBenefita]{}{\scriptsize Insurance=Insurance}
- & \TextField[name=s_fte1, width=0.8cm, value = {{SALARY_FTE1}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN1}}]{} \\ 
+ & \TextField[name=s_fte1, width=0.8cm, value = {{SALARY\_FTE1}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN1}}]{} \\ 
 \hline
- \TextField[name=start2, width=1.5cm, value = {{START\_DATE2}}]{} & \TextField[name=end2, width=1.5cm, value = {{END\_DATE2}}]{} & \TextField[name=sal2, width=2cm, value = {{SALARY\_VALUE}}]{} \scriptsize Month/hour & \TextField[name=fte2, width=0.8cm, value = {{FTE}}]{}  & \TextField[name=speed1, width=2.45cm, value = {{SPEED\_TYPE2}}]{} & \TextField[name=bud2, width=0.96cm, value = {{BUDGET\_PERCENTAGE2}}]{} & \TextField[name=pos2, width=2.19cm, value = {{POSITION\_TITLE2}}]{} & {}%
+ \TextField[name=start2, width=1.5cm, value = {{START\_DATE2}}]{} & \TextField[name=end2, width=1.5cm, value = {{END\_DATE2}}]{} & \TextField[name=sal2, width=2cm, value = {{SALARY2}}]{} \scriptsize Month/hour & \TextField[name=fte2, width=0.8cm, value = {{FTE2}}]{}  & \TextField[name=speed1, width=2.45cm, value = {{SPEED\_TYPE2}}]{} & \TextField[name=bud2, width=0.96cm, value = {{BUDGET\_PERCENTAGE2}}]{} & \TextField[name=pos2, width=2.19cm, value = {{POSITION\_TITLE2}}]{} & {}%
  \def\selectedBenefitb{{{BENEFITS\_TYPE2}}}
  \edef\expandeBenefitb{\selectedBenefitb}
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\expandeBenefitb]{}{\scriptsize Eligible=Eligible}
@@ -124,7 +124,7 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\expandeBenefitb]{}{\scriptsize Not Eligible=Not Eligible}
  
  \ChoiceMenu[radio,radiosymbol=\ding{52},name=benf1, default=\expandeBenefitb]{}{\scriptsize Insurance=Insurance} 
- & \TextField[name=s_fte2, width=0.8cm, value = {{SALARY_FTE2}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN2}}]{} \\
+ & \TextField[name=s_fte2, width=0.8cm, value = {{SALARY\_FTE2}}]{} & \TextField[name=pcn2, width=1.98cm, value = {{PCN2}}]{} \\
 \hline
 
 \end{tabular}
@@ -165,7 +165,7 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
 
             \CheckBox[name=action3]{} FTE Change:\hspace{0.2cm} Effective Date: \TextField[name=fteDate, width=3cm, value = {{FTE\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
 
-            From \TextField[name=fteFrom, width=3cm, value = {{FROM\_FTE}}]{} \% \hspace{0.1cm} To \TextField[name=fteTo, width=3cm, value = {{to\_fte}}]{} \% 
+            From \TextField[name=fteFrom, width=3cm, value = {{FROM\_FTE}}]{} \% \hspace{0.1cm} To \TextField[name=fteTo, width=3cm, value = {{TO\_FTE}}]{} \% 
         \end{Form}
     \end{tcolorbox}
 \end{minipage}
@@ -186,7 +186,7 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
 
             \CheckBox[name=action6]{} Other (specify): \vspace{0.1cm}
             
-            \TextField[name=pay_other, width=9cm, height=0.7cm, value = {{OTHER\_SPECTIFICATION}}]{}\vspace{0.19cm}
+            \TextField[name=pay_other, width=9cm, height=0.7cm, value = {{OTHER\_SPECIFICATION}}]{}\vspace{0.19cm}
         \end{Form}
     \end{tcolorbox}
 \end{minipage}
