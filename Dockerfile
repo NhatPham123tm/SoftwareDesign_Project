@@ -45,7 +45,7 @@ WORKDIR /app
 
 # Copy application code
 COPY --chown=appuser:appuser . .
-
+RUN chmod +x /app/entrypoint.sh
 # Set environment variables to optimize Python
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1 
@@ -57,5 +57,5 @@ USER appuser
 EXPOSE 8000 
 
 # Start the application using Gunicorn
-RUN chmod +x /app/entrypoint.sh
+
 ENTRYPOINT ["/app/entrypoint.sh"]
