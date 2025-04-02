@@ -50,7 +50,7 @@ def generate_pdf_from_form_id(request, form_id, ModelClass, latex_template_path,
 
     # Prepare LaTeX-safe context from model fields
     context = {
-        field.name.upper(): escape_latex(str(getattr(instance, field.name, '')))
+        field.name.upper(): escape_latex(str(getattr(instance, field.name) or ''))
         for field in ModelClass._meta.fields
     }
 
@@ -145,7 +145,7 @@ def generate_reimbursement_pdf(request, reimbursement_id):
     save_signature_image(reimbursement.signatureAdmin_base64, signature_output_path_admin)
 
     # Convert model fields to a dictionary and escape LaTeX special characters
-    context = {field.name.upper(): escape_latex(str(getattr(reimbursement, field.name, ''))) for field in ReimbursementRequest._meta.fields}
+    context = {field.name.upper(): escape_latex(str(getattr(reimbursement, field.name) or '')) for field in ReimbursementRequest._meta.fields}
 
     # Read LaTeX template
     with open(LATEX_TEMPLATE_PATH, "r") as file:
@@ -527,7 +527,7 @@ def payroll_review(request, payroll_id):
 
     if request.method == 'POST':
         # Convert model fields to a dictionary and escape LaTeX special characters
-        context = {field.name.upper(): escape_latex(str(getattr(payroll, field.name, ''))) for field in PayrollAssignment._meta.fields}
+        context = {field.name.upper(): escape_latex(str(getattr(payroll, field.name) or '')) for field in PayrollAssignment._meta.fields}
 
         # Read LaTeX template
         with open(LATEX_TEMPLATE_PATH, "r", encoding="utf-8") as file:
