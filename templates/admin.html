@@ -230,8 +230,8 @@
                                 
                                 <p>${user.status}</p>
                                 <select onchange="handlePayrollStatus(${user.id}, this.value)" id="newRole3">
-                                    option value="Draft" ${user.status === "Draft" ? "selected" : ""}>Draft</option>
-                                    <option value="Pending" ${user.status === "Pending" ? "selected" : ""}>Pending</option>
+                                    
+                                    <option value="Pending"></option>
                                     <option value="Approved" }>Approve</option>
                                     <option value="Rejected" }>Reject</option>
                                     <option value="Cancelled" }>Cancell</option>
