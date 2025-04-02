@@ -54,7 +54,7 @@ Ensure that these variables are correctly set in your `.env` file.
 
 ## 3. Start Up the App and Database
 
-To start the app and database containers run:
+To start the app and database containers run (For first time running, should use --build (Second command)):
 
 ```
 docker-compose up
