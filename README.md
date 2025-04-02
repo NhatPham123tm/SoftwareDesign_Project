@@ -1,22 +1,16 @@
 # SoftwareDesign_Project
 team_name = Trois-Rivières
 
-# Online Deployment:
-## https://trois-user-management-cuaed0fhgch5hza9.centralus-01.azurewebsites.net/
-Login your Cougarnet Account in browser before directing app location (avoid Microsoft blocking)
-
-You can create a new account or login with Testing accounts:
-- admin@example.com/admin123
-- user@example.com/user123
-  
 # Local Django Project Setup Guide
-
 ## Prerequisites
 Before downloading and running this project, ensure you have the following installed:
 
 - **Python** (3.x)
 - **PostgreSQL** 
 - **Docker Desktop**
+- **Full Feature PDF reader (Recommend: Adobe Reader)**
+
+NOTE: To view the fully functional PDF with the checked box fully, please use a Full-Feature PDF reader.
 
 ### Using Docker To Run Project
 Follow these steps to set up and run the application and database.
@@ -175,3 +169,11 @@ Testing accounts:
 - user@example.com/user123
 
 Note: Use the Log Out button for the best experience after each access. If any page is not loading properly, try clearing cookies and local storage using the browser's developer tools.
+
+# Online Deployment:
+## https://trois-user-management-cuaed0fhgch5hza9.centralus-01.azurewebsites.net/
+Login your Cougarnet Account in browser before directing app location (avoid Microsoft blocking)
+
+You can create a new account or login with Testing accounts:
+- admin@example.com/admin123
+- user@example.com/user123
