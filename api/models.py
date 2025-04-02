@@ -127,25 +127,30 @@ class PayrollAssignment(models.Model):
     budget_change_effective_date = models.DateField(blank=True, null=True)
     from_speed_type = models.CharField(max_length=50, blank=True, null=True)
     to_speed_type = models.CharField(max_length=50, blank=True, null=True)
+    is_budgetchange = models.BooleanField(default=False)
     
     # FTE change 
     fte_change_effective_date = models.DateField(blank=True, null=True)
     from_fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     to_fte = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    is_ftechange = models.BooleanField(default=False)
     
     # Pay rate change 
     pay_rate_change_effective_date = models.DateField(blank=True, null=True)
     current_rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     new_pay_rate = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     pay_rate_change_reason = models.TextField(blank=True, null=True)
+    is_payratechange = models.BooleanField(default=False)
     
     # Reallocation 
     reallocation_dates = models.TextField(blank=True, null=True)
     reallocation_from_position = models.CharField(max_length=50, blank=True, null=True)
     reallocation_to_position = models.CharField(max_length=50, blank=True, null=True)
+    is_reallocation = models.BooleanField(default=False)
     
     # Other payroll change
     other_specification = models.TextField(blank=True, null=True)
+    is_otherchange = models.BooleanField(default=False)
 
     # Verification
     message = models.TextField(blank=True, null=True)
