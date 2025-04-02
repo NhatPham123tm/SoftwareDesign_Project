@@ -10,7 +10,7 @@ Before downloading and running this project, ensure you have the following insta
 - **Docker Desktop**
 - **Full Feature PDF reader (Recommend: Adobe Reader)**
 
-NOTE: To view the fully functional PDF with the checked box fully, please use a Full-Feature PDF reader.
+NOTE: To view the fully functional PDF with the checked box, please use a Full-Feature PDF reader.
 
 ### Using Docker To Run Project
 Follow these steps to set up and run the application and database.
