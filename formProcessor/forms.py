@@ -45,26 +45,92 @@ class PayrollForm(forms.Form):
 
     job_title = forms.CharField(max_length=100, required=False)
     position_number = forms.CharField(max_length=50, required=False)
+    # termination
     termination_date = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), required=False)
     termination_reason = forms.CharField(max_length=200, required=False)
-    
+    is_terminate = forms.BooleanField(required=False, widget=forms.CheckboxInput(), initial=False)
+
+    # budget change
     EFFECTIVE_DATE1 = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), required=False)
     FROM_SPEED1 = forms.CharField(max_length=10)
     TO_SPEED1 = forms.CharField(max_length=10)
+    is_budgetchange = forms.BooleanField(required=False, widget=forms.CheckboxInput(), initial=False)
 
+    # FTE change
     EFFECTIVE_DATE2 = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), required=False)
     FTEFROM = forms.CharField(max_length=10)
     FTETO = forms.CharField(max_length=10)
+    is_ftechange = forms.BooleanField(required=False, widget=forms.CheckboxInput(), initial=False)
 
+    # pay rate change
     EFFECTIVE_DATE3 = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), required=False)
     CURRENT_RATE = forms.CharField(max_length=20)
     NEW_RATE = forms.CharField(max_length=20)
+    is_payratechange = forms.BooleanField(required=False, widget=forms.CheckboxInput(), initial=False)
+
+    # Reallocation
     RE_DATE = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), required=False)
     FROM_SPEED2 = forms.CharField(max_length=10)
     TO_SPEED2 = forms.CharField(max_length=10)
+    is_reallocation = forms.BooleanField(required=False, widget=forms.CheckboxInput(), initial=False)
+
+    # Other payroll change
     OTHER = forms.CharField(max_length=100)
+    is_otherchange = forms.BooleanField(required=False, widget=forms.CheckboxInput(), initial=False)
 
     SIGN_DATE = forms.DateField(widget=forms.TextInput(attrs={'type': 'date'}), required=False)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Termination fields
+        termination_date = cleaned_data.get("termination_date")
+        termination_reason = cleaned_data.get("termination_reason")
+        # If both termination fields are filled, mark is_terminate as True
+        if termination_date and termination_reason:
+            cleaned_data["is_terminate"] = True
+        else:
+            cleaned_data["is_terminate"] = False
+
+        # Budget change fields
+        budget_change_effective_date = cleaned_data.get("EFFECTIVE_DATE1")
+        # If both budget change fields are filled, mark is_budget_change as True
+        if budget_change_effective_date:
+            cleaned_data["is_budgetchange"] = True
+        else:
+            cleaned_data["is_budgetchange"] = False
+        
+        # FTE change fields
+        fte_change_effective_date = cleaned_data.get("EFFECTIVE_DATE2")
+        # If both FTE change fields are filled, mark is_fte_change as True
+        if fte_change_effective_date:
+            cleaned_data["is_ftechange"] = True
+        else:
+            cleaned_data["is_ftechange"] = False
+
+        # Pay rate change fields
+        pay_rate_change_effective_date = cleaned_data.get("EFFECTIVE_DATE3")
+        # If both pay rate change fields are filled, mark is_pay_rate_change as True
+        if pay_rate_change_effective_date:
+            cleaned_data["is_payratechange"] = True
+        else:
+            cleaned_data["is_payratechange"] = False
+        
+        # Reallocation fields
+        reallocation_effective_date = cleaned_data.get("RE_DATE")
+        # If both reallocation fields are filled, mark is_reallocation as True
+        if reallocation_effective_date:
+            cleaned_data["is_reallocation"] = True
+        else:
+            cleaned_data["is_reallocation"] = False
+
+        # Other payroll change fields
+        other_specification = cleaned_data.get("OTHER")
+        # If other specification is filled, mark is_other_payroll_change as True
+        if other_specification:
+            cleaned_data["is_otherchange"] = True
+        else:
+            cleaned_data["is_otherchange"] = False
+        return cleaned_data
 
 # using below
 # Implement with database model
