@@ -1,4 +1,6 @@
 import os, time
+from PIL import Image
+import io
 import subprocess
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import FileResponse, HttpResponse
@@ -23,12 +25,19 @@ def escape_latex(value):
     return value.replace('_', '\\_').replace('&', '\\&').replace('%', '\\%')
 
 def save_signature_image(base64_data, output_path):
-    """Save base64-encoded signature to an image file."""
-    if base64_data and base64_data.startswith("data:image"):
-        format, imgstr = base64_data.split(';base64,')
-        img_data = base64.b64decode(imgstr)
-        with open(output_path, 'wb') as f:
-            f.write(img_data)
+    """Save base64-encoded signature to an image file, or generate blank PNG if data is missing."""
+    try:
+        if base64_data and base64_data.startswith("data:image"):
+            format, imgstr = base64_data.split(';base64,')
+            img_data = base64.b64decode(imgstr)
+            with open(output_path, 'wb') as f:
+                f.write(img_data)
+        else:
+            raise ValueError("No valid image data")
+    except Exception as e:
+        # Create a blank white image as fallback
+        blank_img = Image.new("RGB", (300, 100), color="white")
+        blank_img.save(output_path, format="PNG")
 
 #Generates a PDF from the form model using a LaTeX template and given form ID
 def generate_pdf_from_form_id(request, form_id, ModelClass, latex_template_path, output_dir="output"):
@@ -130,8 +139,10 @@ def generate_reimbursement_pdf(request, reimbursement_id):
     reimbursement = get_object_or_404(ReimbursementRequest, id=reimbursement_id)
 
     # Save signature image if available
-    signature_output_path = os.path.join("output", "signature.png")
-    save_signature_image(reimbursement.signature_base64, signature_output_path)
+    signature_output_path_user = os.path.join("output", "signatureUser.png")
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(reimbursement.signature_base64, signature_output_path_user)
+    save_signature_image(reimbursement.signatureAdmin_base64, signature_output_path_admin)
 
     # Convert model fields to a dictionary and escape LaTeX special characters
     context = {field.name.upper(): escape_latex(str(getattr(reimbursement, field.name, ''))) for field in ReimbursementRequest._meta.fields}
@@ -172,6 +183,12 @@ def generate_reimbursement_pdf(request, reimbursement_id):
     # Store the new PDF path in the database
     reimbursement.pdf_url = PDF_URL
     reimbursement.save()
+
+    # Delete signature png
+    if os.path.exists(signature_output_path_user):
+        os.remove(signature_output_path_user)
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
 
     messages.success(request, f"Form submitted successfully!")
     return redirect(dashboard)
@@ -280,6 +297,12 @@ def view_pdf(request):
     if not reimbursement or not reimbursement.pdf_url:
         return HttpResponse("No PDF available.", status=404)
 
+    # Save signature image if available
+    signature_output_path_user = os.path.join("output", "signatureUser.png")
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(reimbursement.signature_base64, signature_output_path_user)
+    save_signature_image(reimbursement.signatureAdmin_base64, signature_output_path_admin)
+
     # Generate or regenerate the PDF
     generate_pdf_from_form_id(
         request=request,
@@ -294,6 +317,12 @@ def view_pdf(request):
 
     # Get the updated path
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(reimbursement.pdf_url))
+
+    # Delete signature png
+    if os.path.exists(signature_output_path_user):
+        os.remove(signature_output_path_user)
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
 
     # Ensure the PDF exists
     if not os.path.exists(pdf_path):
@@ -624,6 +653,12 @@ def view_pdf2(request, user_id):
     if not reimbursement or not reimbursement.pdf_url:
         return HttpResponse("No PDF available.", status=404)
 
+    # Save signature image if available
+    signature_output_path_user = os.path.join("output", "signatureUser.png")
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(reimbursement.signature_base64, signature_output_path_user)
+    save_signature_image(reimbursement.signatureAdmin_base64, signature_output_path_admin)
+
     # Generate or regenerate the PDF
     generate_pdf_from_form_id(
         request=request,
@@ -638,6 +673,12 @@ def view_pdf2(request, user_id):
 
     # Get the updated path
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(reimbursement.pdf_url))
+
+    # Delete signature png
+    if os.path.exists(signature_output_path_user):
+        os.remove(signature_output_path_user)
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
 
     # Ensure the PDF exists
     if not os.path.exists(pdf_path):
@@ -677,7 +718,13 @@ def view_payroll_pdf3(request, form_id):
 def view_pdf3(request, form_id):
     # Retrieve the reimbursement form using its specific form ID (and ensure pdf_url is set)
     reimbursement = get_object_or_404(ReimbursementRequest, id=form_id, pdf_url__isnull=False)
-    
+
+    # Save signature image if available
+    signature_output_path_user = os.path.join("output", "signatureUser.png")
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(reimbursement.signature_base64, signature_output_path_user)
+    save_signature_image(reimbursement.signatureAdmin_base64, signature_output_path_admin)
+
    # Generate or regenerate the PDF
     generate_pdf_from_form_id(
         request=request,
@@ -692,6 +739,12 @@ def view_pdf3(request, form_id):
 
     # Get the updated path
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(reimbursement.pdf_url))
+
+    # Delete signature png
+    if os.path.exists(signature_output_path_user):
+        os.remove(signature_output_path_user)
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
 
     # Ensure the PDF exists
     if not os.path.exists(pdf_path):
