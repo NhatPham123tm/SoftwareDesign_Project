@@ -110,7 +110,7 @@ class PayrollAssignment(models.Model):
     budget_percentage2 = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     position_title2 = models.CharField(max_length=100, blank=True, null=True)
     benefits_type2 = models.CharField(max_length=30, choices=BENEFITS_TYPE_CHOICES, blank=True, null=True)
-    salary_fte1 = models.CharField(max_length=50, blank=True, null=True)
+    salary_fte2 = models.CharField(max_length=50, blank=True, null=True)
 
     pcn2 = models.CharField(max_length=50, blank=True, null=True)
 
