@@ -1,8 +1,10 @@
-import os
+import os, time
+from PIL import Image
+import io
 import subprocess
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import FileResponse, HttpResponse
-from .forms import PayrollForm, ReimbursementForm
+from .forms import PayrollForm
 from .forms import ReimbursementStep1Form, ReimbursementStep2Form, ReimbursementStep3Form,PayrollStep1Form, PayrollStep2Form, PayrollStep3Form, PayrollStep4Form, PayrollStep5Form, PayrollStep6Form, PayrollStep7Form, PayrollStep8Form, PayrollStep9Form, PayrollStep10Form
 from api.models import ReimbursementRequest, PayrollAssignment
 import re
@@ -12,13 +14,83 @@ from django.contrib import messages
 from django.conf import settings
 import datetime
 from django.utils.html import escape
+import base64
+from django.core.files.base import ContentFile
 
+# utility functions for latex and pdf
 def escape_latex(value):
     """ Escapes LaTeX special characters in user input """
     if not isinstance(value, str):
         return value
     return value.replace('_', '\\_').replace('&', '\\&').replace('%', '\\%')
 
+def save_signature_image(base64_data, output_path):
+    """Save base64-encoded signature to an image file, or generate blank PNG if data is missing."""
+    try:
+        if base64_data and base64_data.startswith("data:image"):
+            format, imgstr = base64_data.split(';base64,')
+            img_data = base64.b64decode(imgstr)
+            with open(output_path, 'wb') as f:
+                f.write(img_data)
+        else:
+            raise ValueError("No valid image data")
+    except Exception as e:
+        # Create a blank white image as fallback
+        blank_img = Image.new("RGB", (300, 100), color="white")
+        blank_img.save(output_path, format="PNG")
+
+#Generates a PDF from the form model using a LaTeX template and given form ID
+def generate_pdf_from_form_id(request, form_id, ModelClass, latex_template_path, output_dir="output"):
+    instance = get_object_or_404(ModelClass, id=form_id)
+    
+    new_pdf_name = f"{ModelClass.__name__.lower()}_{form_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    new_pdf_path = os.path.join(output_dir, new_pdf_name)
+    output_pdf_path = os.path.join(output_dir, "filled_template.pdf")
+    pdf_url = os.path.join(output_dir, new_pdf_name)
+
+    # Prepare LaTeX-safe context from model fields
+    context = {
+        field.name.upper(): escape_latex(str(getattr(instance, field.name) or ''))
+        for field in ModelClass._meta.fields
+    }
+
+    # Read and fill LaTeX template
+    with open(latex_template_path, "r") as file:
+        tex_content = file.read()
+
+    for key, value in context.items():
+        tex_content = re.sub(r'\{\{' + key.replace('_', r'\\_') + r'\}\}', value, tex_content)
+
+    # Write the filled LaTeX content
+    filled_tex_path = os.path.join(output_dir, "filled_template.tex")
+    with open(filled_tex_path, "w") as file:
+        file.write(tex_content)
+
+    # Compile LaTeX to PDF
+    try:
+        subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", "-output-directory", output_dir, filled_tex_path],
+            check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+    except subprocess.CalledProcessError as e:
+        print("LaTeX compilation failed:")
+        print("Stdout:", e.stdout.decode())
+        print("Stderr:", e.stderr.decode())
+
+    # Rename compiled PDF if successful
+    if os.path.exists(output_pdf_path):
+        os.rename(output_pdf_path, new_pdf_path)
+
+    # Save URL/path to model 
+    if hasattr(instance, "pdf_url"):
+        instance.pdf_url = pdf_url
+        instance.save()
+
+    #messages.success(request, f"PDF generated successfully.")
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+##---------------------------------------------------------------------------------
 #for testing only
 def generate_payroll_pdf(request):
     LATEX_TEMPLATE_PATH = "latexform/payroll-assignment.tex"
@@ -63,11 +135,17 @@ def generate_reimbursement_pdf(request, reimbursement_id):
     NEW_PDF_NAME = f"reimbursement_{reimbursement_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
     NEW_PDF_PATH = os.path.join("output/", NEW_PDF_NAME)
     PDF_URL = f"output/{NEW_PDF_NAME}" 
-
+    
     reimbursement = get_object_or_404(ReimbursementRequest, id=reimbursement_id)
 
+    # Save signature image if available
+    signature_output_path_user = os.path.join("output", "signatureUser.png")
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(reimbursement.signature_base64, signature_output_path_user)
+    save_signature_image(reimbursement.signatureAdmin_base64, signature_output_path_admin)
+
     # Convert model fields to a dictionary and escape LaTeX special characters
-    context = {field.name.upper(): escape_latex(str(getattr(reimbursement, field.name, ''))) for field in ReimbursementRequest._meta.fields}
+    context = {field.name.upper(): escape_latex(str(getattr(reimbursement, field.name) or '')) for field in ReimbursementRequest._meta.fields}
 
     # Read LaTeX template
     with open(LATEX_TEMPLATE_PATH, "r") as file:
@@ -87,7 +165,16 @@ def generate_reimbursement_pdf(request, reimbursement_id):
         print("\n".join(file.readlines()[:20]))
 
     # Compile LaTeX to PDF
-    subprocess.run(["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    try:
+        subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"],
+            check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+    except subprocess.CalledProcessError as e:
+        print("Warning: pdflatex returned a non-zero exit status")
+        print("Stdout:", e.stdout.decode())
+        print("Stderr:", e.stderr.decode())
     
     # Ensure the file exists before renaming
     if os.path.exists(OUTPUT_PDF_PATH):
@@ -96,6 +183,12 @@ def generate_reimbursement_pdf(request, reimbursement_id):
     # Store the new PDF path in the database
     reimbursement.pdf_url = PDF_URL
     reimbursement.save()
+
+    # Delete signature png
+    if os.path.exists(signature_output_path_user):
+        os.remove(signature_output_path_user)
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
 
     messages.success(request, f"Form submitted successfully!")
     return redirect(dashboard)
@@ -204,14 +297,38 @@ def view_pdf(request):
     if not reimbursement or not reimbursement.pdf_url:
         return HttpResponse("No PDF available.", status=404)
 
-    # Convert the stored URL to an absolute file path
+    # Save signature image if available
+    signature_output_path_user = os.path.join("output", "signatureUser.png")
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(reimbursement.signature_base64, signature_output_path_user)
+    save_signature_image(reimbursement.signatureAdmin_base64, signature_output_path_admin)
+
+    # Generate or regenerate the PDF
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=reimbursement.id,
+        ModelClass=ReimbursementRequest,
+        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+    )
+
+    # Refresh from DB to get updated pdf_url
+    reimbursement.refresh_from_db()
+    time.sleep(0.1)
+
+    # Get the updated path
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(reimbursement.pdf_url))
 
-    # Ensure the file exists
+    # Delete signature png
+    if os.path.exists(signature_output_path_user):
+        os.remove(signature_output_path_user)
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
+
+    # Ensure the PDF exists
     if not os.path.exists(pdf_path):
         return HttpResponse("PDF file not found.", status=404)
 
-    # Serve the PDF file
+    # Serve the PDF
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
 
 #-------------------------------------------------------------
@@ -404,10 +521,13 @@ def payroll_review(request, payroll_id):
     PDF_URL = f"output/{NEW_PDF_NAME}"
 
     payroll = get_object_or_404(PayrollAssignment, id=payroll_id, user=request.user)
+    # Save signature image if available
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(payroll.signatureAdmin_base64, signature_output_path_admin)
 
     if request.method == 'POST':
         # Convert model fields to a dictionary and escape LaTeX special characters
-        context = {field.name.upper(): escape_latex(str(getattr(payroll, field.name, ''))) for field in PayrollAssignment._meta.fields}
+        context = {field.name.upper(): escape_latex(str(getattr(payroll, field.name) or '')) for field in PayrollAssignment._meta.fields}
 
         # Read LaTeX template
         with open(LATEX_TEMPLATE_PATH, "r", encoding="utf-8") as file:
@@ -446,6 +566,9 @@ def payroll_review(request, payroll_id):
         payroll.status = "Pending"  # Mark as submitted
         payroll.save()
 
+        if os.path.exists(signature_output_path_admin):
+            os.remove(signature_output_path_admin)
+        
         messages.success(request, "Payroll form submitted successfully!")
         return redirect('dashboard')
 
@@ -464,11 +587,9 @@ def delete_payroll(request, payroll_id):
 
     return redirect('dashboard')
 
-
+# Opens the latest payroll request PDF for the logged-in user 
 @login_required
 def view_payroll_pdf(request):
-    """ Opens the latest payroll request PDF for the logged-in user """
-    
     # Get the latest payroll request with a generated PDF URL
     payroll = PayrollAssignment.objects.filter(
         user=request.user,
@@ -477,17 +598,35 @@ def view_payroll_pdf(request):
 
     if not payroll or not payroll.pdf_url:
         return HttpResponse("No Payroll PDF available.", status=404)
+    
+    # Save signature image if available
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(payroll.signatureAdmin_base64, signature_output_path_admin)
 
-    # Convert stored URL to an absolute file path
+    # Generate the PDF (even if already exists, for consistency)
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=payroll.id,
+        ModelClass=PayrollAssignment,
+        latex_template_path="latexform/payroll-assignment.tex"  # Update if your template path is different
+    )
+
+    # Refresh from DB to get updated pdf_url
+    payroll.refresh_from_db()
+    time.sleep(0.1)
+
+    # Use updated URL from payroll instance
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(payroll.pdf_url))
 
-    # Ensure the file exists
+    if os.path.exists(signature_output_path_admin):
+            os.remove(signature_output_path_admin)
+
     if not os.path.exists(pdf_path):
         return HttpResponse("Payroll PDF file not found.", status=404)
 
-    # Serve the PDF file
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
 
+# Open latest form base on user
 @login_required
 def view_payroll_pdf2(request, user_id):
     
@@ -497,16 +636,34 @@ def view_payroll_pdf2(request, user_id):
     if not payroll or not payroll.pdf_url:
         return HttpResponse("No Payroll PDF available.", status=404)
 
-    # Convert stored URL to an absolute file path
+    # Save signature image if available
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(payroll.signatureAdmin_base64, signature_output_path_admin)
+
+    # Generate the PDF (even if already exists, for consistency)
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=payroll.id,
+        ModelClass=PayrollAssignment,
+        latex_template_path="latexform/payroll-assignment.tex"  # Update if your template path is different
+    )
+
+    # Refresh from DB to get updated pdf_url
+    payroll.refresh_from_db()
+    time.sleep(0.1)
+
+    # Use updated URL from payroll instance
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(payroll.pdf_url))
 
-    # Ensure the file exists
+    if os.path.exists(signature_output_path_admin):
+         os.remove(signature_output_path_admin)
+
     if not os.path.exists(pdf_path):
         return HttpResponse("Payroll PDF file not found.", status=404)
 
-    # Serve the PDF file
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
 
+# Open latest form base on user
 @login_required
 def view_pdf2(request, user_id):
 
@@ -516,10 +673,109 @@ def view_pdf2(request, user_id):
     if not reimbursement or not reimbursement.pdf_url:
         return HttpResponse("No PDF available.", status=404)
 
-    # Convert the stored URL to an absolute file path
+    # Save signature image if available
+    signature_output_path_user = os.path.join("output", "signatureUser.png")
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(reimbursement.signature_base64, signature_output_path_user)
+    save_signature_image(reimbursement.signatureAdmin_base64, signature_output_path_admin)
+
+    # Generate or regenerate the PDF
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=reimbursement.id,
+        ModelClass=ReimbursementRequest,
+        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+    )
+
+    # Refresh from DB to get updated pdf_url
+    reimbursement.refresh_from_db()
+    time.sleep(0.1)
+
+    # Get the updated path
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(reimbursement.pdf_url))
 
+    # Delete signature png
+    if os.path.exists(signature_output_path_user):
+        os.remove(signature_output_path_user)
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
+
+    # Ensure the PDF exists
     if not os.path.exists(pdf_path):
         return HttpResponse("PDF file not found.", status=404)
 
+    # Serve the PDF
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+
+# Open specific form base on id
+@login_required
+def view_payroll_pdf3(request, form_id):
+    # Retrieve the payroll form using its specific form ID (and ensure pdf_url is set)
+    payroll = get_object_or_404(PayrollAssignment, id=form_id, pdf_url__isnull=False)
+    
+    # Save signature image if available
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(payroll.signatureAdmin_base64, signature_output_path_admin)
+    
+    # Generate the PDF (even if already exists, for consistency)
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=payroll.id,
+        ModelClass=PayrollAssignment,
+        latex_template_path="latexform/payroll-assignment.tex.tex"  # Update if your template path is different
+    )
+
+    # Refresh from DB to get updated pdf_url
+    payroll.refresh_from_db()
+    time.sleep(0.1)
+
+    # Use updated URL from payroll instance
+    pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(payroll.pdf_url))
+
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
+
+    if not os.path.exists(pdf_path):
+        return HttpResponse("Payroll PDF file not found.", status=404)
+
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+
+# Open specific form base on id
+@login_required
+def view_pdf3(request, form_id):
+    # Retrieve the reimbursement form using its specific form ID (and ensure pdf_url is set)
+    reimbursement = get_object_or_404(ReimbursementRequest, id=form_id, pdf_url__isnull=False)
+
+    # Save signature image if available
+    signature_output_path_user = os.path.join("output", "signatureUser.png")
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(reimbursement.signature_base64, signature_output_path_user)
+    save_signature_image(reimbursement.signatureAdmin_base64, signature_output_path_admin)
+
+   # Generate or regenerate the PDF
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=reimbursement.id,
+        ModelClass=ReimbursementRequest,
+        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+    )
+
+    # Refresh from DB to get updated pdf_url
+    reimbursement.refresh_from_db()
+    time.sleep(0.1)
+
+    # Get the updated path
+    pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(reimbursement.pdf_url))
+
+    # Delete signature png
+    if os.path.exists(signature_output_path_user):
+        os.remove(signature_output_path_user)
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
+
+    # Ensure the PDF exists
+    if not os.path.exists(pdf_path):
+        return HttpResponse("PDF file not found.", status=404)
+
+    # Serve the PDF
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")

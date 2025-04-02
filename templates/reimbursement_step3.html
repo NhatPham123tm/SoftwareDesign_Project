@@ -9,38 +9,78 @@
 </head>
 <body>
 
-    <nav class="top">
-        <div class="topbox toplink">
-            <a href="{% url 'dashboard' %}">Trois-Rivières</a>
-            <div class="dropdown">
-                <button class="dropbtn">View</button>
-                <div class="dropdown-content">
-                  <a href="{% url 'basicuser' %}">Profile</a>
-                  <a href="{% url 'forms' %}">Form</a>
-                  <a href="{% url 'adminpage' %}" id = "admin_link">Admin</a>
-                  <a href="#" onclick=logoutUser()>Logout</a>
-                </div>
+<nav class="top">
+    <div class="topbox toplink">
+        <a href="{% url 'dashboard' %}">Trois-Rivières</a>
+        <div class="dropdown">
+            <button class="dropbtn">View</button>
+            <div class="dropdown-content">
+                <a href="{% url 'basicuser' %}">Profile</a>
+                <a href="{% url 'forms' %}">Form</a>
+                <a href="{% url 'adminpage' %}" id="admin_link">Admin</a>
+                <a href="#" onclick="logoutUser()">Logout</a>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <section class="title4">
-        <div class="container">
-            <div class="row">
-                <h2>Step 3: Money</h2>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
+<section class="title4">
+    <div class="container">
+        <div class="row">
+            <h2>Step 3: Money</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
 
+                <label for="signature-pad">Signature:</label>
+                <canvas id="signature-pad" width="400" height="150" style="border:1px solid #000;"></canvas>
+                <br>
+                <button type="button" id="save-signature">Save Signature</button>
+                <br><br>
+                <!-- Hidden input to store base64 -->
+                <input type="hidden" name="signature_base64" id="signature_base64">
 
-
-                    <button type="submit">Submit</button>
-                </form>
-                <a href="{% url 'reimbursement_step2' reimbursement.id %}"><button>Back</button></a>
-                <a href="{% url 'dashboard' %}"><button>Return to dashboard</button></a>
-            </div>
+                <button type="submit" onclick="return handleSignature()">Submit</button>
+                <button type="button" id="clear-signature">Clear Signature</button>
+            </form>
+            <a href="{% url 'reimbursement_step2' reimbursement.id %}"><button>Back</button></a>
+            <a href="{% url 'dashboard' %}"><button>Return to dashboard</button></a>
         </div>
-    </section>
+    </div>
+</section>
+
+<!-- Signature Pad JS -->
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+<script>
+    const canvas = document.getElementById("signature-pad");
+    const signaturePad = new SignaturePad(canvas);
+
+    document.getElementById("save-signature").addEventListener("click", function () {
+        if (signaturePad.isEmpty()) {
+            alert("Please sign before saving.");
+        } else {
+            const dataUrl = signaturePad.toDataURL();
+            document.getElementById("signature_base64").value = dataUrl;
+            alert("Signature saved.");
+        }
+    });
+
+    document.getElementById("clear-signature").addEventListener("click", function () {
+        signaturePad.clear();
+        document.getElementById("signature_base64").value = "";
+    });
+    
+    function handleSignature() {
+        if (signaturePad.isEmpty()) {
+            return confirm("You haven't provided a signature. Do you still want to submit?");
+        }
+
+        const dataUrl = signaturePad.toDataURL();
+        document.getElementById("signature_base64").value = dataUrl;
+        return true;
+    }
+</script>
 
 
     <script>

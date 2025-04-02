@@ -191,6 +191,15 @@
                             <!-- Insert Users -->
                             
                         </tbody>
+
+                        <div id="signatureModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%, 0); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
+                            <h3>Supervisor Signature</h3>
+                            <canvas id="signatureCanvas" width="400" height="150" style="border:1px solid #000;"></canvas><br>
+                            <button onclick="saveSignature()">Save</button>
+                            <button onclick="clearSignature()">Clear</button>
+                            <button onclick="closeSignatureModal()">Cancel</button>
+                        </div>
+                        
                     </table>
                     <!-- Edit users -->
                     
@@ -205,152 +214,266 @@
     <script>
         function stuff() {
             fetch("/api/payroll/")
-    .then(response => response.json())
-    .then(data => {
-        console.log("API Response (payroll):", data);
-        tbody = document.getElementById('userTableBody2');
-        tbody.innerHTML = '';
-        data.forEach(user => {
-            if(user.status != "Draft") {
-            tbody.innerHTML += `
-            <tr>
-                <td>${user.employee_name}</td>
-                <td><a id="pdf-link" href="/view_payroll_pdf2/${user.id}/" target="_blank">Open PDF</a></td>
-                <td>Payroll Form</td>
-                <td>
+                .then(response => response.json())
+                .then(data => {
+                    console.log("API Response (payroll):", data);
+                    tbody = document.getElementById('userTableBody2');
+                    tbody.innerHTML = '';
+                    data.forEach(user => {
+                        if(user.status != "Draft") {
+                        tbody.innerHTML += `
+                        <tr>
+                            <td>${user.employee_name}</td>
+                            <td><a id="pdf-link" href="/view_payroll_pdf2/${user.id}/" target="_blank">Open PDF</a></td>
+                            <td>Payroll Form</td>
+                            <td>
+                                
+                                <p>${user.status}</p>
+                                <select onchange="handlePayrollStatus(${user.id}, this.value)" id="newRole3">
+                                    option value="Draft" ${user.status === "Draft" ? "selected" : ""}>Draft</option>
+                                    <option value="Pending" ${user.status === "Pending" ? "selected" : ""}>Pending</option>
+                                    <option value="Approved" }>Approve</option>
+                                    <option value="Rejected" }>Reject</option>
+                                    <option value="Cancelled" }>Cancell</option>
+                                </select>
+                            </td>
+                        </tr>`;
+                        }
+                    });
+
+                    // Now, fetch the second API after payroll data is loaded
+                    return fetch("/api/reimburse/");
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("API Response (reimburse):", data);
+                    tbody = document.getElementById('userTableBody2');
                     
-                    <p>${user.status}</p>
-                    <select onchange="updateStatus(${user.id}, this.value)" id="newRole3">
-                        option value="Draft" ${user.status === "Draft" ? "selected" : ""}>Draft</option>
-                        <option value="Pending" ${user.status === "Pending" ? "selected" : ""}>Pending</option>
-                        <option value="Approved" }>Approve</option>
-                        <option value="Rejected" }>Reject</option>
-                        <option value="Cancelled" }>Cancell</option>
-                    </select>
-                </td>
-            </tr>`;
-            }
-        });
-
-        // Now, fetch the second API after payroll data is loaded
-        return fetch("/api/reimburse/");
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("API Response (reimburse):", data);
-        tbody = document.getElementById('userTableBody2');
-        
-        data.forEach(user => {
-            if(user.status != "Draft") {
-            tbody.innerHTML += `
-            <tr>
-                <td>${user.employee_name}</td>
-                <td>  
-                    <a id="pdf-link" href="/view_pdf2/${user.id}/" target="_blank">Open PDF</a>
-                </td>
-                <td>Reimburse Form</td>
-                <td>
-                    <p>${user.status}</p>
-                    <select onchange="changeStatus(${user.id}, this.value)" id="newRole2">
+                    data.forEach(user => {
+                        if(user.status != "Draft") {
+                        tbody.innerHTML += `
+                        <tr>
+                            <td>${user.employee_name}</td>
+                            <td>  
+                                <a id="pdf-link" href="/view_pdf2/${user.id}/" target="_blank">Open PDF</a>
+                            </td>
+                            <td>Reimburse Form</td>
+                            <td>
+                                <p>${user.status}</p>
+                                <select onchange="changeStatus(${user.id}, this.value)" id="newRole2">
+                                    
+                                    <option value="Pending" }></option>
+                                    <option value="Approved" }>Approve</option>
+                                    <option value="Rejected" }>Reject</option>
+                                    <option value="Cancelled" }>Cancell</option>
+                                </select>
+                            </td>
+                        </tr>`;
+                        }
                         
-                        <option value="Pending" }></option>
-                        <option value="Approved" }>Approve</option>
-                        <option value="Rejected" }>Reject</option>
-                        <option value="Cancelled" }>Cancell</option>
-                    </select>
-                </td>
-            </tr>`;
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading users:', error);
+                });
+
             }
-            
-        });
-    })
-    .catch(error => {
-        console.error('Error loading users:', error);
-    });
-
-    }
-    
-    function changeStatus(id, newStatus) {
-        const newData = {
-            status: document.getElementById('newRole2').value
-        };
-        console.log(document.getElementById('newRole2').value)
-        fetch(`/api/reimburse/${id}/`, {
-            method: "PATCH",  // Use PATCH to update only the status
-            credentials: "same-origin",
-            headers: {
-                "X-CSRFToken": getCookie("csrftoken"),
-                "Content-Type": "application/json"               
-            },
-            body: JSON.stringify({ status: newStatus })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(`Updated status for ID ${id}:`, data);
-            stuff();
-        })
-        .catch(error => {
-            console.error("Error updating status:", error);
-        });
-    }
-
-    function updateStatus(id, newStatus) {
-        const newData = {
-            status: document.getElementById('newRole3').value
-        };
-        console.log(document.getElementById('newRole3').value)
-        fetch(`/api/payroll/${id}/`, {
-            method: "PATCH",  // Use PATCH to update only the status
-            credentials: "same-origin",
-            headers: {
-                "X-CSRFToken": getCookie("csrftoken"),
-                "Content-Type": "application/json"               
-            },
-            body: JSON.stringify({ status: newStatus })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(`Updated status for ID ${id}:`, data);
-            stuff();
-        })
-        .catch(error => {
-            console.error("Error updating status:", error);
-        });
-    }
-
-    function openEditPanel2(userId) {
-        document.getElementById('userId').value = userId;
-                
-    
-                // Show the panel
-        document.getElementById('editPanel2').style.display = 'block';
-        fetch(`/api/reimburse/${userId}/`)
-            .then(response => response.json())
-            .then(user => {
-                console.log(user)
-                // Set current info
-                document.getElementById('currenID').textContent = user.employee_id;
-                document.getElementById('currenName').textContent = user.name;
-                document.getElementById('currenEmail').textContent = user.email;
-                
-                
-                
-    
-                // Set hidden user ID
-                document.getElementById('userId').value = userId;
-                
-    
-                // Show the panel
-                document.getElementById('editPanel2').style.display = 'block';
-    
-            });
-    }
-
-    function closeEditPanel2() {
-        document.getElementById('editPanel2').style.display = 'none';
         
-    }
+        function changeStatus(id, newStatus) {
+        if (newStatus === "Approved") {
+            openSignatureModal(id);  // Launch signature pad modal
+            openPayrollSignatureModal(id);
+            return;
+        }
+
+        // If not approved, just send status
+        fetch(`/api/reimburse/${id}/`, {
+            method: "PATCH",
+            credentials: "same-origin",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(`Updated status for ID ${id}:`, data);
+            stuff();
+        })
+        .catch(error => {
+            console.error("Error updating status:", error);
+        });
+        }
+
+        function updateStatus(id, newStatus) {
+            const newData = {
+                status: document.getElementById('newRole3').value
+            };
+            console.log(document.getElementById('newRole3').value)
+            fetch(`/api/payroll/${id}/`, {
+                method: "PATCH",  // Use PATCH to update only the status
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"               
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(`Updated status for ID ${id}:`, data);
+                stuff();
+            })
+            .catch(error => {
+                console.error("Error updating status:", error);
+            });
+        }
+
+        function openEditPanel2(userId) {
+            document.getElementById('userId').value = userId;
+                    
+        
+            // Show the panel
+            document.getElementById('editPanel2').style.display = 'block';
+            fetch(`/api/reimburse/${userId}/`)
+                .then(response => response.json())
+                .then(user => {
+                    console.log(user)
+                    // Set current info
+                    document.getElementById('currenID').textContent = user.employee_id;
+                    document.getElementById('currenName').textContent = user.name;
+                    document.getElementById('currenEmail').textContent = user.email;
+                    
+                    
+                    
+        
+                    // Set hidden user ID
+                    document.getElementById('userId').value = userId;
+                    
+        
+                    // Show the panel
+                    document.getElementById('editPanel2').style.display = 'block';
+        
+                });
+        }
+
+        function closeEditPanel2() {
+            document.getElementById('editPanel2').style.display = 'none';
+            
+        }
     
     </script>
+
+    <!-- For live signing-->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script>
+        let selectedReimburseId = null;
+        let selectedPayrollId = null;
+        let signaturePad;
+        let signingType = null; // "payroll" or "reimburse"
+
+    
+        document.addEventListener("DOMContentLoaded", function () {
+            const canvas = document.getElementById("signatureCanvas");
+            signaturePad = new SignaturePad(canvas);
+        });
+        
+        function openPayrollSignatureModal(payrollId) {
+            selectedPayrollId = payrollId;
+            signingType = "payroll";
+            document.getElementById("signatureModal").style.display = "block";
+        }
+
+        function openSignatureModal(reimburseId) {
+            selectedReimburseId = reimburseId;
+            document.getElementById("signatureModal").style.display = "block";
+        }
+    
+        function closeSignatureModal() {
+            document.getElementById("signatureModal").style.display = "none";
+            signaturePad.clear();
+            selectedReimburseId = null;
+            selectedPayrollId = null;
+            signingType = null;
+        }
+
+    
+        function clearSignature() {
+            signaturePad.clear();
+        }
+    
+        function saveSignature() {
+            if (signaturePad.isEmpty()) {
+                alert("Please provide a signature before saving.");
+                return;
+            }
+
+            const signatureBase64 = signaturePad.toDataURL();
+            const today = new Date().toISOString().split('T')[0];
+
+            let url = "";
+            let payload = {
+                status: "Approved",
+                signatureAdmin_base64: signatureBase64,
+                approve_date: today
+            };
+
+            if (signingType === "reimburse") {
+                url = `/api/reimburse/${selectedReimburseId}/`;
+            } else if (signingType === "payroll") {
+                url = `/api/payroll/${selectedPayrollId}/`;
+            } else {
+                alert("Unknown signing type.");
+                return;
+            }
+
+            fetch(url, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Signature saved and status updated:", data);
+                closeSignatureModal();
+                stuff();
+            })
+            .catch(error => {
+                console.error("Error submitting signature:", error);
+            });
+        }
+        
+            function handlePayrollStatus(id, newStatus) {
+                if (newStatus === "Approved") {
+                    openPayrollSignatureModal(id);
+                    return;
+                }
+
+                fetch(`/api/payroll/${id}/`, {
+                    method: "PATCH",
+                    credentials: "same-origin",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(`Updated payroll status for ID ${id}:`, data);
+                    stuff();
+                })
+                .catch(error => {
+                    console.error("Error updating payroll status:", error);
+                });
+            }
+
+    </script>
+    
 </body>
 </html>

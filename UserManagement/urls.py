@@ -4,7 +4,7 @@ from authentication.views import home  # Import the home view
 from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data, forms, check_id_exists, check_email_exists
 from authentication import views
 from django.contrib.auth import views as auth_views
-from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_pdf, generate_payroll_pdf, view_pdf2, view_payroll_pdf2
+from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_pdf, generate_payroll_pdf, view_pdf2, view_payroll_pdf2, view_pdf3, view_payroll_pdf3
 from formProcessor.views import (
     payroll_step1, payroll_step2, payroll_step3, payroll_step4,
     payroll_step5, payroll_step6, payroll_step7, payroll_step8,
@@ -56,6 +56,8 @@ urlpatterns = [
     path('forms/', forms, name='forms'),
     path('view_pdf2/<int:user_id>/', view_pdf2, name='view_pdf2'),
     path('view_payroll_pdf2/<int:user_id>/', view_payroll_pdf2, name='view_payroll_pdf2'),
+    path('view_pdf3/<int:form_id>/', view_pdf3, name='view_pdf3'),
+    path('view_payroll_pdf3/<int:form_id>/', view_payroll_pdf3, name='view_payroll_pdf3'),
     path('check_id_exists/<int:user_id>/', check_id_exists, name='check_id_exists'),
     path('api/check_email_exists/<str:email>/', check_email_exists, name='check_email_exists'),
 

@@ -4,6 +4,9 @@
 *.pyd
 __pycache__/
 
+# Migration files
+migrations/
+
 # Virtual environment
 venv/
 env/

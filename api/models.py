@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.exceptions import ValidationError
-from django.utils.timezone import now
+from django.utils import timezone
 class roles(models.Model):
     role_name = models.CharField(max_length=30, unique=True)
 
@@ -78,7 +78,7 @@ class PayrollAssignment(models.Model):
     ]
  
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
-
+    created_at = models.DateTimeField(default=timezone.now)
     pdf_url = models.URLField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Pending')
 
@@ -110,7 +110,7 @@ class PayrollAssignment(models.Model):
     budget_percentage2 = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     position_title2 = models.CharField(max_length=100, blank=True, null=True)
     benefits_type2 = models.CharField(max_length=30, choices=BENEFITS_TYPE_CHOICES, blank=True, null=True)
-    salary_fte1 = models.CharField(max_length=50, blank=True, null=True)
+    salary_fte2 = models.CharField(max_length=50, blank=True, null=True)
 
     pcn2 = models.CharField(max_length=50, blank=True, null=True)
 
@@ -148,11 +148,21 @@ class PayrollAssignment(models.Model):
     other_specification = models.TextField(blank=True, null=True)
 
     # Verification
-    signature_url = models.URLField(blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
+    signatureAdmin_base64 = models.TextField(null=True, blank=True)
     approve_date = models.DateField(blank=True, null=True)
     
     def __str__(self):
         return f"{self.id} ({self.employee_name})"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(status='Pending'),
+                name='unique_pending_form_per_user'
+            )
+        ]
 
 class ReimbursementRequest(models.Model):
     FORM_STATUS = [
@@ -164,12 +174,14 @@ class ReimbursementRequest(models.Model):
     ]
     
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
     employee_name = models.CharField(max_length=100, blank=True, null=True)
     employee_id = models.CharField(max_length=50, blank=True, null=True)
     today_date = models.DateField(blank=True, null=True)
     reimbursement_items = models.TextField(blank=True, null=True)
     purpose = models.TextField(blank=True, null=True)
     meal_info = models.TextField(blank=True, null=True)
+    signatureAdmin_base64 = models.TextField(null=True, blank=True)
     
     # Cost Center Information
     cost_center_1 = models.CharField(max_length=50, blank=True, null=True)
@@ -180,8 +192,10 @@ class ReimbursementRequest(models.Model):
 
     # Approval Process
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Draft')
-    signature_url = models.URLField(blank=True, null=True)
+    signature_base64 = models.TextField(null=True, blank=True)
     approve_date = models.DateField(blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
+    
     pdf_url = models.URLField(blank=True, null=True)
 
     class Meta:

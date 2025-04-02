@@ -75,6 +75,7 @@ LOGIN_URL = '/login/'
 MICROSOFT_AUTHORITY = f"https://login.microsoftonline.com/{MICROSOFT_AUTH_TENANT_ID}"
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
