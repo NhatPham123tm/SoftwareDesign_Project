@@ -119,7 +119,7 @@ docker-compose down
 ## 1. 🔧 Setup and Run the Project
 - pip install -r requirements.txt    for Windows
 - pip3 install -r requirements.txt    for macOS
-
+- apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra
 ## 2. Create your local PostgreSQL database
 
 ## 3. Connect PosgreSQl to app

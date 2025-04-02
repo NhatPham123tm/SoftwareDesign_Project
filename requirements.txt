@@ -83,6 +83,7 @@ wcwidth==0.2.5
 webencodings==0.5.1
 whitenoise==6.0.0
 drf-nested-routers>=0.92.1
+Pillow
 
 # Install Python first
 # requirements.txt stores all the necessary packages
