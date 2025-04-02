@@ -47,6 +47,9 @@ th {
     color: white;
     position: fixed;
     padding: 1rem;
+    overflow-y: auto;
+    display: flex; /* Enables flexbox */
+    flex-direction: column; /* Aligns items vertically */
 }
 
 .sidebar-header {
@@ -92,6 +95,7 @@ th {
     flex: 1;
     margin-left: 250px;
     padding: 2rem;
+    overflow-y: auto; /* Allows vertical scrolling for main content */
 }
 
 .filters select {
@@ -131,7 +135,7 @@ th {
 }
 
 .topbox {
-    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: 1rem;
     display: flex;
@@ -296,9 +300,6 @@ th {
     cursor: pointer;
 }
 
-
-
-
 .bts {
     background: #66a6ff;
     color: white;
@@ -334,7 +335,7 @@ th {
 
 .dashboard-stats {
     display: flex;
-    justify-content: space-around;
+    justify-content: flex-start; 
     padding: 20px;
 }
 
@@ -345,6 +346,8 @@ th {
     text-align: center;
     font-size: 18px;
     font-weight: bold;
+    margin: 0; 
+    flex: 1; 
 }
 
 .chart-container {
@@ -356,4 +359,20 @@ th {
 canvas {
     width: 100%;
     height: auto;
+}
+
+#userLink {
+    transition: all 0.3s ease;
+    margin-left: 10px;
+    color: white;
+    text-decoration: none;
+    font-size: 20px;
+    margin-top: 175px;
+    margin-bottom: 30px;
+
+}
+
+#userLink:hover {
+    color: #007bff; 
+    transform: translateX(-5px); 
 }
