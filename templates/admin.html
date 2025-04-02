@@ -192,6 +192,15 @@
                             <!-- Insert Users -->
                             
                         </tbody>
+
+                        <div id="signatureModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%, 0); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
+                            <h3>Supervisor Signature</h3>
+                            <canvas id="signatureCanvas" width="400" height="150" style="border:1px solid #000;"></canvas><br>
+                            <button onclick="saveSignature()">Save</button>
+                            <button onclick="clearSignature()">Clear</button>
+                            <button onclick="closeSignatureModal()">Cancel</button>
+                        </div>
+                        
                     </table>
                     <!-- Edit users -->
                     
@@ -272,27 +281,29 @@
     }
     
     function changeStatus(id, newStatus) {
-        const newData = {
-            status: document.getElementById('newRole2').value
-        };
-        console.log(document.getElementById('newRole2').value)
-        fetch(`/api/reimburse/${id}/`, {
-            method: "PATCH",  // Use PATCH to update only the status
-            credentials: "same-origin",
-            headers: {
-                "X-CSRFToken": getCookie("csrftoken"),
-                "Content-Type": "application/json"               
-            },
-            body: JSON.stringify({ status: newStatus })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(`Updated status for ID ${id}:`, data);
-            stuff();
-        })
-        .catch(error => {
-            console.error("Error updating status:", error);
-        });
+    if (newStatus === "Approved") {
+        openSignatureModal(id);  // Launch signature pad modal
+        return;
+    }
+
+    // If not approved, just send status
+    fetch(`/api/reimburse/${id}/`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(`Updated status for ID ${id}:`, data);
+        stuff();
+    })
+    .catch(error => {
+        console.error("Error updating status:", error);
+    });
     }
 
     function updateStatus(id, newStatus) {
@@ -353,5 +364,69 @@
     }
     
     </script>
+
+    <!-- For live signing-->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script>
+        let selectedReimburseId = null;
+        let signaturePad;
+    
+        document.addEventListener("DOMContentLoaded", function () {
+            const canvas = document.getElementById("signatureCanvas");
+            signaturePad = new SignaturePad(canvas);
+        });
+    
+        function openSignatureModal(reimburseId) {
+            selectedReimburseId = reimburseId;
+            document.getElementById("signatureModal").style.display = "block";
+        }
+    
+        function closeSignatureModal() {
+            document.getElementById("signatureModal").style.display = "none";
+            signaturePad.clear();
+            selectedReimburseId = null;
+        }
+    
+        function clearSignature() {
+            signaturePad.clear();
+        }
+    
+        function saveSignature() {
+            if (signaturePad.isEmpty()) {
+                alert("Please provide a signature before saving.");
+                return;
+            }
+    
+            const signatureBase64 = signaturePad.toDataURL();
+            
+            // Get current date in YYYY-MM-DD format
+            const today = new Date().toISOString().split('T')[0];
+
+            fetch(`/api/reimburse/${selectedReimburseId}/`, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: "Approved",
+                    signatureAdmin_base64: signatureBase64,
+                    approve_date: today 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Signature saved and status updated:", data);
+                closeSignatureModal();
+                stuff();
+            })
+            .catch(error => {
+                console.error("Error submitting signature:", error);
+            });
+            }
+        
+    </script>
+    
 </body>
 </html>
