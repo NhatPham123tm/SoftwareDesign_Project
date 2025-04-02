@@ -521,6 +521,9 @@ def payroll_review(request, payroll_id):
     PDF_URL = f"output/{NEW_PDF_NAME}"
 
     payroll = get_object_or_404(PayrollAssignment, id=payroll_id, user=request.user)
+    # Save signature image if available
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(payroll.signatureAdmin_base64, signature_output_path_admin)
 
     if request.method == 'POST':
         # Convert model fields to a dictionary and escape LaTeX special characters
@@ -563,6 +566,9 @@ def payroll_review(request, payroll_id):
         payroll.status = "Pending"  # Mark as submitted
         payroll.save()
 
+        if os.path.exists(signature_output_path_admin):
+            os.remove(signature_output_path_admin)
+        
         messages.success(request, "Payroll form submitted successfully!")
         return redirect('dashboard')
 
@@ -592,6 +598,10 @@ def view_payroll_pdf(request):
 
     if not payroll or not payroll.pdf_url:
         return HttpResponse("No Payroll PDF available.", status=404)
+    
+    # Save signature image if available
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(payroll.signatureAdmin_base64, signature_output_path_admin)
 
     # Generate the PDF (even if already exists, for consistency)
     generate_pdf_from_form_id(
@@ -607,6 +617,9 @@ def view_payroll_pdf(request):
 
     # Use updated URL from payroll instance
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(payroll.pdf_url))
+
+    if os.path.exists(signature_output_path_admin):
+            os.remove(signature_output_path_admin)
 
     if not os.path.exists(pdf_path):
         return HttpResponse("Payroll PDF file not found.", status=404)
@@ -623,6 +636,10 @@ def view_payroll_pdf2(request, user_id):
     if not payroll or not payroll.pdf_url:
         return HttpResponse("No Payroll PDF available.", status=404)
 
+    # Save signature image if available
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(payroll.signatureAdmin_base64, signature_output_path_admin)
+
     # Generate the PDF (even if already exists, for consistency)
     generate_pdf_from_form_id(
         request=request,
@@ -637,6 +654,9 @@ def view_payroll_pdf2(request, user_id):
 
     # Use updated URL from payroll instance
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(payroll.pdf_url))
+
+    if os.path.exists(signature_output_path_admin):
+         os.remove(signature_output_path_admin)
 
     if not os.path.exists(pdf_path):
         return HttpResponse("Payroll PDF file not found.", status=404)
@@ -693,6 +713,10 @@ def view_payroll_pdf3(request, form_id):
     # Retrieve the payroll form using its specific form ID (and ensure pdf_url is set)
     payroll = get_object_or_404(PayrollAssignment, id=form_id, pdf_url__isnull=False)
     
+    # Save signature image if available
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(payroll.signatureAdmin_base64, signature_output_path_admin)
+    
     # Generate the PDF (even if already exists, for consistency)
     generate_pdf_from_form_id(
         request=request,
@@ -707,6 +731,9 @@ def view_payroll_pdf3(request, form_id):
 
     # Use updated URL from payroll instance
     pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(payroll.pdf_url))
+
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
 
     if not os.path.exists(pdf_path):
         return HttpResponse("Payroll PDF file not found.", status=404)
