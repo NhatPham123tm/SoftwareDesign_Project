@@ -49,10 +49,16 @@ def generate_pdf_from_form_id(request, form_id, ModelClass, latex_template_path,
     pdf_url = os.path.join(output_dir, new_pdf_name)
 
     # Prepare LaTeX-safe context from model fields
-    context = {
-        field.name.upper(): escape_latex(str(getattr(instance, field.name) or ''))
-        for field in ModelClass._meta.fields
-    }
+    context = {}
+    for field in ModelClass._meta.fields:
+        value = getattr(instance, field.name)
+        
+        # Convert PostgreSQL boolean values ('t'/'f') to Python Boolean
+        if isinstance(value, bool):  
+            value = "True" if value else "False"
+        
+        context[field.name.upper()] = escape_latex(str(value or ''))
+
 
     # Read and fill LaTeX template
     with open(latex_template_path, "r") as file:
@@ -608,7 +614,7 @@ def view_payroll_pdf(request):
         request=request,
         form_id=payroll.id,
         ModelClass=PayrollAssignment,
-        latex_template_path="latexform/payroll-assignment.tex"  
+        latex_template_path="latexform/payroll-assignment.tex"  # Update if your template path is different
     )
 
     # Refresh from DB to get updated pdf_url
@@ -645,7 +651,7 @@ def view_payroll_pdf2(request, user_id):
         request=request,
         form_id=payroll.id,
         ModelClass=PayrollAssignment,
-        latex_template_path="latexform/payroll-assignment.tex"  
+        latex_template_path="latexform/payroll-assignment.tex"  # Update if your template path is different
     )
 
     # Refresh from DB to get updated pdf_url
@@ -684,7 +690,7 @@ def view_pdf2(request, user_id):
         request=request,
         form_id=reimbursement.id,
         ModelClass=ReimbursementRequest,
-        latex_template_path="latexform/reimburse.tex"  
+        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
     )
 
     # Refresh from DB to get updated pdf_url
@@ -722,7 +728,7 @@ def view_payroll_pdf3(request, form_id):
         request=request,
         form_id=payroll.id,
         ModelClass=PayrollAssignment,
-        latex_template_path="latexform/payroll-assignment.tex"  
+        latex_template_path="latexform/payroll-assignment.tex.tex"  # Update if your template path is different
     )
 
     # Refresh from DB to get updated pdf_url
