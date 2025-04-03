@@ -149,9 +149,8 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
     \begin{tcolorbox}[standard jigsaw, opacityback=0, width=\textwidth]
         \begin{Form}
             \vspace{-0.1cm}
-            \def\selectedTermination{{{IS\_TERMINATED}}} % Placeholder "true" or "false"
-            \edef\expandedTermination{\selectedTermination}
-            \CheckBox[name=action1,default=\expandedTermination]{} Termination* \tiny Benefits eligible employee must complete
+
+            \CheckBox[name=action1, checked={{IS\_TERMINATED}}]{} Termination* \tiny Benefits eligible employee must complete
                     Termination Clearance with DBA.
             
             \normalsize
@@ -159,11 +158,11 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
 
             Reason for termination: \TextField[name=ter_reason, width=5.5cm, value = {{TERMINATION\_REASON}}]{}\vspace{0.3cm}
 
-            \CheckBox[name=action2]{} Budget Change:\hspace{0.2cm} Effective Date \TextField[name=buDate, width=3cm, value = {{BUDGET\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
+            \CheckBox[name=action2, checked={{IS\_BUDGETCHANGE}}]{} Budget Change:\hspace{0.2cm} Effective Date \TextField[name=buDate, width=3cm, value = {{BUDGET\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
 
             From Speed Type: \TextField[name=bufrom_speed, width=1.7cm, value = {{FROM\_SPEED\_TYPE}}]{} To Speed Type: \TextField[name=buto_speed, width=1.7cm, value = {{TO\_SPEED\_TYPE}}]{}\vspace{0.3cm}
 
-            \CheckBox[name=action3]{} FTE Change:\hspace{0.2cm} Effective Date: \TextField[name=fteDate, width=3cm, value = {{FTE\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
+            \CheckBox[name=action3, checked={{IS\_FTECHANGE}}]{} FTE Change:\hspace{0.2cm} Effective Date: \TextField[name=fteDate, width=3cm, value = {{FTE\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
 
             From \TextField[name=fteFrom, width=3cm, value = {{FROM\_FTE}}]{} \% \hspace{0.1cm} To \TextField[name=fteTo, width=3cm, value = {{TO\_FTE}}]{} \% 
         \end{Form}
@@ -174,17 +173,17 @@ hourly & FTE & Speed Type & Budget \% & Position Title & Benefits & Salary @1.0 
     \begin{tcolorbox}[standard jigsaw, opacityback=0, width=\textwidth]
         \begin{Form}
             \vspace{-0.1cm}
-            \CheckBox[name=action4]{} Pay Rate Change:
+            \CheckBox[name=action4, checked={{IS\_PAYRATECHANGE}}]{} Pay Rate Change:
             \hspace{0.5cm}Effective Date \TextField[name=payDate, width=2.5cm, value = {{PAY\_RATE\_CHANGE\_EFFECTIVE\_DATE}}]{}\vspace{0.2cm}
             
             Current Rate \$ \TextField[name=cur_rate, width=1cm, value = {{CURRENT\_RATE}}]{}mo/hr\hspace{0.3cm}New Pay Rate \$ \TextField[name=new_rate, width=1cm, value = {{NEW\_PAY\_RATE}}]{}mo/hr
             \vspace{0.1cm}
 
-            \CheckBox[name=action5]{} Reallocation: \hspace{0.5cm} Dates: \TextField[name=reDate, width=2.5cm, value = {{REALLOCATION\_DATES}}]{}\vspace{0.2cm}
+            \CheckBox[name=action5, checked={{IS\_REALLOCATION}}]{} Reallocation: \hspace{0.5cm} Dates: \TextField[name=reDate, width=2.5cm, value = {{REALLOCATION\_DATES}}]{}\vspace{0.2cm}
 
             From Speed Type: \TextField[name=refrom_speed, width=1.7cm, value = {{REALLOCATION\_FROM\_POSITION}}]{} To Speed Type: \TextField[name=reto_speed, width=1.7cm, value = {{REALLOCATION\_TO\_POSITION}}]{}\vspace{0.3cm}
 
-            \CheckBox[name=action6]{} Other (specify): \vspace{0.1cm}
+            \CheckBox[name=action6, checked={{IS\_OTHER}}]{} Other (specify): \vspace{0.1cm}
             
             \TextField[name=pay_other, width=9cm, height=0.7cm, value = {{OTHER\_SPECIFICATION}}]{}\vspace{0.19cm}
         \end{Form}
