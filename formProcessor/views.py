@@ -608,7 +608,7 @@ def view_payroll_pdf(request):
         request=request,
         form_id=payroll.id,
         ModelClass=PayrollAssignment,
-        latex_template_path="latexform/payroll-assignment.tex"  # Update if your template path is different
+        latex_template_path="latexform/payroll-assignment.tex"  
     )
 
     # Refresh from DB to get updated pdf_url
@@ -645,7 +645,7 @@ def view_payroll_pdf2(request, user_id):
         request=request,
         form_id=payroll.id,
         ModelClass=PayrollAssignment,
-        latex_template_path="latexform/payroll-assignment.tex"  # Update if your template path is different
+        latex_template_path="latexform/payroll-assignment.tex"  
     )
 
     # Refresh from DB to get updated pdf_url
@@ -684,7 +684,7 @@ def view_pdf2(request, user_id):
         request=request,
         form_id=reimbursement.id,
         ModelClass=ReimbursementRequest,
-        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+        latex_template_path="latexform/reimburse.tex"  
     )
 
     # Refresh from DB to get updated pdf_url
@@ -722,7 +722,7 @@ def view_payroll_pdf3(request, form_id):
         request=request,
         form_id=payroll.id,
         ModelClass=PayrollAssignment,
-        latex_template_path="latexform/payroll-assignment.tex.tex"  # Update if your template path is different
+        latex_template_path="latexform/payroll-assignment.tex"  
     )
 
     # Refresh from DB to get updated pdf_url

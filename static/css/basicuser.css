@@ -23,13 +23,13 @@ body, html {
 
 #app-name {
     font-size: 18px;
-    color: #000;
+    color: #001f2b;
     font-weight: bold;
 }
 
 .top {
     width: 100%;
-    background-color: black;
+    background-color: #001f2b;
     box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
     top: 0;
     z-index: 1000;
@@ -61,7 +61,7 @@ body, html {
 
 .title {
     text-align: center;
-    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+    background-color: #00719c;
     color: white;
     padding: 80px 40px;
     border-bottom-left-radius: 10px; 
@@ -78,7 +78,7 @@ body, html {
     align-items: center; /* Vertically centers the form */
     width: 40%;
     height: 100%; /* Make sure the container height is 100% to fill available space */
-    background-color: white;
+    background-color: #F0F8FF;
     padding: 10px 20px;
     border-radius: 10px;
 }
@@ -150,7 +150,7 @@ display: hidden;
 }
 
 .container button {
-    background-color: #007bff;
+    background-color: #00415a;
     color: white;
     padding: 10px;
     border: none;

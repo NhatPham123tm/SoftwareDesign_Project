@@ -7,7 +7,7 @@ body {
     max-width: 800px;
     margin: auto;
     padding: 20px;
-    background: white;
+    background: #F0F8FF;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     color: black;
@@ -17,7 +17,7 @@ body {
 .top {
     
     width: 100%;
-    background-color: black;
+    background-color: #001f2b;
     box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
     top: 0;
     z-index: 1000;
@@ -47,7 +47,7 @@ body {
 
 .title4 {
     text-align: center;
-    background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+    background-color: #00719c;
     color: white;
     padding: 80px 0;
     margin-bottom: 24px;
@@ -57,7 +57,7 @@ body {
 }
 
 .dropbtn {
-    background-color: #6495ED;
+    background-color: #00415a;
     color: white;
     padding: 16px;
     font-size: 16px;
@@ -72,7 +72,7 @@ body {
   .dropdown-content {
     display: none;
     position: absolute;
-    background-color: #6495ED;
+    background-color: #00415a;
     min-width: 160px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
     z-index: 1;
@@ -94,3 +94,132 @@ body {
   .admin {
     display: hidden;
   }
+
+  form {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: #eaf6fb;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+/* Label-input rows */
+form div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Labels aligned to the left */
+form label {
+    flex: 1 0 200px; /* flex-grow, flex-shrink, flex-basis */
+    margin-right: 15px;
+    font-weight: 500;
+    font-size: 16px;
+    min-width: 150px;
+}
+
+/* Inputs and selects expand to fit space */
+form input[type="text"],
+form input[type="date"],
+form select {
+    flex: 2 1 300px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* Buttons center aligned */
+form button {
+    margin: 20px auto 10px;
+    padding: 12px 30px;
+    background-color: #00719c;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #005f7a;
+}
+
+a button {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 16px;
+    background-color: transparent;
+    border: 1px solid #888;
+    color: black;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.dashboard-button {
+  display: inline-block;
+  text-align: center;
+  padding: 10px 20px;
+  margin: 8px auto;
+  font-size: 16px;
+  background-color: #00415a;
+  color: #F0F8FF;
+  border: 2px solid #00719c;
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dashboard-button:hover {
+  background-color: #00719c;
+  color: #ffffff;
+}
+
+/* small screen */
+@media (max-width: 600px) {
+  form div {
+      flex-direction: column;
+      align-items: flex-start;
+  }
+
+  form label {
+      margin-bottom: 8px;
+  }
+
+  form input,
+  form select {
+      width: 100%;
+  }
+}
+
+form p {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+form p label {
+  flex: 0 0 180px;
+  margin-right: 15px;
+  font-weight: 500;
+}
+
+form p input,
+form p select,
+form p textarea {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  width: 100%;
+  box-sizing: border-box;
+}
+
