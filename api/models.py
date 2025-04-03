@@ -119,9 +119,9 @@ class PayrollAssignment(models.Model):
     position_number = models.CharField(max_length=50, blank=True, null=True)
     
     # Termination
-    is_terminated = models.BooleanField(default=False) 
     termination_date = models.DateField(blank=True, null=True)
     termination_reason = models.TextField(blank=True, null=True)
+    is_terminated = models.BooleanField(default=False)
     
     # Budget change 
     budget_change_effective_date = models.DateField(blank=True, null=True)
@@ -159,6 +159,41 @@ class PayrollAssignment(models.Model):
     
     def __str__(self):
         return f"{self.id} ({self.employee_name})"
+    
+    def save(self, *args, **kwargs):
+        # Automatically set is_terminated to True if termination_date is provided
+        if self.termination_date:
+            self.is_terminated = True
+        else:
+            self.is_terminated = False
+
+        # Automatically set is_budgetchange to True if budget_change_effective_date is provided
+        if self.budget_change_effective_date:
+            self.is_budgetchange = True
+        else:   
+            self.is_budgetchange = False
+        # Automatically set is_ftechange to True if fte_change_effective_date is provided
+        if self.fte_change_effective_date:
+            self.is_ftechange = True
+        else:
+            self.is_ftechange = False
+        # Automatically set is_payratechange to True if pay_rate_change_effective_date is provided
+        if self.pay_rate_change_effective_date:
+            self.is_payratechange = True
+        else:
+            self.is_payratechange = False
+        # Automatically set is_reallocation to True if reallocation_dates is provided
+        if self.reallocation_dates:
+            self.is_reallocation = True
+        else:
+            self.is_reallocation = False
+        # Automatically set is_otherchange to True if other_specification is provided
+        if self.other_specification:
+            self.is_otherchange = True
+        else:
+            self.is_otherchange = False
+
+        super().save(*args, **kwargs)
 
     class Meta:
         constraints = [
