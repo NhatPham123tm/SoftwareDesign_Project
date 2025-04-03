@@ -43,8 +43,8 @@
                 <button type="submit" onclick="return handleSignature()">Submit</button>
                 <button type="button" id="clear-signature">Clear Signature</button>
             </form>
-            <a href="{% url 'reimbursement_step2' reimbursement.id %}"><button>Back</button></a>
-            <a href="{% url 'dashboard' %}"><button>Return to dashboard</button></a>
+            <a href="{% url 'reimbursement_step2' reimbursement.id %}" class="dashboard-button">Back</a>
+            <a href="{% url 'dashboard' %}" class="dashboard-button">Return to dashboard</a>
         </div>
     </div>
 </section>

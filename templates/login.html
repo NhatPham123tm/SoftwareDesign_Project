@@ -36,13 +36,9 @@
           localStorage.setItem("user_data", JSON.stringify(data.user));
 
           console.log(Number(data.user.role));
-          // Role-based redirection
+          // redirection
           if (data.user.status === "active") {
-            if (Number(data.user.role) === 1) {
-              window.location.href = "/adminpage/";
-            } else {
               window.location.href = "/dashboard/";
-            }
           } else {
             window.location.href = "/suspend/";
           }

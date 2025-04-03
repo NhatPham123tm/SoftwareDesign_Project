@@ -91,7 +91,7 @@
             </div>
         </div>
     </nav>
-    
+    <section class="section-wrapper">
     <section class="title">
         <div class="container">
                 <div class="box">
@@ -176,56 +176,76 @@
                     </section>
                 </div>
             </div>
+    </section>
 
     <!-- Show submitted forms -->        
-    </section class = "past_forms">
-        <!-- For payroll forms -->
+    <section class="past_forms">
         <h2>Past Payroll Requests</h2>
-        
+    
         {% if past_payroll %}
-            <ul>
-                {% for past_payroll in past_payroll %}
-                    <li>
-                        <p><strong>Date:</strong> {{ past_payroll.created_at|date:"M d, Y" }}</p>
-                        <p><strong>Status:</strong> {{ past_payroll.status }}</p>
-                        {% if past_payroll.pdf_url %}
-                            <a href="{% url 'view_payroll_pdf3' past_payroll.id %}" target="_blank">
-                                <button>View Generated Payroll PDF</button>
-                            </a>
-                        {% else %}
-                            <p>No PDF available.</p>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>PDF</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in past_payroll %}
+                        <tr>
+                            <td>{{ item.created_at|date:"M d, Y" }}</td>
+                            <td>{{ item.status }}</td>
+                            <td>
+                                {% if item.pdf_url %}
+                                    <a href="{% url 'view_payroll_pdf3' item.id %}" target="_blank">
+                                        <button>pdf</button>
+                                    </a>
+                                {% else %}
+                                    No PDF
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         {% else %}
             <p>No past payroll requests available.</p>
         {% endif %}
-        
-        <!-- For reimbursement forms -->
-        <h2>Past reimbursement Requests</h2>
-        
+    
+        <h2>Past Reimbursement Requests</h2>
+    
         {% if past_reimbursement %}
-            <ul>
-                {% for past_reimbursement in past_reimbursement %}
-                    <li>
-                        <p><strong>Date:</strong> {{ past_reimbursement.created_at|date:"M d, Y" }}</p>
-                        <p><strong>Status:</strong> {{ past_reimbursement.status }}</p>
-                        {% if past_reimbursement.pdf_url %}
-                            <a href="{% url 'view_pdf3' past_reimbursement.id %}" target="_blank">
-                                <button>View Generated Payroll PDF</button>
-                            </a>
-                        {% else %}
-                            <p>No PDF available.</p>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>PDF</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in past_reimbursement %}
+                        <tr>
+                            <td>{{ item.created_at|date:"M d, Y" }}</td>
+                            <td>{{ item.status }}</td>
+                            <td>
+                                {% if item.pdf_url %}
+                                    <a href="{% url 'view_pdf3' item.id %}" target="_blank">
+                                        <button>PDF</button>
+                                    </a>
+                                {% else %}
+                                    No PDF
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         {% else %}
-            <p>No past payroll requests available.</p>
+            <p>No past reimbursement requests available.</p>
         {% endif %}
-    <section>
-
     </section>
+</section>    
 </body>
 </html>
