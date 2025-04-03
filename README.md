@@ -50,7 +50,7 @@ Ensure that these variables are correctly set in your `.env` file.
 
 For first time running:
 ```
-chmod +x /app/entrypoint.sh
+chmod +x entrypoint.sh
 docker-compose up --build
 ```
 This gonna take a while
