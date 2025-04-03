@@ -4,510 +4,228 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
-    
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <title>Form</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+             console.log("Fetching user data...");
+ 
+             fetch('/api/microsoft-login/', {
+                 method: 'GET',
+                 headers: {
+                     'Accept': 'application/json',
+                 }
+             })
+             .then(response => response.json())
+             .then(data => {
+ 
+                 console.log("Fetched user data:", data);
+                 if (!localStorage.getItem("access_token")){
+                     localStorage.setItem("access_token", data.access_token);
+                     localStorage.setItem("user", JSON.stringify(data.user)); 
+                 }
+ 
+                 // Update the UI after data is fetched
+                 updateUserUI();
+             })
+             .catch(error => {
+                 //console.error("Error fetching user data:", error);
+                 updateUserUI();
+             });
+        })
+         function updateUserUI() {
+             console.log("Checking for user data in localStorage...");
+ 
+             // Try fetching "user_data" first, if not available, fall back to "user"
+             let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
+             
+             if (userDataString) {
+                 try {
+                     const userData = JSON.parse(userDataString);
+                     const userRole = userData.role;
+                     if (userData && userData.role) {
+                         console.log("User role:", userRole);
+                         if (userRole === 1) {
+                            document.getElementById("admin_link").style.display = "block";
+                            document.getElementById("user-role").textContent = `Role: Admin`;
+                        } else {
+                            document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("user-role").textContent = `Role: Basic User`;
+                        }
+                     }
+                     if (userData && userData.name) {
+                         document.getElementById("welcome").textContent = `Welcome, ${userData.name} (ID: ${userData.id})!`;
+                         console.log("User data displayed:", userData.name);
+                     }
+                 } catch (error) {
+                     console.error("Error parsing user data:", error);
+                 }
+             } else {
+                 console.warn("No user data found in localStorage.");
+             }
+         }
+ 
+         function logoutUser() {
+                 localStorage.removeItem("access_token");
+                 localStorage.removeItem("refresh_token");
+                 localStorage.removeItem("user");
+                 localStorage.removeItem("user_data");
+                 window.location.href = "/logout/";
+         }
+         </script>
 </head>
 <body>
+    <div id="app_name">
+        <a href="{% url 'dashboard' %}" class="app_url"><img id="app-image" src="{% static 'pic/hero.png' %}" alt="App Image" class="app-image"></a>
+        <a href="{% url 'dashboard' %}" class="app_url"><div id="app-name"> Trois-Rivières Application </div></a>
+    </div>
+    <nav class="top">
+        <div class="topbox toplink">
+            <div id="user-role"></div>
+            <div class="nav-links">
+                <a href="{% url 'adminpage' %}" id="admin_link">USER MANAGEMENT</a>
+                <a href="{% url 'dashboard' %}">HOME</a>
+                <a href="{% url 'basicuser' %}">PROFILE</a>
+                <a href="{% url 'forms' %}">FORMS</a>
+                <a href="#" onclick="logoutUser()">LOGOUT</a>
+            </div>
+        </div>
+    </nav>
     
-    <!-- Sidepanel -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h3>Admin Panel</h3>
-        </div>
-        <ul class="sidebar-menu">
-            <li><a href="#dashboard" class="active">Summary</a></li>
-            <li><a href="#users" onclick="userLoad(); return false;">Users</a></li>
-            <li><a href="#forms" onclick="stuff(); return false;">Forms</a></li>
-            <li><a href="#" onclick=logoutUser() id="logoutBtn">Logout</a></li>
-        </ul>
-        <a href="" id="userLink">← Back to Dashboard</a>
-    </div>
-    <!-- Holds content for all sidepanel selections -->
-    <div class="main">
-
-        <!-- Dashboard -->
-        <div id="dashboard" class="part active">
-            <div>
-                <h1>Summary Report</h1>
-                <div class="dashboard-stats">
-                    <div class="stat-box">Total Users: <span id="totalUsers">0</span></div>
-                    <div class="stat-box">Total Admins: <span id="totalAdmins">0</span></div>
-                    <div class="stat-box">Total Basic Users: <span id="totalBasicUsers">0</span></div>
-                </div>
-
-                <div class="chart-container">
-                    <canvas id="userStatsChart"></canvas>
-                </div>
-
-                <div class="dashboard-stats">
-                    <div class="stat-box">Total Users: <span id="totalUsers">0</span></div>
-                    <div class="stat-box">Active Users: <span id="totalActiveUsers">0</span></div>
-                    <div class="stat-box">Inactive Users: <span id="totalInactiveUsers">0</span></div>
-                    <div class="stat-box">Banned Users: <span id="totalBannedUsers">0</span></div>
-                </div>
-
-                <div class="chart-container">
-                    <canvas id="userStatsChart_AIB"></canvas>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Users list box -->
-        <div class="part" id="users">
-            <div class="container">
-                <div class="tabldgn">
-                    <div class="filters">
-                        <!-- Create User section
-                        <select id="roleFilter">
-                            <option value="all">All Roles</option>
-                            <option value="admin">Admin</option>
-                            <option value="basicuser">basicuser</option>
-                        </select>-->
-                    </div>
-
-                    <!-- Create User section -->
-                    <button class="btsg" id="createbt">
-                        Create User
-                    </button>
-
-                    <div class="back-panel" id="back-panel">
-                        <div class="pnl">
-                            <div class="panel-top"> 
-                                <h1>Create User</h1>
-                                <button class="xBt" id="closePanel">x</button>
-                            </div>
-                            <form id="registerForm">
-                                <div class="form-group">
-                                    <label for="id">UH ID:</label>
-                                    <input type="text" id="id" placeholder="7 digits" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="password">Password:</label>
-                                    <input type="password" id="password" placeholder="Min 7 characters" required minlength="7">
-                                </div>
-                                <div class="form-group">
-                                    <label for="retypePassword">Confirm Password:</label>
-                                    <input type="password" id="retypePassword" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="name">Name:</label>
-                                    <input type="text" id="name" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="user_email">Email:</label>
-                                    <input type="email" id="user_email" required>
-                                </div>
-                                <button type="button" id="submitButton" class="bts">Submit</button>
-                            </form>
-                        </div>
-                    </div>
-                    <!-- End of Create User section -->
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Status</th>
-                                <th>Role</th>
-                                <th>Edit</th>
-                                <th>Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody id="userTableBody">
-                            <!-- Insert Users -->
-                            
-                        </tbody>
-                    </table>
-                    <!-- Edit users -->
-                    <div id="editPanel" class="edit-panel">
-                        <div class="panel-content">
-                            <span class="close-btn" onclick="closeEditPanel()">&times;</span>
-                            
-                            <!-- Current User Info Section -->
-                            <div class="current-info">
-                                <h3>Current User Information</h3>
-                                <p>User ID: <span id="currentID"></span></p>
-                                <p>Name: <span id="currentName"></span></p>
-                                <p>Email: <span id="currentEmail"></span></p>
-                                <p>Status: <span id="currentStatus"></span></p>
-                                <p>Role: <span id="currentRole"></span></p>
-                            </div>
-                    
-                            <!-- Edit Form Section -->
-                            <div class="edit-section">
-                                <h3>Update Information</h3>
-                                <form id="editForm" onsubmit="handleEdit(event)">
-                                    
-                                    <input type="hidden" id="userId">
-                                    <div class="form-group">
-                                        <label for="newName">New Name:</label>
-                                        <input type="text" id="newName">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="newEmail">New Email:</label>
-                                        <input type="email" id="newEmail">
-                                    </div>
-                                    <div class="form-group">
-                                        <select id="newStatus">
-                                            <!-- User status -->
-                                        </select>
-                                        
-                                    </div>
-                                    <div class="form-group">
-                                        <select id="newRole">
-                                            
-                                        </select>
-                                    </div>
-                                    <button type="submit">Update User</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Edit end -->
-                </div>
-            </div>
-        </div>
-
-        <div class="part" id="forms">
-            <div class="container">
-                <div class="tabldgn">
-                    
-
-                    <!-- Create User section -->
-                    
-                    <!-- End of Create User section -->
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>User ID</th>
-                                <th>PDF</th>
-                                <th>PDFType</th>
-                                <th>Status Change</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="userTableBody2">
-                            <!-- Insert Users -->
-                            
-                        </tbody>
-
-                        <div id="signatureModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%, 0); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
-                            <h3>Supervisor Signature</h3>
-                            <canvas id="signatureCanvas" width="400" height="150" style="border:1px solid #000;"></canvas><br>
-                            <button onclick="saveSignature()">Save</button>
-                            <button onclick="clearSignature()">Clear</button>
-                            <button onclick="closeSignatureModal()">Cancel</button>
-                        </div>
-                        
-                    </table>
-                    <!-- Edit users -->
-                    
-                    <!-- Edit end -->
-                </div>
-            </div>
-        </div>
-
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{% static 'js/admin.js' %}" defer></script>
-    <script>
-        function stuff() {
-            fetch("/api/payroll/")
-                .then(response => response.json())
-                .then(data => {
-                    console.log("API Response (payroll):", data);
-                    tbody = document.getElementById('userTableBody2');
-                    tbody.innerHTML = '';
-                    data.forEach(user => {
-                        if(user.status != "Draft") {
-                        tbody.innerHTML += `
-                        <tr>
-                            <td>${user.employee_name}</td>
-                            <td>${user.employee_id}</td>
-                            <td><a id="pdf-link" href="/view_payroll_pdf2/${user.id}/" target="_blank">Open PDF</a></td>
-                            <td>Payroll Form</td>
-                            <td>
-                                
-                                <p>${user.status}</p>
-                                <select onchange="handlePayrollStatus(${user.id}, this.value)" id="newRole3">
-
-                                    <option value="Pending" }></option>
-                                    <option value="Approved" }>Approve</option>
-                                    <option value="Rejected" }>Reject</option>
-                                    <option value="Cancelled" }>Cancell</option>
-                                </select>
-                            </td>
-                            <td>
-                                <button class="del-button" onclick="deleteForm(${user.id}, 'payroll')">Delete</button>
-                            </td>
-                        </tr>`;
-                        }
-                    });
-
-                    // Now, fetch the second API after payroll data is loaded
-                    return fetch("/api/reimburse/");
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log("API Response (reimburse):", data);
-                    tbody = document.getElementById('userTableBody2');
-                    
-                    data.forEach(user => {
-                        if(user.status != "Draft") {
-                        tbody.innerHTML += `
-                        <tr>
-                            <td>${user.employee_name}</td>
-                            <td>${user.employee_id}</td>
-                            <td>  
-                                <a id="pdf-link" href="/view_pdf2/${user.id}/" target="_blank">Open PDF</a>
-                            </td>
-                            <td>Reimburse Form</td>
-                            <td>
-                                <p>${user.status}</p>
-                                <select onchange="changeStatus(${user.id}, this.value)" id="newRole2">
-                                    
-                                    <option value="Pending" }></option>
-                                    <option value="Approved" }>Approve</option>
-                                    <option value="Rejected" }>Reject</option>
-                                    <option value="Cancelled" }>Cancell</option>
-                                </select>
-                            </td>
-                            <td>
-                                <button class="del-button" onclick="deleteForm(${user.id}, 'reimburse')">Delete</button>
-                            </td>
-                        </tr>`;
-                        }
-                        
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading users:', error);
-                });
-
-            }
-        
-        function changeStatus(id, newStatus) {
-        if (newStatus === "Approved") {
-            openSignatureModal(id);  // Launch signature pad modal
-            openPayrollSignatureModal(id);
-            return;
-        }
-
-        // If not approved, just send status
-        fetch(`/api/reimburse/${id}/`, {
-            method: "PATCH",
-            credentials: "same-origin",
-            headers: {
-                "X-CSRFToken": getCookie("csrftoken"),
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ status: newStatus })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(`Updated status for ID ${id}:`, data);
-            stuff();
-        })
-        .catch(error => {
-            console.error("Error updating status:", error);
-        });
-        }
-
-        function updateStatus(id, newStatus) {
-            const newData = {
-                status: document.getElementById('newRole3').value
-            };
-            console.log(document.getElementById('newRole3').value)
-            fetch(`/api/payroll/${id}/`, {
-                method: "PATCH",  // Use PATCH to update only the status
-                credentials: "same-origin",
-                headers: {
-                    "X-CSRFToken": getCookie("csrftoken"),
-                    "Content-Type": "application/json"               
-                },
-                body: JSON.stringify({ status: newStatus })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(`Updated status for ID ${id}:`, data);
-                stuff();
-            })
-            .catch(error => {
-                console.error("Error updating status:", error);
-            });
-        }
-
-        function openEditPanel2(userId) {
-            document.getElementById('userId').value = userId;
-                    
-        
-            // Show the panel
-            document.getElementById('editPanel2').style.display = 'block';
-            fetch(`/api/reimburse/${userId}/`)
-                .then(response => response.json())
-                .then(user => {
-                    console.log(user)
-                    // Set current info
-                    document.getElementById('currenID').textContent = user.employee_id;
-                    document.getElementById('currenName').textContent = user.name;
-                    document.getElementById('currenEmail').textContent = user.email;
-                    
-                    
-                    
-        
-                    // Set hidden user ID
-                    document.getElementById('userId').value = userId;
-                    
-        
-                    // Show the panel
-                    document.getElementById('editPanel2').style.display = 'block';
-        
-                });
-        }
-
-        function closeEditPanel2() {
-            document.getElementById('editPanel2').style.display = 'none';
+    <section class="title">
+        <div class="container">
+                <div class="box">
+                    <img src="{% static 'pic/payroll.png' %}" class="Image1">
+                    <br>
+                    <section class="content">
+                        {% if payroll %}
+                            {% with payroll=payroll.0 %}
+                            <h3>Current Payroll Request</h3>
+                            <p><strong>Status:</strong> {{ payroll.status }}</p>
             
-        }
-    
-    </script>
+                            {% if payroll.pdf_url %}
+                                <p><a href="{% url 'view_payroll_pdf' %}" target="_blank">View Generated Payroll PDF</a></p>
+                            {% endif %}
 
-    <!-- For live signing-->
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-    <script>
-        let selectedReimburseId = null;
-        let selectedPayrollId = null;
-        let signaturePad;
-        let signingType = null; // "payroll" or "reimburse"
+                            {% if payroll.status == "Draft" or payroll.status == "Pending" %}
+                                <form method="post" action="{% url 'delete_payroll' payroll.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this request?');">
+                                        Delete Payroll Form
+                                    </button>
+                                </form>
+                                <a href="{% url 'payroll_step1' %}">
+                                    <button>Continue</button>
+                                </a>
 
-    
-        document.addEventListener("DOMContentLoaded", function () {
-            const canvas = document.getElementById("signatureCanvas");
-            signaturePad = new SignaturePad(canvas);
-        });
+                            {% elif payroll.status == "Rejected"  or payroll.status == "Approved" %}
+                                <a href="{% url 'payroll_step1' %}">
+                                    <button>Start a New Payroll Request</button>
+                                </a>
+                            {% endif %}
+
+                            {% endwith %}
+
+                        {% else %}
+                            <p></p>
+                            <a href="{% url 'payroll_step1' %}" id="payroll_click">
+                                <button>Start a New Payroll Request</button>
+                            </a>
+                        {% endif %}
+                    </section>
+                </div>
+                <div class="box">
+                    <img src="{% static 'pic/reimburse.png' %}" class="Image2">
+                    <br>
+                    <section class="content">
+                        <!-- Check if the user has a reimbursement request -->
+                        {% if reimbursement %}
+                            {% with reimbursement=reimbursement.0 %}
+                            <h3>Current Reimbursement Request</h3>
+                            <p><strong>Status:</strong> {{ reimbursement.status }}</p>
+            
+                            {% if reimbursement.pdf_url %}
+                                <p><a href="{% url 'view_pdf' %}" target="_blank">View Generated Reimbursement PDF</a></p>
+                            {% endif %}
+            
+                            <!-- Show delete button only for Draft or Pending forms -->
+                            {% if reimbursement.status == "Draft" or reimbursement.status == "Pending" %}
+                                <form method="post" action="{% url 'delete_reimbursement' reimbursement.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this request?');">
+                                        Delete Reimbursement Form
+                                    </button>
+                                </form>
+                                <a href="{% url 'reimbursement_step1'%}">
+                                    <button>Continue</button>
+                                </a>
+                            {% elif reimbursement.status == "Rejected"  or reimbursement.status == "Approved" %}
+                                <a href="{% url 'reimbursement_step1'%}">
+                                    <button>Start a New Reimbursement Request</button>
+                                </a>
+                            {% endif %}
+
+                            {% endwith %}
+
+                        {% else %}
+                            <p></p>
+                            <a href="{% url 'reimbursement_step1' %}">
+                                <button>Start a New Reimbursement Form</button>
+                            </a>
+                        {% endif %}
+                    </section>
+                </div>
+            </div>
+
+    <!-- Show submitted forms -->        
+    </section class = "past_forms">
+        <!-- For payroll forms -->
+        <h2>Past Payroll Requests</h2>
         
-        function openPayrollSignatureModal(payrollId) {
-            selectedPayrollId = payrollId;
-            signingType = "payroll";
-            document.getElementById("signatureModal").style.display = "block";
-        }
-
-        function openSignatureModal(reimburseId) {
-            selectedReimburseId = reimburseId;
-            document.getElementById("signatureModal").style.display = "block";
-        }
-    
-        function closeSignatureModal() {
-            document.getElementById("signatureModal").style.display = "none";
-            signaturePad.clear();
-            selectedReimburseId = null;
-            selectedPayrollId = null;
-            signingType = null;
-        }
-
-    
-        function clearSignature() {
-            signaturePad.clear();
-        }
-    
-        function saveSignature() {
-            if (signaturePad.isEmpty()) {
-                alert("Please provide a signature before saving.");
-                return;
-            }
-
-            const signatureBase64 = signaturePad.toDataURL();
-            const today = new Date().toISOString().split('T')[0];
-
-            let url = "";
-            let payload = {
-                status: "Approved",
-                signatureAdmin_base64: signatureBase64,
-                approve_date: today
-            };
-
-            if (signingType === "reimburse") {
-                url = `/api/reimburse/${selectedReimburseId}/`;
-            } else if (signingType === "payroll") {
-                url = `/api/payroll/${selectedPayrollId}/`;
-            } else {
-                alert("Unknown signing type.");
-                return;
-            }
-
-            fetch(url, {
-                method: "PATCH",
-                credentials: "same-origin",
-                headers: {
-                    "X-CSRFToken": getCookie("csrftoken"),
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Signature saved and status updated:", data);
-                closeSignatureModal();
-                stuff();
-            })
-            .catch(error => {
-                console.error("Error submitting signature:", error);
-            });
-        }
+        {% if past_payroll %}
+            <ul>
+                {% for past_payroll in past_payroll %}
+                    <li>
+                        <p><strong>Date:</strong> {{ past_payroll.created_at|date:"M d, Y" }}</p>
+                        <p><strong>Status:</strong> {{ past_payroll.status }}</p>
+                        {% if past_payroll.pdf_url %}
+                            <a href="{% url 'view_payroll_pdf3' past_payroll.id %}" target="_blank">
+                                <button>View Generated Payroll PDF</button>
+                            </a>
+                        {% else %}
+                            <p>No PDF available.</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No past payroll requests available.</p>
+        {% endif %}
         
-        function handlePayrollStatus(id, newStatus) {
-            if (newStatus === "Approved") {
-                openPayrollSignatureModal(id);
-                return;
-            }
+        <!-- For reimbursement forms -->
+        <h2>Past reimbursement Requests</h2>
+        
+        {% if past_reimbursement %}
+            <ul>
+                {% for past_reimbursement in past_reimbursement %}
+                    <li>
+                        <p><strong>Date:</strong> {{ past_reimbursement.created_at|date:"M d, Y" }}</p>
+                        <p><strong>Status:</strong> {{ past_reimbursement.status }}</p>
+                        {% if past_reimbursement.pdf_url %}
+                            <a href="{% url 'view_pdf3' past_reimbursement.id %}" target="_blank">
+                                <button>View Generated Payroll PDF</button>
+                            </a>
+                        {% else %}
+                            <p>No PDF available.</p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No past payroll requests available.</p>
+        {% endif %}
+    <section>
 
-            fetch(`/api/payroll/${id}/`, {
-                method: "PATCH",
-                credentials: "same-origin",
-                headers: {
-                    "X-CSRFToken": getCookie("csrftoken"),
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ status: newStatus })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(`Updated payroll status for ID ${id}:`, data);
-                stuff();
-            })
-            .catch(error => {
-                console.error("Error updating payroll status:", error);
-            });
-        }
-
-        function deleteForm(id, type) {
-            const url = type === 'payroll' ? `/api/payroll/${id}/` : `/api/reimburse/${id}/`;
-
-            if (confirm("Are you sure you want to delete this form?")) {
-                fetch(url, {
-                    method: "DELETE",
-                    credentials: "same-origin",
-                    headers: {
-                        "X-CSRFToken": getCookie("csrftoken")
-                    }
-                })
-                .then(response => {
-                    if (response.ok) {
-                        console.log(`Form with ID ${id} deleted successfully.`);
-                        stuff(); // Refresh the table
-                    } else {
-                        console.error(`Failed to delete form with ID ${id}.`);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error deleting form:", error);
-                });
-            }
-        }
-    </script>
-    
+    </section>
 </body>
 </html>
