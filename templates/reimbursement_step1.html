@@ -32,12 +32,12 @@
                     {% csrf_token %}
                     <div>
                         <label for="{{ form.employee_name.id_for_label }}">{{ form.employee_name.label }}:</label>
-                        {{ form.employee_name }}
+                        <input type="text" id="employee_name" name="employee_name" readonly>
                     </div>
             
                     <div>
                         <label for="employee_id">Employee ID:</label>
-                        <input type="text" id="employee_id" name="employee_id" value="{{ request.user.employee_id }}">
+                        <input type="text" id="employee_id" name="employee_id" readonly>
                     </div>
             
                     <div>
@@ -144,6 +144,25 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
+        document.addEventListener("DOMContentLoaded", function () {
+            const userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
+            if (userDataString) {
+                try {
+                    const userData = JSON.parse(userDataString);
+                    if (userData.name) {
+                        document.getElementById("employee_name").value = userData.name;
+                    }
+                    // Set employee ID (shown)
+                    if (userData.id) {
+                        document.getElementById("employee_id").value = userData.id;
+                    }
+
+                } catch (e) {
+                    console.error("Error parsing user_data:", e);
+                }
+            }
+        });
+        
     </script>
 </body>
 </html>
