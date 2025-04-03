@@ -5,21 +5,21 @@ from django.shortcuts import render
 import msal
 import requests
 from django.conf import settings
-from api.models import user_accs, roles, ReimbursementRequest, PayrollAssignment
+from api.models import user_accs, ReimbursementRequest, PayrollAssignment
 from django.contrib.auth.decorators import user_passes_test
 import json
 from django.contrib.auth.decorators import user_passes_test
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from django.contrib.auth.decorators import login_required
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from .serializers import UserRegisterSerializer, UserLoginSerializer
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
 from api.serializers import UserSerializer
+from django.views.decorators.csrf import csrf_exempt
 
 def home(request):
     return render(request, 'home.html')
@@ -34,9 +34,11 @@ def basicuser(request):
     return render(request, 'basicuser.html')
 
 def forms(request):
-    reimbursement = ReimbursementRequest.objects.filter(user=request.user).exclude(status="Approved").first()
-    payroll = PayrollAssignment.objects.filter(user=request.user).exclude(status="Approved").first()
-    return render(request, "forms.html", {'reimbursement': reimbursement,'payroll': payroll})
+    reimbursement = ReimbursementRequest.objects.filter(user=request.user).order_by('-created_at')[:5]
+    payroll = PayrollAssignment.objects.filter(user=request.user).order_by('-created_at')[:5]
+    past_payrolls = payroll[1:] if payroll.count() > 1 else []
+    past_reimbursements = reimbursement[1:] if reimbursement.count() > 1 else []
+    return render(request, "forms.html", {'reimbursement': reimbursement,'payroll': payroll, 'past_payroll': past_payrolls, 'past_reimbursement': past_reimbursements})
 
 def is_admin(user):
     print(user)
@@ -300,3 +302,16 @@ def reset_password(request):
 
     # For GET requests, just display the form
     return render(request, 'reset_password.html')
+
+@api_view(["GET"])
+def check_id_exists(request, user_id):
+    # Check if the user ID exists in the database
+    id_exists = user_accs.objects.filter(id=user_id).exists()
+
+    # Return response based on whether the ID is unique or already taken
+    return JsonResponse({'isUnique': not id_exists})
+
+@api_view(["GET"])
+def check_email_exists(request, email):
+    email_exists = user_accs.objects.filter(email=email).exists()
+    return JsonResponse({'isUnique': not email_exists})
