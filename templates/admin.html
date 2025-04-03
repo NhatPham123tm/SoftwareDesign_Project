@@ -280,32 +280,32 @@
             }
         
         function changeStatus(id, newStatus) {
-        if (newStatus === "Approved") {
-            openSignatureModal(id);  // Launch signature pad modal
-            openPayrollSignatureModal(id);
-            return;
-        }
+            if (newStatus === "Approved") {
+                signingType = "reimburse";
+                openSignatureModal(id);  // Launch signature pad modal
+                return;
+            }
 
-        // If not approved, just send status
-        fetch(`/api/reimburse/${id}/`, {
-            method: "PATCH",
-            credentials: "same-origin",
-            headers: {
-                "X-CSRFToken": getCookie("csrftoken"),
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ status: newStatus })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(`Updated status for ID ${id}:`, data);
-            stuff();
-        })
-        .catch(error => {
-            console.error("Error updating status:", error);
-        });
+        // Fallback: status change without signature
+            fetch(`/api/reimburse/${id}/`, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(`Updated status for ID ${id}:`, data);
+                stuff();
+            })
+            .catch(error => {
+                console.error("Error updating status:", error);
+            });
         }
-
+        
         function updateStatus(id, newStatus) {
             const newData = {
                 status: document.getElementById('newRole3').value
