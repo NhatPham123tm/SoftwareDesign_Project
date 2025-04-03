@@ -182,9 +182,11 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>User ID</th>
                                 <th>PDF</th>
                                 <th>PDFType</th>
                                 <th>Status Change</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody id="userTableBody2">
@@ -224,18 +226,22 @@
                         tbody.innerHTML += `
                         <tr>
                             <td>${user.employee_name}</td>
+                            <td>${user.employee_id}</td>
                             <td><a id="pdf-link" href="/view_payroll_pdf2/${user.id}/" target="_blank">Open PDF</a></td>
                             <td>Payroll Form</td>
                             <td>
                                 
                                 <p>${user.status}</p>
                                 <select onchange="handlePayrollStatus(${user.id}, this.value)" id="newRole3">
-                                    
-                                    <option value="Pending"></option>
-                                    <option value="Approved">Approve</option>
-                                    <option value="Rejected">Reject</option>
-                                    <option value="Cancelled">Cancell</option>
+
+                                    <option value="Pending" }></option>
+                                    <option value="Approved" }>Approve</option>
+                                    <option value="Rejected" }>Reject</option>
+                                    <option value="Cancelled" }>Cancell</option>
                                 </select>
+                            </td>
+                            <td>
+                                <button class="del-button" onclick="deleteForm(${user.id}, 'payroll')">Delete</button>
                             </td>
                         </tr>`;
                         }
@@ -254,6 +260,7 @@
                         tbody.innerHTML += `
                         <tr>
                             <td>${user.employee_name}</td>
+                            <td>${user.employee_id}</td>
                             <td>  
                                 <a id="pdf-link" href="/view_pdf2/${user.id}/" target="_blank">Open PDF</a>
                             </td>
@@ -262,11 +269,14 @@
                                 <p>${user.status}</p>
                                 <select onchange="changeStatus(${user.id}, this.value)" id="newRole2">
                                     
-                                    <option value="Pending"></option>
-                                    <option value="Approved">Approve</option>
-                                    <option value="Rejected">Reject</option>
-                                    <option value="Cancelled">Cancell</option>
+                                    <option value="Pending" }></option>
+                                    <option value="Approved" }>Approve</option>
+                                    <option value="Rejected" }>Reject</option>
+                                    <option value="Cancelled" }>Cancell</option>
                                 </select>
+                            </td>
+                            <td>
+                                <button class="del-button" onclick="deleteForm(${user.id}, 'reimburse')">Delete</button>
                             </td>
                         </tr>`;
                         }
@@ -448,31 +458,55 @@
             });
         }
         
-            function handlePayrollStatus(id, newStatus) {
-                if (newStatus === "Approved") {
-                    openPayrollSignatureModal(id);
-                    return;
-                }
-
-                fetch(`/api/payroll/${id}/`, {
-                    method: "PATCH",
-                    credentials: "same-origin",
-                    headers: {
-                        "X-CSRFToken": getCookie("csrftoken"),
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(`Updated payroll status for ID ${id}:`, data);
-                    stuff();
-                })
-                .catch(error => {
-                    console.error("Error updating payroll status:", error);
-                });
+        function handlePayrollStatus(id, newStatus) {
+            if (newStatus === "Approved") {
+                openPayrollSignatureModal(id);
+                return;
             }
 
+            fetch(`/api/payroll/${id}/`, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(`Updated payroll status for ID ${id}:`, data);
+                stuff();
+            })
+            .catch(error => {
+                console.error("Error updating payroll status:", error);
+            });
+        }
+
+        function deleteForm(id, type) {
+            const url = type === 'payroll' ? `/api/payroll/${id}/` : `/api/reimburse/${id}/`;
+
+            if (confirm("Are you sure you want to delete this form?")) {
+                fetch(url, {
+                    method: "DELETE",
+                    credentials: "same-origin",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken")
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        console.log(`Form with ID ${id} deleted successfully.`);
+                        stuff(); // Refresh the table
+                    } else {
+                        console.error(`Failed to delete form with ID ${id}.`);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error deleting form:", error);
+                });
+            }
+        }
     </script>
     
 </body>
