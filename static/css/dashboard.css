@@ -23,7 +23,7 @@ height: 30px; /* Adjust height for the image */
 
 #app-name {
 font-size: 18px;
-color: #000;
+color: #001f2b;
 font-weight: bold;
 }
 
@@ -35,7 +35,7 @@ font-weight: bold;
 .top {
   
   width: 100%;
-  background-color: black;
+  background-color: #001f2b;
   box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
   top: 0;
   z-index: 1000;
@@ -67,7 +67,7 @@ font-weight: bold;
 
 .title {
 text-align: center;
-background: linear-gradient(270deg, rgb(41, 41, 177), rgb(39, 182, 230));
+background-color: #00719c;
 color: white;
 padding: 80px 40px;
 border-bottom-left-radius: 10px; 
