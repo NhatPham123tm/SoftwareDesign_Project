@@ -377,6 +377,29 @@ canvas {
     transform: translateX(-5px); 
 }
 
+
+#forms .tabldgn {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+#forms table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#forms th, #forms td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+}
+
+#forms h3 {
+    margin-top: 30px;
+}
+
 .del-button {
     background-color: #ff4d4d; /* Bright red color */
     color: white; /* White text */
@@ -395,3 +418,4 @@ canvas {
 .del-button:active {
     background-color: #cc0000; /* Even darker red when clicked */
 }
+

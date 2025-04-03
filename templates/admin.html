@@ -173,15 +173,12 @@
         <div class="part" id="forms">
             <div class="container">
                 <div class="tabldgn">
-                    
-
-                    <!-- Create User section -->
-                    
-                    <!-- End of Create User section -->
+                    <h3>Pending Forms</h3>
                     <table>
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Date</th>
                                 <th>User ID</th>
                                 <th>PDF</th>
                                 <th>PDFType</th>
@@ -189,23 +186,34 @@
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody id="userTableBody2">
-                            <!-- Insert Users -->
-                            
-                        </tbody>
-
-                        <div id="signatureModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%, 0); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
-                            <h3>Supervisor Signature</h3>
-                            <canvas id="signatureCanvas" width="400" height="150" style="border:1px solid #000;"></canvas><br>
-                            <button onclick="saveSignature()">Save</button>
-                            <button onclick="clearSignature()">Clear</button>
-                            <button onclick="closeSignatureModal()">Cancel</button>
-                        </div>
-                        
+                        <tbody id="pendingTableBody"></tbody>
                     </table>
-                    <!-- Edit users -->
                     
-                    <!-- Edit end -->
+                    <h3>Approved / Rejected / Cancelled Forms</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Date</th>
+                                <th>User ID</th>
+                                <th>PDF</th>
+                                <th>PDFType</th>
+                                <th>Status Change</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="processedTableBody"></tbody>
+                    </table>
+
+                    <!-- Signature Modal -->
+                    <div id="signatureModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%, 0); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
+                        <h3>Supervisor Signature</h3>
+                        <canvas id="signatureCanvas" width="400" height="150" style="border:1px solid #000;"></canvas><br>
+                        <button onclick="saveSignature()">Save</button>
+                        <button onclick="clearSignature()">Clear</button>
+                        <button onclick="closeSignatureModal()">Cancel</button>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -215,86 +223,101 @@
     <script src="{% static 'js/admin.js' %}" defer></script>
     <script>
         function stuff() {
-            fetch("/api/payroll/")
+    fetch("/api/payroll/")
+        .then(response => response.json())
+        .then(payrollData => {
+            return fetch("/api/reimburse/")
                 .then(response => response.json())
-                .then(data => {
-                    console.log("API Response (payroll):", data);
-                    tbody = document.getElementById('userTableBody2');
-                    tbody.innerHTML = '';
-                    data.forEach(user => {
-                        if(user.status != "Draft") {
-                        tbody.innerHTML += `
-                        <tr>
-                            <td>${user.employee_name}</td>
-                            <td>${user.employee_id}</td>
-                            <td><a id="pdf-link" href="/view_payroll_pdf2/${user.id}/" target="_blank">Open PDF</a></td>
-                            <td>Payroll Form</td>
-                            <td>
-                                
-                                <p>${user.status}</p>
-                                <select onchange="handlePayrollStatus(${user.id}, this.value)" id="newRole3">
+                .then(reimburseData => ({ payrollData, reimburseData }));
+        })
+        .then(({ payrollData, reimburseData }) => {
+            const pendingTbody = document.getElementById('pendingTableBody');
+            const processedTbody = document.getElementById('processedTableBody');
+            pendingTbody.innerHTML = '';
+            processedTbody.innerHTML = '';
 
-                                    <option value="Pending" }></option>
-                                    <option value="Approved" }>Approve</option>
-                                    <option value="Rejected" }>Reject</option>
-                                    <option value="Cancelled" }>Cancell</option>
-                                </select>
-                            </td>
-                            <td>
-                                <button class="del-button" onclick="deleteForm(${user.id}, 'payroll')">Delete</button>
-                            </td>
-                        </tr>`;
-                        }
-                    });
+            const allPayroll = payrollData.filter(p => p.status !== "Draft");
+            const allReimburse = reimburseData.filter(r => r.status !== "Draft");
 
-                    // Now, fetch the second API after payroll data is loaded
-                    return fetch("/api/reimburse/");
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log("API Response (reimburse):", data);
-                    tbody = document.getElementById('userTableBody2');
-                    
-                    data.forEach(user => {
-                        if(user.status != "Draft") {
-                        tbody.innerHTML += `
-                        <tr>
-                            <td>${user.employee_name}</td>
-                            <td>${user.employee_id}</td>
-                            <td>  
-                                <a id="pdf-link" href="/view_pdf2/${user.id}/" target="_blank">Open PDF</a>
-                            </td>
-                            <td>Reimburse Form</td>
-                            <td>
-                                <p>${user.status}</p>
-                                <select onchange="changeStatus(${user.id}, this.value)" id="newRole2">
-                                    
-                                    <option value="Pending" }></option>
-                                    <option value="Approved" }>Approve</option>
-                                    <option value="Rejected" }>Reject</option>
-                                    <option value="Cancelled" }>Cancell</option>
-                                </select>
-                            </td>
-                            <td>
-                                <button class="del-button" onclick="deleteForm(${user.id}, 'reimburse')">Delete</button>
-                            </td>
-                        </tr>`;
-                        }
-                        
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading users:', error);
-                });
+            const pendingForms = [
+                ...allPayroll.filter(p => p.status === "Pending"),
+                ...allReimburse.filter(r => r.status === "Pending")
+            ].sort((a, b) => new Date(b.todays_date || b.today_date) - new Date(a.todays_date || a.today_date));
 
-            }
+            const processedForms = [
+                ...allPayroll.filter(p => p.status !== "Pending"),
+                ...allReimburse.filter(r => r.status !== "Pending")
+            ].sort((a, b) => new Date(b.todays_date || b.today_date) - new Date(a.todays_date || a.today_date));
+
+            renderForms(pendingForms, pendingTbody);
+            renderForms(processedForms, processedTbody);
+        })
+        .catch(error => {
+            console.error('Error loading users:', error);
+        });
+}
+
+        function renderForms(dataArray, tbody) {
+            dataArray.forEach(user => {
+                const date = user.todays_date || user.today_date || "—";
+                const isPayroll = 'todays_date' in user;
+
+                const viewUrl = isPayroll
+                    ? `/view_payroll_pdf2/${user.id}/`
+                    : `/view_pdf2/${user.id}/`;
+
+                const deleteHandler = `deleteForm(${user.id}, '${isPayroll ? "payroll" : "reimburse"}')`;
+
+                const selectId = `statusSelect_${isPayroll ? "payroll" : "reimburse"}_${user.id}`;
+                const options = `
+                    <option value="Pending" ${user.status === "Pending" ? "selected" : ""}></option>
+                    <option value="Approved">Approve</option>
+                    <option value="Rejected">Reject</option>
+                    <option value="Cancelled">Cancell</option>
+                `;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${user.employee_name}</td>
+                        <td>${date}</td>
+                        <td>${user.employee_id}</td>
+                        <td><a href="${viewUrl}" target="_blank">Open PDF</a></td>
+                        <td>${isPayroll ? "Payroll Form" : "Reimburse Form"}</td>
+                        <td>
+                            <p>${user.status}</p>
+                            <select id="${selectId}">${options}</select>
+                        </td>
+                        <td>
+                            <button class="del-button" onclick="${deleteHandler}">Delete</button>
+                        </td>
+                    </tr>`;
+
+                // 🔧 Attach the event listener
+                setTimeout(() => {
+                    const selectElement = document.getElementById(selectId);
+                    if (selectElement) {
+                        selectElement.addEventListener('change', function () {
+                            if (isPayroll) {
+                                handlePayrollStatus(user.id, this.value);
+                            } else {
+                                changeStatus(user.id, this.value);
+                            }
+                        });
+                    }
+                }, 0);
+            });
+        }
+
+
         
         function changeStatus(id, newStatus) {
             if (newStatus === "Approved") {
+                selectedReimburseId = id;              
                 signingType = "reimburse";
-                openSignatureModal(id);  // Launch signature pad modal
+                openSignatureModal();
                 return;
             }
+
 
         // Fallback: status change without signature
             fetch(`/api/reimburse/${id}/`, {
@@ -395,10 +418,10 @@
             document.getElementById("signatureModal").style.display = "block";
         }
 
-        function openSignatureModal(reimburseId) {
-            selectedReimburseId = reimburseId;
+        function openSignatureModal() {
             document.getElementById("signatureModal").style.display = "block";
         }
+
     
         function closeSignatureModal() {
             document.getElementById("signatureModal").style.display = "none";
@@ -460,7 +483,9 @@
         
         function handlePayrollStatus(id, newStatus) {
             if (newStatus === "Approved") {
-                openPayrollSignatureModal(id);
+                selectedPayrollId = id;
+                signingType = "payroll";
+                openSignatureModal();
                 return;
             }
 
@@ -482,6 +507,7 @@
                 console.error("Error updating payroll status:", error);
             });
         }
+
 
         function deleteForm(id, type) {
             const url = type === 'payroll' ? `/api/payroll/${id}/` : `/api/reimburse/${id}/`;
