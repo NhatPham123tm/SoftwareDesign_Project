@@ -297,3 +297,104 @@ class Request(models.Model):
                 name='unique_pending_form_request_per_user'
             )
         ]
+
+
+class ChangeOfAddress(models.Model):
+    FORM_STATUS = [
+        ('Draft', 'Draft'),
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+        ('Cancelled', 'Cancelled'),
+    ]
+        
+    name = models.CharField(max_length=100)
+    date_of_birth = models.DateField()
+
+    user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
+
+    # New Address
+    street_address = models.CharField(max_length=255)
+    zip_code = models.CharField(max_length=10)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=50)
+
+    # Previous Address
+    previous_street_address = models.CharField(max_length=255)
+    previous_zip_code = models.CharField(max_length=10)
+    previous_city = models.CharField(max_length=100)
+    previous_state = models.CharField(max_length=50)
+
+    # Optional Mailing Address
+    mailing_street_address = models.CharField(max_length=255, blank=True, null=True)
+    mailing_zip_code = models.CharField(max_length=10, blank=True, null=True)
+    mailing_city = models.CharField(max_length=100, blank=True, null=True)
+    mailing_state = models.CharField(max_length=50, blank=True, null=True)
+
+    # Submission
+    status = models.CharField(max_length=20, choices=FORM_STATUS, default='Draft')
+    date_submitted = models.DateField(auto_now_add=True)
+    signature_base64 = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Address Change: {self.name} ({self.date_of_birth})"
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(status='Pending'),
+                name='unique_pending_address_form_per_user'
+            )
+        ]
+
+
+class DiplomaRequest(models.Model):
+    FORM_STATUS = [
+        ('Draft', 'Draft'),
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+        ('Cancelled', 'Cancelled'),
+    ]
+    DEGREES = [
+        ('Associate', 'Associate'),
+        ('Bachelor', 'Bachelor'),
+        ('Master', 'Master'),
+        ('Doctoral', 'Doctoral'),
+    ]
+
+    SEMESTERS = [
+        ('Spring', 'Spring'),
+        ('Summer', 'Summer'),
+        ('Fall', 'Fall'),
+    ]
+
+    # Define the fields for the diploma request
+    user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
+    date_of_birth = models.DateField()
+    phone = models.CharField(max_length=20)
+    degree = models.CharField(max_length=10, choices=DEGREES)
+    major = models.CharField(max_length=100)
+    honors = models.CharField(max_length=100, blank=True, null=True)
+    college = models.CharField(max_length=100)
+    graduation_semester = models.CharField(max_length=10, choices=SEMESTERS)
+    graduation_year = models.PositiveIntegerField()
+    address = models.TextField()
+
+    # Submission
+    date_submitted = models.DateField(auto_now_add=True)
+    signature = models.CharField(max_length=255)
+    status = models.CharField(max_length=20, choices=FORM_STATUS, default='Draft')
+
+    def __str__(self):
+        return f"Diploma Request - {self.name} ({self.student_id})"
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(status='Pending'),
+                name='unique_pending_diploma_form_per_user'
+            )
+        ]
