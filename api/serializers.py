@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, Request
+from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, Request, ChangeOfAddress, DiplomaRequest
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,4 +47,10 @@ class RequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Request
         fields = ['id', 'status', 'reason_for_return', 'form_type','data', 'pdf', 'signature', 'admin_signature']
-        read_only_fields = ['id'] 
+        read_only_fields = ['id']
+
+class ChangeOfAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChangeOfAddress
+        fields = '__all__'
+ 
