@@ -308,22 +308,22 @@ class ChangeOfAddress(models.Model):
         ('Cancelled', 'Cancelled'),
     ]
         
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, blank=True, null=True)
     date_of_birth = models.DateField()
 
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
     # New Address
-    street_address = models.CharField(max_length=255)
-    zip_code = models.CharField(max_length=10)
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=50)
+    street_address = models.CharField(max_length=255, blank=True, null=True)
+    zip_code = models.CharField(max_length=10, blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=50, blank=True, null=True)
 
     # Previous Address
-    previous_street_address = models.CharField(max_length=255)
-    previous_zip_code = models.CharField(max_length=10)
-    previous_city = models.CharField(max_length=100)
-    previous_state = models.CharField(max_length=50)
+    previous_street_address = models.CharField(max_length=255, blank=True, null=True)
+    previous_zip_code = models.CharField(max_length=10, blank=True, null=True)
+    previous_city = models.CharField(max_length=100, blank=True, null=True)
+    previous_state = models.CharField(max_length=50, blank=True, null=True)
 
     # Optional Mailing Address
     mailing_street_address = models.CharField(max_length=255, blank=True, null=True)
@@ -379,17 +379,17 @@ class DiplomaRequest(models.Model):
     # Define the fields for the diploma request
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
-    date_of_birth = models.DateField()
-    email = models.EmailField(unique=True) 
-    phone = models.CharField(max_length=20)
-    name = models.CharField(max_length=100)
+    date_of_birth = models.DateField(blank=True, null=True)
+    email = models.EmailField(unique=True, blank=True, null=True) 
+    phone = models.CharField(max_length=20, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
     degree = models.CharField(max_length=10, choices=DEGREES)
-    major = models.CharField(max_length=100)
+    major = models.CharField(max_length=100, blank=True, null=True)
     honors = models.CharField(max_length=100, blank=True, null=True)
-    college = models.CharField(max_length=100)
+    college = models.CharField(max_length=100, blank=True, null=True)
     graduation_semester = models.CharField(max_length=10, choices=SEMESTERS)
     graduation_year = models.PositiveIntegerField(null=True, blank=True)
-    address = models.TextField()
+    address = models.TextField(blank=True, null=True)
 
     # Submission
     date_submitted = models.DateField(auto_now_add=True)
