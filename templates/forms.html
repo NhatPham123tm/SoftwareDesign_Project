@@ -175,7 +175,86 @@
                         {% endif %}
                     </section>
                 </div>
+        </div>
+        
+        <div class="container">
+            <div class="box">
+                <img src="{% static 'pic/address.png' %}" class="Image3">
+                <br>
+                <section class="content">
+                    {% if address %}
+                        {% with address=address.0 %}
+                        <h3>Current Address Change Request</h3>
+                        <p><strong>Status:</strong> {{ address.status }}</p>
+
+                        {% if address.pdf_url %}
+                                <p><a href="{% url 'view_change_address_pdf' %}" target="_blank">View Generated Change Address PDF</a></p>
+                            {% endif %}
+
+                        {% if address.status == "Draft" or address.status == "Pending" %}
+                            <form method="post" action="{% url 'delete_address' address.id %}">
+                                {% csrf_token %}
+                                <button type="submit" onclick="return confirm('Are you sure you want to delete this request?');">
+                                    Delete Change of Address Form
+                                </button>
+                            </form>
+                            <a href="{% url 'change_address_step1' %}">
+                                <button>Continue</button>
+                            </a>
+                        {% elif address.status == "Rejected" or address.status == "Approved" %}
+                            <a href="{% url 'change_address_step1' %}">
+                                <button>Start a New Change of Address Request</button>
+                            </a>
+                        {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        <p></p>
+                        <a href="{% url 'change_address_step1' %}">
+                            <button>Start a New Change of Address Request</button>
+                        </a>
+                    {% endif %}
+                </section>
             </div>
+            
+            <div class="box">
+                <img src="{% static 'pic/diploma.png' %}" class="Image4">
+                <br>
+                <section class="content">
+                    {% if diploma %}
+                        {% with diploma=diploma.0 %}
+                        <h3>Current Diploma Request</h3>
+                        <p><strong>Status:</strong> {{ diploma.status }}</p>
+
+                        {% if diploma.pdf_url %}
+                                <p><a href="{% url 'view_diploma_pdf' %}" target="_blank">View Generated Diploma Request PDF</a></p>
+                            {% endif %}
+
+                        {% if diploma.status == "Draft" or diploma.status == "Pending" %}
+                            <form method="post" action="{% url 'delete_diploma' diploma.id %}">
+                                {% csrf_token %}
+                                <button type="submit" onclick="return confirm('Are you sure you want to delete this request?');">
+                                    Delete Diploma Request
+                                </button>
+                            </form>
+                            <a href="{% url 'diploma_step1' %}">
+                                <button>Continue</button>
+                            </a>
+                        {% elif diploma.status == "Rejected" or diploma.status == "Approved" %}
+                            <a href="{% url 'diploma_step1' %}">
+                                <button>Start a New Diploma Request</button>
+                            </a>
+                        {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        <p></p>
+                        <a href="{% url 'diploma_step1' %}">
+                            <button>Start a New Diploma Request</button>
+                        </a>
+                    {% endif %}
+                </section>
+            </div>
+        </div>
+
     </section>
 
     <!-- Show submitted forms -->        
@@ -245,6 +324,53 @@
         {% else %}
             <p>No past reimbursement requests available.</p>
         {% endif %}
+
+        <h2>Past Change of Address Requests</h2>
+
+        {% if past_address %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in past_address %}
+                        <tr>
+                            <td>{{ item.date_submitted|date:"M d, Y" }}</td>
+                            <td>{{ item.status }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No past address change requests available.</p>
+        {% endif %}
+        
+        <h2>Past Diploma Requests</h2>
+
+        {% if past_diploma %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in past_diploma %}
+                        <tr>
+                            <td>{{ item.date_submitted|date:"M d, Y" }}</td>
+                            <td>{{ item.status }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No past diploma requests available.</p>
+        {% endif %}
+
     </section>
 </section>    
 </body>

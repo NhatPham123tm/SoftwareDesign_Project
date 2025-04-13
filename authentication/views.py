@@ -5,7 +5,7 @@ from django.shortcuts import render
 import msal
 import requests
 from django.conf import settings
-from api.models import user_accs, ReimbursementRequest, PayrollAssignment
+from api.models import user_accs, ReimbursementRequest, PayrollAssignment, ChangeOfAddress, DiplomaRequest
 from django.contrib.auth.decorators import user_passes_test
 import json
 from django.contrib.auth.decorators import user_passes_test
@@ -37,11 +37,18 @@ def basicuser(request):
     return render(request, 'basicuser.html')
 
 def forms(request):
+
     reimbursement = ReimbursementRequest.objects.filter(user=request.user).order_by('-created_at')[:5]
     payroll = PayrollAssignment.objects.filter(user=request.user).order_by('-created_at')[:5]
+    address = ChangeOfAddress.objects.filter(user=request.user).order_by('-created_at')[:5]
+    diploma = DiplomaRequest.objects.filter(user=request.user).order_by('-created_at')[:5]
+    
+    past_diploma = diploma[1:] if diploma.count() > 1 else []
     past_payrolls = payroll[1:] if payroll.count() > 1 else []
     past_reimbursements = reimbursement[1:] if reimbursement.count() > 1 else []
-    return render(request, "forms.html", {'reimbursement': reimbursement,'payroll': payroll, 'past_payroll': past_payrolls, 'past_reimbursement': past_reimbursements})
+    past_address = address[1:] if address.count() > 1 else []
+
+    return render(request, "forms.html", {'reimbursement': reimbursement,'payroll': payroll, 'past_payroll': past_payrolls, 'address': address, 'diploma': diploma, 'past_reimbursement': past_reimbursements, 'past_address': past_address, 'past_diploma':past_diploma})
 
 def is_admin(user):
     print(user)

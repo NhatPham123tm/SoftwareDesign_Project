@@ -127,10 +127,14 @@ body {
 
 .container {
     display: flex;
-    gap: 200px;
+    flex-wrap: wrap;
+    gap: 120px;
 }
 .box {
-    width: 310px;
+    flex: 1 1 45%;
+    max-width: 45%; /* prevent stretching too wide */
+    min-width: 300px; /* ensures responsiveness */
+    box-sizing: border-box;
     padding: 10px;
     background: white;
     color: black;
@@ -272,3 +276,9 @@ body {
     background-color: #3b3b85;
 }
 
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
