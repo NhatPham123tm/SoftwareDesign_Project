@@ -2,8 +2,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
-from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, ChangeOfAddress
-from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer, ChangeOfAddressSerializer
+from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest
+from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer, ChangeOfAddressSerializer, DiplomaRequestSerializer
 import os
 import base64
 import requests
@@ -151,6 +151,29 @@ class ChangeOfAddressViewSet(viewsets.ModelViewSet):
             serializer = ChangeOfAddressSerializer(user)
             return Response(serializer.data)
         except ChangeOfAddress.DoesNotExist:
+            return Response({'detail': 'User form not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+class DiplomaRequestViewSet(viewsets.ModelViewSet):
+    queryset = DiplomaRequest.objects.all()
+    serializer_class = DiplomaRequestSerializer
+
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            user = DiplomaRequest.objects.get(id=kwargs['pk'])
+            serializer = DiplomaRequestSerializer(user, data=request.data, partial=True) 
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except DiplomaRequest.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            user = DiplomaRequest.objects.get(id=kwargs['pk'])
+            serializer = DiplomaRequestSerializer(user)
+            return Response(serializer.data)
+        except DiplomaRequest.DoesNotExist:
             return Response({'detail': 'User form not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 @ensure_csrf_cookie
