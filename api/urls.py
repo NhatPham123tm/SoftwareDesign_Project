@@ -1,7 +1,9 @@
 from django.urls import path, include
 from rest_framework_nested import routers
 from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, RoleViewSet, PermissionViewSet, PayrollAssignmentViewSet, ReimbursementRequestViewSet
+from .views import UserViewSet, RoleViewSet, PermissionViewSet, PayrollAssignmentViewSet, ReimbursementRequestViewSet, ChangeOfAddressViewSet
+from .views import RequestSubmitView, SignupView, LoginView, UserFormsView, servePDF, RequestDeleteView, AdminRequestsView, RequestApprovalView
+from authentication import views
 
 # Use DRF Router to auto-generate URLs
 router = DefaultRouter()
@@ -10,8 +12,9 @@ router.register(r'roles', RoleViewSet)
 router.register(r'permissions', PermissionViewSet)
 router.register(r'payroll', PayrollAssignmentViewSet)
 router.register(r'reimburse', ReimbursementRequestViewSet)
-from .views import RequestSubmitView, SignupView, LoginView, UserFormsView, servePDF, RequestDeleteView, AdminRequestsView, RequestApprovalView
-from authentication import views
+router.register(r'address', ChangeOfAddressViewSet)
+
+
 urlpatterns = [
     path('users/forms/', UserFormsView.as_view(), name='user-forms'),
     path('', include(router.urls)),
