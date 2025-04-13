@@ -223,68 +223,84 @@
     <script src="{% static 'js/admin.js' %}" defer></script>
     <script>
         function stuff() {
-    fetch("/api/payroll/")
-        .then(response => response.json())
-        .then(payrollData => {
-            return fetch("/api/reimburse/")
-                .then(response => response.json())
-                .then(reimburseData => ({ payrollData, reimburseData }));
-        })
-        .then(({ payrollData, reimburseData }) => {
-            const pendingTbody = document.getElementById('pendingTableBody');
-            const processedTbody = document.getElementById('processedTableBody');
-            pendingTbody.innerHTML = '';
-            processedTbody.innerHTML = '';
+            Promise.all([
+                fetch("/api/payroll/").then(r => r.json()),
+                fetch("/api/reimburse/").then(r => r.json()),
+                fetch("/api/address/").then(r => r.json()),
+                fetch("/api/diploma/").then(r => r.json())
+            ])
+            .then(([payrollData, reimburseData, addressData, diplomaData]) => {
+                const pendingTbody = document.getElementById('pendingTableBody');
+                const processedTbody = document.getElementById('processedTableBody');
+                pendingTbody.innerHTML = '';
+                processedTbody.innerHTML = '';
 
-            const allPayroll = payrollData.filter(p => p.status !== "Draft");
-            const allReimburse = reimburseData.filter(r => r.status !== "Draft");
+                const allForms = [
+                    ...payrollData.filter(p => p.status !== "Draft"),
+                    ...reimburseData.filter(r => r.status !== "Draft"),
+                    ...addressData.filter(a => a.status !== "Draft"),
+                    ...diplomaData.filter(d => d.status !== "Draft"),
+                ];
 
-            const pendingForms = [
-                ...allPayroll.filter(p => p.status === "Pending"),
-                ...allReimburse.filter(r => r.status === "Pending")
-            ].sort((a, b) => new Date(b.todays_date || b.today_date) - new Date(a.todays_date || a.today_date));
+                const pendingForms = allForms.filter(f => f.status === "Pending")
+                    .sort((a, b) => new Date(b.date_submitted || b.todays_date || b.today_date) - new Date(a.date_submitted || a.todays_date || a.today_date));
 
-            const processedForms = [
-                ...allPayroll.filter(p => p.status !== "Pending"),
-                ...allReimburse.filter(r => r.status !== "Pending")
-            ].sort((a, b) => new Date(b.todays_date || b.today_date) - new Date(a.todays_date || a.today_date));
+                const processedForms = allForms.filter(f => f.status !== "Pending")
+                    .sort((a, b) => new Date(b.date_submitted || b.todays_date || b.today_date) - new Date(a.date_submitted || a.todays_date || a.today_date));
 
-            renderForms(pendingForms, pendingTbody);
-            renderForms(processedForms, processedTbody);
-        })
-        .catch(error => {
-            console.error('Error loading users:', error);
-        });
-}
+                renderForms(pendingForms, pendingTbody);
+                renderForms(processedForms, processedTbody);
+            })
+            .catch(error => console.error("Error loading forms:", error));
+        }
 
         function renderForms(dataArray, tbody) {
-            dataArray.forEach(user => {
-                const date = user.todays_date || user.today_date || "—";
-                const isPayroll = 'todays_date' in user;
+            dataArray.forEach(form => {
+                let formType = "Unknown";
+                let viewUrl = "";
+                let deleteHandler = "";
+                let selectId = "";
 
-                const viewUrl = isPayroll
-                    ? `/view_payroll_pdf2/${user.id}/`
-                    : `/view_pdf2/${user.id}/`;
+                if (form.todays_date) {
+                    formType = "Payroll Form";
+                    viewUrl = `/view_payroll_pdf2/${form.id}/`;
+                    deleteHandler = `deleteForm(${form.id}, 'payroll')`;
+                    selectId = `statusSelect_payroll_${form.id}`;
+                } else if (form.today_date) {
+                    formType = "Reimburse Form";
+                    viewUrl = `/view_pdf2/${form.id}/`;
+                    deleteHandler = `deleteForm(${form.id}, 'reimburse')`;
+                    selectId = `statusSelect_reimburse_${form.id}`;
+                } else if ('street_address' in form) {
+                    formType = "Change Address Form";
+                    viewUrl = `/view_change_address_pdf3/${form.id}/`;
+                    deleteHandler = `deleteForm(${form.id}, 'address')`;
+                    selectId = `statusSelect_address_${form.id}`;
+                } else if ('degree' in form) {
+                    formType = "Diploma Form";
+                    viewUrl = `/view-diploma-pdf3/${form.id}/`;
+                    deleteHandler = `deleteForm(${form.id}, 'diploma')`;
+                    selectId = `statusSelect_diploma_${form.id}`;
+                }
 
-                const deleteHandler = `deleteForm(${user.id}, '${isPayroll ? "payroll" : "reimburse"}')`;
-
-                const selectId = `statusSelect_${isPayroll ? "payroll" : "reimburse"}_${user.id}`;
                 const options = `
-                    <option value="Pending" ${user.status === "Pending" ? "selected" : ""}></option>
+                    <option value="Pending" ${form.status === "Pending" ? "selected" : ""}>Pending</option>
                     <option value="Approved">Approve</option>
                     <option value="Rejected">Reject</option>
-                    <option value="Cancelled">Cancell</option>
+                    <option value="Cancelled">Cancel</option>
                 `;
+
+                const date = form.date_submitted || form.todays_date || form.today_date || "—";
 
                 tbody.innerHTML += `
                     <tr>
-                        <td>${user.employee_name}</td>
+                        <td>${form.name || form.employee_name}</td>
                         <td>${date}</td>
-                        <td>${user.employee_id}</td>
+                        <td>${form.employee_id || form.user || "N/A"}</td>
                         <td><a href="${viewUrl}" target="_blank">Open PDF</a></td>
-                        <td>${isPayroll ? "Payroll Form" : "Reimburse Form"}</td>
+                        <td>${formType}</td>
                         <td>
-                            <p>${user.status}</p>
+                            <p>${form.status}</p>
                             <select id="${selectId}">${options}</select>
                         </td>
                         <td>
@@ -292,16 +308,11 @@
                         </td>
                     </tr>`;
 
-                // 🔧 Attach the event listener
                 setTimeout(() => {
                     const selectElement = document.getElementById(selectId);
                     if (selectElement) {
                         selectElement.addEventListener('change', function () {
-                            if (isPayroll) {
-                                handlePayrollStatus(user.id, this.value);
-                            } else {
-                                changeStatus(user.id, this.value);
-                            }
+                            handleStatusChange(form.id, this.value, formType);
                         });
                     }
                 }, 0);
@@ -309,7 +320,46 @@
         }
 
 
-        
+        function handleStatusChange(id, newStatus, type) {
+            const typeKey = type.toLowerCase().split(" ")[0]; // e.g. "payroll", "reimburse", "diploma", "change"
+
+            if (newStatus === "Approved") {
+                if (typeKey === "payroll") {
+                    selectedPayrollId = id;
+                    signingType = "payroll";
+                } else if (typeKey === "reimburse") {
+                    selectedReimburseId = id;
+                    signingType = "reimburse";
+                } else if (typeKey === "diploma") {
+                    selectedDiplomaId = id;
+                    signingType = "diploma";
+                } else if (typeKey === "change") {
+                    selectedAddressId = id;
+                    signingType = "address";
+                }
+                openSignatureModal();
+                return;
+            }
+
+            // Patch request
+            fetch(`/api/${typeKey}/${id}/`, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(`Updated ${typeKey} status for ID ${id}:`, data);
+                stuff();
+            })
+            .catch(error => {
+                console.error(`Error updating ${typeKey} status:`, error);
+            });
+        }
         function changeStatus(id, newStatus) {
             if (newStatus === "Approved") {
                 selectedReimburseId = id;              
@@ -403,10 +453,11 @@
     <script>
         let selectedReimburseId = null;
         let selectedPayrollId = null;
+        let selectedDiplomaId = null;
+        let selectedAddressId = null;
         let signaturePad;
         let signingType = null; // "payroll" or "reimburse"
-
-    
+  
         document.addEventListener("DOMContentLoaded", function () {
             const canvas = document.getElementById("signatureCanvas");
             signaturePad = new SignaturePad(canvas);
@@ -456,10 +507,12 @@
                 url = `/api/reimburse/${selectedReimburseId}/`;
             } else if (signingType === "payroll") {
                 url = `/api/payroll/${selectedPayrollId}/`;
-            } else {
-                alert("Unknown signing type.");
-                return;
+            } else if (signingType === "diploma") {
+                url = `/api/diploma/${selectedDiplomaId}/`;
+            } else if (signingType === "address") {
+                url = `/api/address/${selectedAddressId}/`;
             }
+
 
             fetch(url, {
                 method: "PATCH",

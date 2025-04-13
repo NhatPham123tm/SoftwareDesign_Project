@@ -986,8 +986,8 @@ def view_change_address_pdf3(request, form_id):
     generate_pdf_from_form_id(
         request=request,
         form_id=address.id,
-        ModelClass=ReimbursementRequest,
-        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+        ModelClass=ChangeOfAddress,
+        latex_template_path="latexform/change_address.tex" 
     )
 
     # Refresh from DB to get updated pdf_url
@@ -1179,8 +1179,8 @@ def view_diploma_pdf3(request, form_id):
     generate_pdf_from_form_id(
         request=request,
         form_id=diploma.id,
-        ModelClass=ReimbursementRequest,
-        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+        ModelClass=DiplomaRequest,
+        latex_template_path="latexform/diploma.tex"  # Adjust if your template is elsewhere
     )
 
     # Refresh from DB to get updated pdf_url
