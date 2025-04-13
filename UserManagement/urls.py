@@ -9,7 +9,7 @@ from formProcessor.views import (
     payroll_step1, payroll_step2, payroll_step3, payroll_step4,
     payroll_step5, payroll_step6, payroll_step7, payroll_step8,
     payroll_step9, payroll_step10, payroll_review, delete_payroll, view_payroll_pdf,
-    view_change_address_pdf, view_diploma_pdf
+    view_change_address_pdf, view_diploma_pdf, view_change_address_pdf3, view_diploma_pdf3
 )
 from api.views import get_csrf_token
 from django.conf import settings
@@ -77,6 +77,8 @@ urlpatterns = [
     path('generate-diploma-pdf/<int:diploma_id>/', generate_diploma_pdf, name='generate_diploma_pdf'),
     path('view-change-address-pdf/', view_change_address_pdf, name='view_change_address_pdf'),
     path('view-diploma-pdf/', view_diploma_pdf, name='view_diploma_pdf'),
+    path('view_change_address_pdf3/<int:form_id>/', view_change_address_pdf3, name='view_change_address_pdf3'),
+    path('view_diploma_pdf3/<int:form_id>/', view_diploma_pdf3, name='view_diploma_pdf3'),
     path("api/csrf/", get_csrf_token),
     path('accounts/', include('allauth.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

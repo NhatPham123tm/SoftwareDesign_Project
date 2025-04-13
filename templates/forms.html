@@ -340,6 +340,15 @@
                         <tr>
                             <td>{{ item.date_submitted|date:"M d, Y" }}</td>
                             <td>{{ item.status }}</td>
+                            <td>
+                                {% if item.pdf_url %}
+                                    <a href="{% url 'view_change_address_pdf3' item.id %}" target="_blank">
+                                        <button>PDF</button>
+                                    </a>
+                                {% else %}
+                                    No PDF
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -363,6 +372,15 @@
                         <tr>
                             <td>{{ item.date_submitted|date:"M d, Y" }}</td>
                             <td>{{ item.status }}</td>
+                            <td>
+                                {% if item.pdf_url %}
+                                    <a href="{% url 'view_diploma_pdf3' item.id %}" target="_blank">
+                                        <button>PDF</button>
+                                    </a>
+                                {% else %}
+                                    No PDF
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

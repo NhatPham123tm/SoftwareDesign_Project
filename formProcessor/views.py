@@ -970,6 +970,45 @@ def view_change_address_pdf(request):
         return HttpResponse("PDF file not found.", status=404)
 
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+
+@login_required
+def view_change_address_pdf3(request, form_id):
+    # Retrieve the reimbursement form using its specific form ID (and ensure pdf_url is set)
+    address = get_object_or_404(ChangeOfAddress, id=form_id, pdf_url__isnull=False)
+
+    # Save signature image if available
+    signature_output_path_user = os.path.join("output", "signatureUser.png")
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(address.signature_base64, signature_output_path_user)
+    save_signature_image(address.signatureAdmin_base64, signature_output_path_admin)
+
+   # Generate or regenerate the PDF
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=address.id,
+        ModelClass=ReimbursementRequest,
+        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+    )
+
+    # Refresh from DB to get updated pdf_url
+    address.refresh_from_db()
+    time.sleep(0.1)
+
+    # Get the updated path
+    pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(address.pdf_url))
+
+    # Delete signature png
+    if os.path.exists(signature_output_path_user):
+        os.remove(signature_output_path_user)
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
+
+    # Ensure the PDF exists
+    if not os.path.exists(pdf_path):
+        return HttpResponse("PDF file not found.", status=404)
+
+    # Serve the PDF
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
 #-------------------------------------------------------------------------
 # Diploma request form
 
@@ -1123,4 +1162,43 @@ def view_diploma_pdf(request):
     if not os.path.exists(pdf_path):
         return HttpResponse("PDF file not found.", status=404)
 
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+
+@login_required
+def view_diploma_pdf3(request, form_id):
+    # Retrieve the reimbursement form using its specific form ID (and ensure pdf_url is set)
+    diploma = get_object_or_404(DiplomaRequest, id=form_id, pdf_url__isnull=False)
+
+    # Save signature image if available
+    signature_output_path_user = os.path.join("output", "signatureUser.png")
+    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(diploma.signature_base64, signature_output_path_user)
+    save_signature_image(diploma.signatureAdmin_base64, signature_output_path_admin)
+
+   # Generate or regenerate the PDF
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=diploma.id,
+        ModelClass=ReimbursementRequest,
+        latex_template_path="latexform/reimburse.tex"  # Adjust if your template is elsewhere
+    )
+
+    # Refresh from DB to get updated pdf_url
+    diploma.refresh_from_db()
+    time.sleep(0.1)
+
+    # Get the updated path
+    pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(diploma.pdf_url))
+
+    # Delete signature png
+    if os.path.exists(signature_output_path_user):
+        os.remove(signature_output_path_user)
+    if os.path.exists(signature_output_path_admin):
+        os.remove(signature_output_path_admin)
+
+    # Ensure the PDF exists
+    if not os.path.exists(pdf_path):
+        return HttpResponse("PDF file not found.", status=404)
+
+    # Serve the PDF
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
