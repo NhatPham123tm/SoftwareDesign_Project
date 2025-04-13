@@ -312,7 +312,7 @@ class ChangeOfAddress(models.Model):
     date_of_birth = models.DateField()
 
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
-
+    created_at = models.DateTimeField(default=timezone.now)
     # New Address
     street_address = models.CharField(max_length=255)
     zip_code = models.CharField(max_length=10)
@@ -336,6 +336,12 @@ class ChangeOfAddress(models.Model):
     date_submitted = models.DateField(auto_now_add=True)
     signature_base64 = models.TextField(null=True, blank=True)
 
+    # Verification
+    message = models.TextField(blank=True, null=True)
+    signatureAdmin_base64 = models.TextField(null=True, blank=True)
+    approve_date = models.DateField(blank=True, null=True)
+
+    pdf_url = models.URLField(blank=True, null=True)
     def __str__(self):
         return f"Address Change: {self.name} ({self.date_of_birth})"
     
@@ -372,21 +378,30 @@ class DiplomaRequest(models.Model):
 
     # Define the fields for the diploma request
     user = models.ForeignKey(user_accs, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
     date_of_birth = models.DateField()
+    email = models.EmailField(unique=True) 
     phone = models.CharField(max_length=20)
+    name = models.CharField(max_length=100)
     degree = models.CharField(max_length=10, choices=DEGREES)
     major = models.CharField(max_length=100)
     honors = models.CharField(max_length=100, blank=True, null=True)
     college = models.CharField(max_length=100)
     graduation_semester = models.CharField(max_length=10, choices=SEMESTERS)
-    graduation_year = models.PositiveIntegerField()
+    graduation_year = models.PositiveIntegerField(null=True, blank=True)
     address = models.TextField()
 
     # Submission
     date_submitted = models.DateField(auto_now_add=True)
-    signature = models.CharField(max_length=255)
+    signature_base64 = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=FORM_STATUS, default='Draft')
 
+    # Verification
+    message = models.TextField(blank=True, null=True)
+    signatureAdmin_base64 = models.TextField(null=True, blank=True)
+    approve_date = models.DateField(blank=True, null=True)
+
+    pdf_url = models.URLField(blank=True, null=True)
     def __str__(self):
         return f"Diploma Request - {self.name} ({self.student_id})"
     
