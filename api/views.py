@@ -2,8 +2,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
-from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest
-from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer
+from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, ChangeOfAddress
+from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer, ChangeOfAddressSerializer
 import os
 import base64
 import requests
@@ -128,6 +128,29 @@ class ReimbursementRequestViewSet(viewsets.ModelViewSet):
             serializer = ReimbursementRequestSerializer(user)
             return Response(serializer.data)
         except ReimbursementRequest.DoesNotExist:
+            return Response({'detail': 'User form not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class ChangeOfAddressViewSet(viewsets.ModelViewSet):
+    queryset = ChangeOfAddress.objects.all()
+    serializer_class = ChangeOfAddressSerializer
+
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            user = ChangeOfAddress.objects.get(id=kwargs['pk'])
+            serializer = ChangeOfAddressSerializer(user, data=request.data, partial=True) 
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ChangeOfAddress.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            user = ChangeOfAddress.objects.get(id=kwargs['pk'])
+            serializer = ChangeOfAddressSerializer(user)
+            return Response(serializer.data)
+        except ChangeOfAddress.DoesNotExist:
             return Response({'detail': 'User form not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 @ensure_csrf_cookie
