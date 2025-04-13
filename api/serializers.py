@@ -54,3 +54,8 @@ class ChangeOfAddressSerializer(serializers.ModelSerializer):
         model = ChangeOfAddress
         fields = '__all__'
  
+class DiplomaRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiplomaRequest
+        fields = '__all__'
+
