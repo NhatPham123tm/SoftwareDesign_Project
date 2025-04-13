@@ -1,5 +1,5 @@
 from django import forms
-from api.models import ReimbursementRequest, PayrollAssignment
+from api.models import ReimbursementRequest, PayrollAssignment, ChangeOfAddress, DiplomaRequest
 
 # just for testing not use
 class RimburseForm(forms.Form):
@@ -165,3 +165,46 @@ class PayrollVeritificationStepForm(forms.ModelForm):
     class Meta:
         model = PayrollAssignment
         fields = ['status', 'approve_date', 'signatureAdmin_base64']
+
+# Change address form
+class ChangeAddressStep1Form(forms.ModelForm):
+    class Meta:
+        model = ChangeOfAddress
+        fields = ['name', 'date_of_birth']
+
+class ChangeAddressStep2Form(forms.ModelForm):
+    class Meta:
+        model = ChangeOfAddress
+        fields = [
+            'street_address', 'zip_code', 'city', 'state',
+        ]
+
+class ChangeAddressStep3Form(forms.ModelForm):
+    class Meta:
+        model = ChangeOfAddress
+        fields = [
+            'previous_street_address', 'previous_zip_code', 'previous_city', 'previous_state',
+            'mailing_street_address', 'mailing_zip_code', 'mailing_city', 'mailing_state','signature_base64',
+        ]
+        widgets = {
+            'signature_base64': forms.HiddenInput()
+        }
+
+# For diploma request form
+
+class DiplomaStep1Form(forms.ModelForm):
+    class Meta:
+        model = DiplomaRequest
+        fields = ['name', 'date_of_birth', 'email', 'phone']
+
+class DiplomaStep2Form(forms.ModelForm):
+    class Meta:
+        model = DiplomaRequest
+        fields = [
+            'degree', 'major', 'honors', 'college',
+            'graduation_semester', 'graduation_year',
+            'address', 'signature_base64',
+        ]
+        widgets = {
+            'signature_base64': forms.HiddenInput()
+        }

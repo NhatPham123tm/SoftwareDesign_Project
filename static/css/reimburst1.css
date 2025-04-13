@@ -124,6 +124,7 @@ form label {
 
 /* Inputs and selects expand to fit space */
 form input[type="text"],
+form input[type="email"],
 form input[type="date"],
 form select {
     flex: 2 1 300px;

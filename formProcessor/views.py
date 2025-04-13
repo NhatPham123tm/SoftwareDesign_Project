@@ -5,8 +5,8 @@ import subprocess
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import FileResponse, HttpResponse
 from .forms import PayrollForm
-from .forms import ReimbursementStep1Form, ReimbursementStep2Form, ReimbursementStep3Form,PayrollStep1Form, PayrollStep2Form, PayrollStep3Form, PayrollStep4Form, PayrollStep5Form, PayrollStep6Form, PayrollStep7Form, PayrollStep8Form, PayrollStep9Form, PayrollStep10Form
-from api.models import ReimbursementRequest, PayrollAssignment
+from .forms import ReimbursementStep1Form, ReimbursementStep2Form, ReimbursementStep3Form,PayrollStep1Form, PayrollStep2Form, PayrollStep3Form, PayrollStep4Form, PayrollStep5Form, PayrollStep6Form, PayrollStep7Form, PayrollStep8Form, PayrollStep9Form, PayrollStep10Form, ChangeAddressStep1Form, ChangeAddressStep2Form, ChangeAddressStep3Form, DiplomaStep1Form, DiplomaStep2Form
+from api.models import ReimbursementRequest, PayrollAssignment, ChangeOfAddress, DiplomaRequest
 import re
 from django.contrib.auth.decorators import login_required
 from authentication.views import dashboard
@@ -784,4 +784,343 @@ def view_pdf3(request, form_id):
         return HttpResponse("PDF file not found.", status=404)
 
     # Serve the PDF
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+
+#--------------------------------------------------------------------------------
+# Change address form
+
+@login_required
+def change_address_step1(request):
+    """ Step 1: Personal Info """
+    user = request.user
+
+    # Check if user already has a pending form
+    pending_form = ChangeOfAddress.objects.filter(user=user, status="Pending").first()
+    if pending_form:
+        messages.error(request, "You already have a pending change of address request.")
+        return redirect('dashboard')
+
+    # Get draft if exists
+    draft_form = ChangeOfAddress.objects.filter(user=user, status="Draft").first()
+
+    if request.method == 'POST':
+        form = ChangeAddressStep1Form(request.POST, instance=draft_form)
+        if form.is_valid():
+            change_form = form.save(commit=False)
+            change_form.user = user
+            change_form.status = "Draft"
+            change_form.save()
+            return redirect('change_address_step2', form_id=change_form.id)
+    else:
+        form = ChangeAddressStep1Form(instance=draft_form)
+
+    return render(request, 'change_address_step1.html', {'form': form})
+
+
+@login_required
+def change_address_step2(request, form_id=None):
+    """ Step 2: Address Info """
+    user = request.user
+
+    # Find draft or redirect back
+    if not form_id:
+        draft = ChangeOfAddress.objects.filter(user=user, status="Draft").first()
+        if draft:
+            return redirect('change_address_step2', form_id=draft.id)
+        return redirect('change_address_step1')
+
+    change_form = get_object_or_404(ChangeOfAddress, id=form_id, user=user)
+
+    if request.method == 'POST':
+        form = ChangeAddressStep2Form(request.POST, instance=change_form)
+        if form.is_valid():
+            form.save()
+            return redirect('change_address_step3', form_id=change_form.id)
+    else:
+        form = ChangeAddressStep2Form(instance=change_form)
+
+    return render(request, 'change_address_step2.html', {'form': form})
+
+
+@login_required
+def change_address_step3(request, form_id=None):
+    """ Step 3: Signature & Submission """
+    user = request.user
+
+    # Find draft or redirect back
+    if not form_id:
+        draft = ChangeOfAddress.objects.filter(user=user, status="Draft").first()
+        if draft:
+            return redirect('change_address_step3', form_id=draft.id)
+        return redirect('change_address_step1')
+
+    change_form = get_object_or_404(ChangeOfAddress, id=form_id, user=user)
+
+    if request.method == 'POST':
+        form = ChangeAddressStep3Form(request.POST, instance=change_form)
+        if form.is_valid():
+            submitted_form = form.save(commit=False)
+            submitted_form.status = "Pending"
+            submitted_form.save()
+            return redirect('generate_change_address_pdf', form_id=submitted_form.id)
+    else:
+        form = ChangeAddressStep3Form(instance=change_form)
+
+    return render(request, 'change_address_step3.html', {'form': form})
+
+@login_required
+def delete_address(request, form_id):
+    """ Allows a user to delete their draft or pending address change request """
+    address_form = get_object_or_404(ChangeOfAddress, id=form_id, user=request.user)
+
+    if address_form.status in ["Draft", "Pending"]:
+        address_form.delete()
+        messages.success(request, "Your change of address request has been deleted successfully.")
+    else:
+        messages.error(request, "You can only delete Draft or Pending forms.")
+
+    return redirect('dashboard')
+
+@login_required
+def generate_change_address_pdf(request, form_id):
+    LATEX_TEMPLATE_PATH = "latexform/change_address.tex"
+    OUTPUT_PDF_PATH = "output/filled_template.pdf"
+    NEW_PDF_NAME = f"change_address_{form_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    NEW_PDF_PATH = os.path.join("output/", NEW_PDF_NAME)
+    PDF_URL = f"output/{NEW_PDF_NAME}" 
+
+    form = get_object_or_404(ChangeOfAddress, id=form_id, user=request.user)
+
+    # Save base64 signatures
+    user_sig_path = os.path.join("output", "signatureUser.png")
+    admin_sig_path = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(form.signature_base64, user_sig_path)
+    save_signature_image(form.signatureAdmin_base64, admin_sig_path)
+
+    context = {field.name.upper(): escape_latex(str(getattr(form, field.name) or '')) for field in ChangeOfAddress._meta.fields}
+
+    with open(LATEX_TEMPLATE_PATH, "r") as file:
+        tex_content = file.read()
+
+    for key, value in context.items():
+        tex_content = re.sub(r'\{\{' + key.replace('_', r'\\_') + r'\}\}', value, tex_content)
+
+    filled_tex_path = "output/filled_template.tex"
+    with open(filled_tex_path, "w") as file:
+        file.write(tex_content)
+
+    try:
+        subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"],
+            check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+    except subprocess.CalledProcessError as e:
+        print("Warning: pdflatex failed")
+        print(e.stdout.decode(), e.stderr.decode())
+
+    if os.path.exists(OUTPUT_PDF_PATH):
+        os.rename(OUTPUT_PDF_PATH, NEW_PDF_PATH)
+
+    form.pdf_url = PDF_URL
+    form.save()
+
+    if os.path.exists(user_sig_path): os.remove(user_sig_path)
+    if os.path.exists(admin_sig_path): os.remove(admin_sig_path)
+
+    messages.success(request, "Change of Address form submitted successfully!")
+    return redirect('dashboard')
+
+@login_required
+def view_change_address_pdf(request):
+    """ Opens the latest change of address PDF for the logged-in user """
+
+    address = ChangeOfAddress.objects.filter(
+        user=request.user,
+        pdf_url__isnull=False
+    ).order_by('-id').first()
+
+    if not address or not address.pdf_url:
+        return HttpResponse("No PDF available.", status=404)
+
+    # Save signatures if present
+    sig_user_path = os.path.join("output", "signatureUser.png")
+    sig_admin_path = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(address.signature_base64, sig_user_path)
+    save_signature_image(address.signatureAdmin_base64, sig_admin_path)
+
+    # Regenerate PDF
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=address.id,
+        ModelClass=ChangeOfAddress,
+        latex_template_path="latexform/change_address.tex"
+    )
+
+    address.refresh_from_db()
+    time.sleep(0.1)
+
+    pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(address.pdf_url))
+
+    # Clean up signature images
+    if os.path.exists(sig_user_path): os.remove(sig_user_path)
+    if os.path.exists(sig_admin_path): os.remove(sig_admin_path)
+
+    if not os.path.exists(pdf_path):
+        return HttpResponse("PDF file not found.", status=404)
+
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+#-------------------------------------------------------------------------
+# Diploma request form
+
+@login_required
+def diploma_step1(request):
+    """ Step 1: Personal Info & Contact """
+    user = request.user
+
+    pending_diploma = DiplomaRequest.objects.filter(user=user, status="Pending").first()
+    if pending_diploma:
+        messages.error(request, "You already have a pending diploma request.")
+        return redirect('dashboard')
+
+    draft = DiplomaRequest.objects.filter(user=user, status="Draft").first()
+
+    if request.method == 'POST':
+        form = DiplomaStep1Form(request.POST, instance=draft)
+        if form.is_valid():
+            diploma = form.save(commit=False)
+            diploma.user = user
+            diploma.status = "Draft"
+            diploma.save()
+            return redirect('diploma_step2', diploma_id=diploma.id)
+    else:
+        form = DiplomaStep1Form(instance=draft)
+
+    return render(request, 'diploma_step1.html', {'form': form})
+
+@login_required
+def diploma_step2(request, diploma_id=None):
+    """ Step 2: Address & Signature """
+    user = request.user
+
+    if not diploma_id:
+        draft = DiplomaRequest.objects.filter(user=user, status="Draft").first()
+        if draft:
+            return redirect('diploma_step2', diploma_id=draft.id)
+        return redirect('diploma_step1')
+
+    diploma = get_object_or_404(DiplomaRequest, id=diploma_id, user=user)
+
+    if request.method == 'POST':
+        form = DiplomaStep2Form(request.POST, instance=diploma)
+        if form.is_valid():
+            completed = form.save(commit=False)
+            completed.status = "Pending"
+            completed.save()
+            return redirect('generate_diploma_pdf', diploma_id=completed.id)
+    else:
+        form = DiplomaStep2Form(instance=diploma)
+
+    return render(request, 'diploma_step2.html', {'form': form})
+
+@login_required
+def delete_diploma(request, form_id):
+    """ Allows a user to delete their draft or pending diploma request """
+    diploma_form = get_object_or_404(DiplomaRequest, id=form_id, user=request.user)
+
+    if diploma_form.status in ["Draft", "Pending"]:
+        diploma_form.delete()
+        messages.success(request, "Your diploma request has been deleted successfully.")
+    else:
+        messages.error(request, "You can only delete Draft or Pending forms.")
+
+    return redirect('dashboard')
+
+@login_required
+def generate_diploma_pdf(request, diploma_id):
+    LATEX_TEMPLATE_PATH = "latexform/diploma.tex"
+    OUTPUT_PDF_PATH = "output/filled_template.pdf"
+    NEW_PDF_NAME = f"diploma_{diploma_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    NEW_PDF_PATH = os.path.join("output/", NEW_PDF_NAME)
+    PDF_URL = f"output/{NEW_PDF_NAME}" 
+
+    diploma = get_object_or_404(DiplomaRequest, id=diploma_id, user=request.user)
+
+    user_sig_path = os.path.join("output", "signatureUser.png")
+    admin_sig_path = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(diploma.signature_base64, user_sig_path)
+    save_signature_image(diploma.signatureAdmin_base64, admin_sig_path)
+
+    context = {field.name.upper(): escape_latex(str(getattr(diploma, field.name) or '')) for field in DiplomaRequest._meta.fields}
+
+    with open(LATEX_TEMPLATE_PATH, "r") as file:
+        tex_content = file.read()
+
+    for key, value in context.items():
+        tex_content = re.sub(r'\{\{' + key.replace('_', r'\\_') + r'\}\}', value, tex_content)
+
+    filled_tex_path = "output/filled_template.tex"
+    with open(filled_tex_path, "w") as file:
+        file.write(tex_content)
+
+    try:
+        subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"],
+            check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+    except subprocess.CalledProcessError as e:
+        print("Warning: pdflatex failed")
+        print(e.stdout.decode(), e.stderr.decode())
+
+    if os.path.exists(OUTPUT_PDF_PATH):
+        os.rename(OUTPUT_PDF_PATH, NEW_PDF_PATH)
+
+    diploma.pdf_url = PDF_URL
+    diploma.save()
+
+    if os.path.exists(user_sig_path): os.remove(user_sig_path)
+    if os.path.exists(admin_sig_path): os.remove(admin_sig_path)
+
+    messages.success(request, "Diploma request submitted successfully!")
+    return redirect('dashboard')
+
+@login_required
+def view_diploma_pdf(request):
+    """ Opens the latest diploma request PDF for the logged-in user """
+
+    diploma = DiplomaRequest.objects.filter(
+        user=request.user,
+        pdf_url__isnull=False
+    ).order_by('-id').first()
+
+    if not diploma or not diploma.pdf_url:
+        return HttpResponse("No PDF available.", status=404)
+
+    # Save signatures if present
+    sig_user_path = os.path.join("output", "signatureUser.png")
+    sig_admin_path = os.path.join("output", "signatureAdmin.png")
+    save_signature_image(diploma.signature_base64, sig_user_path)
+    save_signature_image(diploma.signatureAdmin_base64, sig_admin_path)
+
+    # Regenerate the PDF using shared utility
+    generate_pdf_from_form_id(
+        request=request,
+        form_id=diploma.id,
+        ModelClass=DiplomaRequest,
+        latex_template_path="latexform/diploma.tex"
+    )
+
+    diploma.refresh_from_db()
+    time.sleep(0.1)
+
+    pdf_path = os.path.join(settings.MEDIA_ROOT, os.path.basename(diploma.pdf_url))
+
+    # Clean up signature images
+    if os.path.exists(sig_user_path): os.remove(sig_user_path)
+    if os.path.exists(sig_admin_path): os.remove(sig_admin_path)
+
+    if not os.path.exists(pdf_path):
+        return HttpResponse("PDF file not found.", status=404)
+
     return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
