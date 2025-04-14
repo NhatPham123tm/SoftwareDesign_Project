@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{% static 'css/basicuser.css' %}">
+    <title>User Profile</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            updateUserUI();
+            updateUserData();
+            document.getElementById("save-btn").addEventListener("click", handleEdit);
+        });
+        function updateUserUI() {
+            console.log("Checking for user data in localStorage...");
+            
+            // Try fetching "user_data" first, if not available, fall back to "user"
+            let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
+            
+            if (userDataString) {
+                try {
+                    const userData = JSON.parse(userDataString);
+                    const userRole = userData.role;
+                    if (userData && userData.role) {
+                        console.log("User role:", userRole);
+                        if (userRole === 1) {
+                            document.getElementById("admin_link").style.display = "block";
+                            document.getElementById("user-role").textContent = `Role: Admin`;
+                        } else {
+                            document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("user-role").textContent = `Role: Basic User`;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error parsing user data:", error);
+                }
+            } else {
+                console.warn("No user data found in localStorage.");
+            }
+        }
+
+
+        function showSuccessMessage(message) {
+            document.getElementById("modal-message").textContent = message;
+            document.getElementById("success-modal").style.display = "block";
+
+            setTimeout(closeModal, 1000);
+        }
+
+        function closeModal() {
+            document.getElementById("success-modal").style.display = "none";
+            setTimeout(() => {
+                window.location.reload(true); // Force page reload
+            }, 100); // Small delay to ensure smooth UI experience
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                document.cookie.split(';').forEach(cookie => {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    }
+                });
+            }
+            return cookieValue;
+        }
+ 
+        function logoutUser() {
+                 localStorage.removeItem("access_token");
+                 localStorage.removeItem("refresh_token");
+                 localStorage.removeItem("user");
+                 localStorage.removeItem("user_data");
+                 window.location.href = "/logout/";
+         }
+    </script>
+</head>
+<body>
+    <div id="app_name">
+        <a href="{% url 'dashboard' %}" class="app_url"><img id="app-image" src="{% static 'pic/hero.png' %}" alt="App Image" class="app-image"></a>
+        <a href="{% url 'dashboard' %}" class="app_url"><div id="app-name"> Trois-Rivières Application </div></a>
+    </div>
+    <nav class="top">
+        <div class="topbox toplink">
+            <div id="user-role"></div>
+            <div class="nav-links">
+                <a href="{% url 'adminpage' %}" id="admin_link">MANAGEMENT</a>
+                <a href="{% url 'dashboard' %}">HOME</a>
+                <a href="{% url 'merge_accs' %}">SERVICE</a>
+                <a href="{% url 'basicuser' %}">PROFILE</a>
+                <a href="{% url 'forms' %}">FORMS</a>
+                <a href="#" onclick="logoutUser()">LOGOUT</a>
+            </div>
+        </div>
+    </nav>
+    
+    <section class="title">
+        <div class="container">
+            <h1>Merge</h1>
+        </div>
+    </section>
+    
+</body>
+</html>
