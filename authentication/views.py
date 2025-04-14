@@ -20,6 +20,7 @@ from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
 from api.serializers import UserSerializer
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
 
 def landing(request):
     return render(request, 'landing.html')
@@ -221,7 +222,7 @@ def microsoft_callback(request):
             user.save()
     else:
         # Retrieve 'id' and 'password' from cookies
-        id = request.COOKIES.get("sessionId")
+        id = request.COOKIES.get("registerId")
         password = request.COOKIES.get("password")
         # Check if user exists, otherwise create one
         try:
@@ -410,3 +411,49 @@ def user_ura_login(request):
             }
         }, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+
+@csrf_exempt
+def merge_accounts(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        email = data.get("email")
+
+        try:
+            main_acc = user_accs.objects.get(email=email)
+        except user_accs.DoesNotExist:
+            return JsonResponse({"error": "user_accs not found"}, status=404)
+
+        try:
+            ura_acc = user_ura_accs.objects.get(email=email)
+            created = False
+        except user_ura_accs.DoesNotExist:
+            # Create new user_ura_accs from main_acc info
+            ura_acc = user_ura_accs.objects.create(
+                id=main_acc.id,
+                email=main_acc.email,
+                name=main_acc.name,
+                password_hash=main_acc.password_hash,
+                role=main_acc.role,
+                phone_number=main_acc.phone_number,
+                address=main_acc.address,
+                status=main_acc.status,
+            )
+            created = True
+
+        if not created:
+            # Overwrite fields if already existed
+            ura_acc.id = main_acc.id
+            ura_acc.name = main_acc.name
+            ura_acc.password_hash = main_acc.password_hash
+            ura_acc.role = main_acc.role
+            ura_acc.phone_number = main_acc.phone_number
+            ura_acc.address = main_acc.address
+            ura_acc.status = main_acc.status
+            ura_acc.save()
+
+        return JsonResponse({
+            "message": "Merged successfully",
+            "new_ura_created": created
+        })
+
+    return JsonResponse({"error": "Only POST allowed"}, status=405)
