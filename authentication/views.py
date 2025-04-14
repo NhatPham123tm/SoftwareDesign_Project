@@ -303,6 +303,7 @@ def reset_password(request):
     # For GET requests, just display the form
     return render(request, 'reset_password.html')
 
+@permission_classes([AllowAny])
 @api_view(["GET"])
 def check_id_exists(request, user_id):
     # Check if the user ID exists in the database
@@ -311,6 +312,7 @@ def check_id_exists(request, user_id):
     # Return response based on whether the ID is unique or already taken
     return JsonResponse({'isUnique': not id_exists})
 
+@permission_classes([AllowAny])
 @api_view(["GET"])
 def check_email_exists(request, email):
     email_exists = user_accs.objects.filter(email=email).exists()
