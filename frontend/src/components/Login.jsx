@@ -37,7 +37,7 @@ export default function Login() {
     try {
       await axiosInstance.get('/csrf/'); // fetch CSRF token for using session
       const res = await axiosInstance.post(
-        '/user_login/',
+        '/uranium_login/',
         { email, password },
         {
           headers: {
