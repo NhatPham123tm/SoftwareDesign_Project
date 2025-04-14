@@ -36,8 +36,8 @@ export default function Signup() {
     }
 
     // Set cookies for Microsoft Auth fallback
-    document.cookie = `uraniumId=${id}; path=/; max-age=${60}`;
-    document.cookie = `uraniumPassword=${password}; path=/; max-age=${60}`;
+    document.cookie = `sessionId=${id}; path=/; max-age=${60}`;
+    document.cookie = `password=${password}; path=/; max-age=${60}`;
 
     if (microsoftAuth) {
       window.location.href = '/login/microsoft/';
@@ -45,7 +45,7 @@ export default function Signup() {
     }
 
     try {
-      const res = await axiosInstance.post('/uranium_register/', {
+      const res = await axiosInstance.post('/user_register/', {
         id,
         password,
         name,
