@@ -1,7 +1,7 @@
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from django.contrib.auth.hashers import make_password
-from api.models import roles, user_accs, permission
+from api.models import roles, user_accs, permission, user_ura_accs
 
 @receiver(post_migrate)
 def initialize_data(sender, **kwargs):
@@ -42,6 +42,20 @@ def initialize_data(sender, **kwargs):
     for user_info in user_data:
         if not user_accs.objects.filter(email=user_info["email"]).exists():
             user_accs.objects.create(
+                name=user_info["name"],
+                email=user_info["email"],
+                password_hash=make_password(user_info["password"]),
+                role=user_info["role"],
+                phone_number=user_info["phone_number"],
+                address=user_info["address"],
+                status=user_info["status"],
+                is_staff=user_info["is_staff"],
+                is_superuser=user_info["is_superuser"],
+            )
+
+    for user_info in user_data:
+        if not user_ura_accs.objects.filter(email=user_info["email"]).exists():
+            user_ura_accs.objects.create(
                 name=user_info["name"],
                 email=user_info["email"],
                 password_hash=make_password(user_info["password"]),
