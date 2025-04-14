@@ -5,7 +5,7 @@ from django.shortcuts import render
 import msal
 import requests
 from django.conf import settings
-from api.models import user_accs, ReimbursementRequest, PayrollAssignment, ChangeOfAddress, DiplomaRequest
+from api.models import user_accs, ReimbursementRequest, PayrollAssignment, ChangeOfAddress, DiplomaRequest, user_ura_accs
 from django.contrib.auth.decorators import user_passes_test
 import json
 from django.contrib.auth.decorators import user_passes_test
@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
-from .serializers import UserRegisterSerializer, UserLoginSerializer
+from .serializers import UserRegisterSerializer, UserLoginSerializer, UserURARegisterSerializer, UserURALoginSerializer
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
 from api.serializers import UserSerializer
@@ -336,3 +336,53 @@ def check_id_exists(request, user_id):
 def check_email_exists(request, email):
     email_exists = user_accs.objects.filter(email=email).exists()
     return JsonResponse({'isUnique': not email_exists})
+
+##-------------------------------------------------------------------------------##
+# Uranium API
+#-------------------------------------------------------------------------------##
+
+@api_view(["POST"])
+@permission_classes([AllowAny])  # Allow public access to register
+def user_ura_register(request):
+    """
+    API-based registration using serializers.
+    """
+    serializer = UserURARegisterSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        user = serializer.save()
+        return Response({
+            "message": "User registered successfully!",
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "role": user.role_id
+            }
+        }, status=status.HTTP_201_CREATED)
+    
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def user_ura_login(request):
+    serializer = UserURALoginSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.validated_data["user"]
+        login(request, user)
+        request.session.save()  # Explicitly save the session
+        #print(f"User {user.email} logged in. Session: {request.session.session_key}")
+        #print(f"Session exists: {request.session.exists(request.session.session_key)}")
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "access_token": str(refresh.access_token),
+            "refresh_token": str(refresh),
+            "message": "Logged in successfully",
+            "user": {
+                "id": user.id,
+                "name": user.name,
+                "email": user.email,
+                "role": user.role_id,
+                "status": user.status,
+            }
+        }, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
