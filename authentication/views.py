@@ -208,8 +208,12 @@ def microsoft_callback(request):
         # Create new user if doesn't exist
         if user_accs.DoesNotExist:
             if not id or not password:
-                messages.error(request, "No account registered with this Microsoft email")
-                return redirect('register_page')
+                if team == "uranium":
+                    messages.error(request, "No account registered with this Microsoft email. Please register first!")
+                    return redirect('http://127.0.0.1:5173/signup')
+                else:
+                    messages.error(request, "No account registered with this Microsoft email. Please register first!")
+                    return redirect('register_page')
         
         user = user_accs.objects.create(
             id=id,
