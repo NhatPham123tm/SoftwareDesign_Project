@@ -5,14 +5,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{% static 'css/basicuser.css' %}">
+    <link rel="stylesheet" href="{% static 'css/merge.css' %}">
     <title>User Profile</title>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             updateUserUI();
-            updateUserData();
-            document.getElementById("save-btn").addEventListener("click", handleEdit);
+            mergeaccount();
         });
+
+        function mergeaccount (){
+            document.getElementById("merge-btn").addEventListener("click", function () {
+                const userData = JSON.parse(localStorage.getItem("user_data") || "{}");
+                const email = userData.email;
+
+                if (!email) {
+                    alert("No email found in user data.");
+                    return;
+                }
+
+                fetch("/api/merge_accounts/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    credentials: "same-origin",
+                    body: JSON.stringify({ email: email })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        showSuccessMessage(data.message);
+                    } else if (data.error) {
+                        alert("Error: " + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Merge failed:", error);
+                    alert("An error occurred during merging.");
+                });
+            });
+        }
+
         function updateUserUI() {
             console.log("Checking for user data in localStorage...");
             
@@ -99,9 +133,17 @@
     
     <section class="title">
         <div class="container">
-            <h1>Merge</h1>
+            <h1>Third Parties Services</h1>
+            <h3>Link/Merge to Uranium account</h3>
+            <button id="merge-btn" class="merge-button">Merge/Register</button>
+            <div id="success-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-btn" onclick="closeModal()">&times;</span>
+                    <p id="modal-message"></p>
+                </div>
+            </div>
         </div>
     </section>
-    
+
 </body>
 </html>
