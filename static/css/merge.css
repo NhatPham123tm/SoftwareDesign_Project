@@ -1,0 +1,193 @@
+body, html {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 2;
+    height: 100%; /* Ensure full height of the page */
+}
+
+#app_name {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+}
+
+.app_url {
+    text-decoration: none;
+}
+
+.app-image {
+    width: 30px;  /* Adjust width for the image */
+    height: 30px; /* Adjust height for the image */
+}
+
+#app-name {
+    font-size: 18px;
+    color: #001f2b;
+    font-weight: bold;
+}
+
+.top {
+    width: 100%;
+    background-color: #001f2b;
+    box-shadow: 0 2px 0px rgba(0, 0, 0, 0.2);
+    top: 0;
+    z-index: 1000;
+    border-top-left-radius: 10px; 
+    border-top-right-radius: 10px; 
+    overflow: hidden; 
+}
+
+.topbox {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toplink {
+    display: flex;
+    gap: 2rem;
+}
+
+.toplink a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+
+}
+
+.title {
+    text-align: center;
+    background-color: #00719c;
+    color: white;
+    padding: 80px 40px;
+    border-bottom-left-radius: 10px; 
+    border-bottom-right-radius: 10px;
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    justify-content: center; /* Center items vertically */
+    align-items: center; /* Center items horizontally */
+}
+
+.container {
+    display: flex;
+    justify-content: center; /* Horizontally centers the form */
+    align-items: center; /* Vertically centers the form */
+    width: 40%;
+    height: 100%; /* Make sure the container height is 100% to fill available space */
+    background-color: #F0F8FF;
+    padding: 10px 20px;
+    border-radius: 10px;
+}
+
+.admin {
+display: hidden;
+}
+
+#user-role {
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 7px 10px;
+    background-color: #444;
+    border-radius: 5px;
+    margin-left: 0px; 
+}
+
+.nav-links {
+    display: flex;  
+    gap: 40px; 
+    align-items: center;
+    padding-left: 20px; 
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    padding: 10px 15px; 
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+    border-bottom: 2px solid transparent; 
+}
+
+.nav-links a:hover {
+    color: rgba(255, 255, 255, 0.7); 
+    border-bottom: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+#title_name {
+    font-size: 24px;
+    color: #000;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+}
+
+.container form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+.container label {
+    font-weight: bold;
+    color: #000;
+    text-align: left; 
+    display: block; 
+    margin-bottom: -15px;
+}
+
+.container input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 95%;
+    display: block; /* Ensures each input appears on a new line */
+}
+
+.container button {
+    background-color: #00415a;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 20px;
+    margin-top: 10px;
+}
+
+.container button:hover {
+    background-color: #0056b3;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 20% auto;
+    padding: 20px;
+    width: 300px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    color: #000;
+}
+
+.close-btn {
+    float: right;
+    font-size: 20px;
+    cursor: pointer;
+}
