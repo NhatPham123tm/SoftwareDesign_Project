@@ -427,22 +427,32 @@ def merge_accounts(request):
             ura_acc = user_ura_accs.objects.get(email=email)
             created = False
         except user_ura_accs.DoesNotExist:
-            # Create new user_ura_accs from main_acc info
-            ura_acc = user_ura_accs.objects.create(
-                id=main_acc.id,
-                email=main_acc.email,
-                name=main_acc.name,
-                password_hash=main_acc.password_hash,
-                role=main_acc.role,
-                phone_number=main_acc.phone_number,
-                address=main_acc.address,
-                status=main_acc.status,
-            )
+            # Try to reuse main_acc.id only if it's not already taken
+            if not user_ura_accs.objects.filter(id=main_acc.id).exists():
+                ura_acc = user_ura_accs.objects.create(
+                    id=main_acc.id,
+                    email=main_acc.email,
+                    name=main_acc.name,
+                    password_hash=main_acc.password_hash,
+                    role=main_acc.role,
+                    phone_number=main_acc.phone_number,
+                    address=main_acc.address,
+                    status=main_acc.status,
+                )
+            else:
+                ura_acc = user_ura_accs.objects.create(
+                    email=main_acc.email,
+                    name=main_acc.name,
+                    password_hash=main_acc.password_hash,
+                    role=main_acc.role,
+                    phone_number=main_acc.phone_number,
+                    address=main_acc.address,
+                    status=main_acc.status,
+                )
             created = True
 
         if not created:
             # Overwrite fields if already existed
-            ura_acc.id = main_acc.id
             ura_acc.name = main_acc.name
             ura_acc.password_hash = main_acc.password_hash
             ura_acc.role = main_acc.role
@@ -453,7 +463,8 @@ def merge_accounts(request):
 
         return JsonResponse({
             "message": "Merged successfully",
-            "new_ura_created": created
+            "new_ura_created": created,
+            "ura_id": ura_acc.id
         })
 
     return JsonResponse({"error": "Only POST allowed"}, status=405)
