@@ -22,6 +22,9 @@ from api.serializers import UserSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 
+def merge_accs(request):
+    return render(request, 'merge.html')
+
 def landing(request):
     return render(request, 'landing.html')
 
