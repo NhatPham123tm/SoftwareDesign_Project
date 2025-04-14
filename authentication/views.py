@@ -198,48 +198,26 @@ def microsoft_callback(request):
 
     team = request.GET.get("state", "trois-rivieres")
 
-    if team == "uranium":
-        # Retrieve 'id' and 'password' from cookies
-        id = request.COOKIES.get("uraniumId")
-        password = request.COOKIES.get("uraniumPassword")
-        # Check if user exists, otherwise create one
-        try:
-            user = user_ura_accs.objects.get(email=email)
-        except user_ura_accs.DoesNotExist:
-            # Create new user if doesn't exist
-            if user_ura_accs.DoesNotExist:
-                if not id or not password:
-                    messages.error(request, "No account registered with this Microsoft email")
-                    return redirect("http://localhost:5173/home")
-            
-            user = user_ura_accs.objects.create(
-                id=id,
-                email=email,
-                name=name
-            )
-            user.set_password(password)  # Hash and store password
-            user.save()
-    else:
-        # Retrieve 'id' and 'password' from cookies
-        id = request.COOKIES.get("sessionId")
-        password = request.COOKIES.get("password")
-        # Check if user exists, otherwise create one
-        try:
-            user = user_accs.objects.get(email=email)
-        except user_accs.DoesNotExist:
-            # Create new user if doesn't exist
-            if user_accs.DoesNotExist:
-                if not id or not password:
-                    messages.error(request, "No account registered with this Microsoft email")
-                    return redirect('register_page')
-            
-            user = user_accs.objects.create(
-                id=id,
-                email=email,
-                name=name
-            )
-            user.set_password(password)  # Hash and store password
-            user.save()
+    # Retrieve 'id' and 'password' from cookies
+    id = request.COOKIES.get("sessionId")
+    password = request.COOKIES.get("password")
+    # Check if user exists, otherwise create one
+    try:
+        user = user_accs.objects.get(email=email)
+    except user_accs.DoesNotExist:
+        # Create new user if doesn't exist
+        if user_accs.DoesNotExist:
+            if not id or not password:
+                messages.error(request, "No account registered with this Microsoft email")
+                return redirect('register_page')
+        
+        user = user_accs.objects.create(
+            id=id,
+            email=email,
+            name=name
+        )
+        user.set_password(password)  # Hash and store password
+        user.save()
 
     # Authenticate & log in user
     user.backend = "django.contrib.auth.backends.ModelBackend"

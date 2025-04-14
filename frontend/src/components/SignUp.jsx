@@ -45,7 +45,7 @@ export default function Signup() {
     }
 
     try {
-      const res = await axiosInstance.post('/uranium_register/', {
+      const res = await axiosInstance.post('/user_register/', {
         id,
         password,
         name,
