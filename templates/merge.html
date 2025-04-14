@@ -13,7 +13,9 @@
             mergeaccount();
         });
 
-        function mergeaccount (){
+        let pendingEmail = null;
+
+        function mergeaccount() {
             document.getElementById("merge-btn").addEventListener("click", function () {
                 const userData = JSON.parse(localStorage.getItem("user_data") || "{}");
                 const email = userData.email;
@@ -23,28 +25,38 @@
                     return;
                 }
 
-                fetch("/api/merge_accounts/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": getCookie("csrftoken")
-                    },
-                    credentials: "same-origin",
-                    body: JSON.stringify({ email: email })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message) {
-                        showSuccessMessage(data.message);
-                    } else if (data.error) {
-                        alert("Error: " + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error("Merge failed:", error);
-                    alert("An error occurred during merging.");
-                });
+                pendingEmail = email; // store temporarily until confirmed
+                document.getElementById("confirm-modal").style.display = "block";
             });
+        }
+
+        function confirmMerge() {
+            fetch("/api/merge_accounts/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                credentials: "same-origin",
+                body: JSON.stringify({ email: pendingEmail })
+            })
+            .then(response => response.json())
+            .then(data => {
+                closeConfirmModal();
+                if (data.message) {
+                    showSuccessMessage(data.message);
+                } else if (data.error) {
+                    alert("Error: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Merge failed:", error);
+                alert("An error occurred during merging.");
+            });
+        }
+
+        function closeConfirmModal() {
+            document.getElementById("confirm-modal").style.display = "none";
         }
 
         function updateUserUI() {
@@ -133,9 +145,26 @@
     
     <section class="title">
         <div class="container">
-            <h1>Third Parties Services</h1>
-            <h3>Link/Merge to Uranium account</h3>
-            <button id="merge-btn" class="merge-button">Merge/Register</button>
+            <div id="merge-info">
+                <h2 id="mergeTitle">Third Parties Services</h2>
+                <div class="merge-header">
+                    <h3 id="Ura-merge">
+                        <img src="{% static 'pic/Uralogo.png' %}" alt="Uranium Logo" class="ura-logo">
+                        Merge/Register Uranium account
+                        
+                    </h3>
+                    <button id="merge-btn" class="merge-button">Merge/Register</button>
+                </div>
+            </div>
+            <div id="confirm-modal" class="modal">
+                <div class="modal-content">
+                    <p>This will merge your account or register it using your Trois-Rivières info.<br>Are you sure you want to continue?</p>
+                    <div class="modal-actions">
+                        <button class="confirm-btn" onclick="confirmMerge()">Yes, Continue</button>
+                        <button class="cancel-btn" onclick="closeConfirmModal()">Cancel</button>
+                    </div>
+                </div>
+            </div>
             <div id="success-modal" class="modal">
                 <div class="modal-content">
                     <span class="close-btn" onclick="closeModal()">&times;</span>
