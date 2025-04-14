@@ -76,7 +76,7 @@ body, html {
     display: flex;
     justify-content: center; /* Horizontally centers the form */
     align-items: center; /* Vertically centers the form */
-    width: 40%;
+    width: 60%;
     height: 100%; /* Make sure the container height is 100% to fill available space */
     background-color: #F0F8FF;
     padding: 10px 20px;
@@ -165,6 +165,7 @@ display: hidden;
 }
 
 .modal {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: none;
     position: fixed;
     z-index: 1000;
@@ -190,4 +191,34 @@ display: hidden;
     float: right;
     font-size: 20px;
     cursor: pointer;
+}
+
+#merge-info{
+    width : 100%;
+}
+
+#mergeTitle {
+    color: #000;
+    text-align: left;
+}
+
+.merge-header {
+    display: flex;
+    align-items: center;
+    gap: 180px; /* space between text and button */
+}
+
+.merge-header h3 {
+    margin: 0;
+}
+
+#Ura-merge{
+    color: #000;
+}
+
+.ura-logo {
+    width: 35px;
+    height: 35px;
+    margin-right: 5px;
+    vertical-align: middle;
 }
