@@ -120,10 +120,6 @@
                             return;
                         }
 
-                        // Set cookies for user_id and user_password (expiring in 7 days)
-                        document.cookie = `sessionId=${id}; path=/; max-age=${60}`; // Expires in 7 days
-                        document.cookie = `password=${password}; path=/; max-age=${60}`; // Expires in 7 days
-
                         const userData = {
                             id,
                             password,
@@ -156,8 +152,8 @@
 
                     } else {
                         // Microsoft authentication flow: Set cookies for id and password before redirect
-                        document.cookie = `sessionId=${id}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
-                        document.cookie = `password=${password}; path=/; max-age=${60 * 60 * 24 * 7}`; // Expires in 7 days
+                        document.cookie = `registerId=${id}; path=/; max-age=${60}`; // Expires in 1 mins
+                        document.cookie = `password=${password}; path=/; max-age=${60}`; // Expires in 1 mins
                         window.location.href = '/login/microsoft/';
                     }
                 });
@@ -180,6 +176,10 @@
             });
         }
         function checkUniqueEmail(email, callback) {
+            if (!email) {
+                email = "absoluteunique@gmail.com"  // If email is empty, consider it not unique
+            }
+
             fetch(`/api/check_email_exists/${email}/`, {
                 method: 'GET',
                 credentials: "same-origin",  // Ensures session cookies are sent

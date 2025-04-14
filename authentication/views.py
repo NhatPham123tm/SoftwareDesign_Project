@@ -20,6 +20,10 @@ from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
 from api.serializers import UserSerializer
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+
+def merge_accs(request):
+    return render(request, 'merge.html')
 
 def landing(request):
     return render(request, 'landing.html')
@@ -197,22 +201,40 @@ def microsoft_callback(request):
         return redirect("/login")
 
     team = request.GET.get("state", "trois-rivieres")
-
-    # Retrieve 'id' and 'password' from cookies
-    id = request.COOKIES.get("sessionId")
-    password = request.COOKIES.get("password")
-    # Check if user exists, otherwise create one
-    try:
-        user = user_accs.objects.get(email=email)
-    except user_accs.DoesNotExist:
-        # Create new user if doesn't exist
-        if user_accs.DoesNotExist:
-            if not id or not password:
-                if team == "uranium":
-                    messages.error(request, "No account registered with this Microsoft email. Please register first!")
-                    return redirect('http://127.0.0.1:5173/signup')
-                else:
-                    messages.error(request, "No account registered with this Microsoft email. Please register first!")
+    
+    if team == "uranium":
+        # Retrieve 'id' and 'password' from cookies
+        id = request.COOKIES.get("uraniumId")
+        password = request.COOKIES.get("uraniumPassword")
+        # Check if user exists, otherwise create one
+        try:
+            user = user_ura_accs.objects.get(email=email)
+        except user_ura_accs.DoesNotExist:
+            # Create new user if doesn't exist
+            if user_ura_accs.DoesNotExist:
+                if not id or not password:
+                    messages.error(request, "No account registered with this Microsoft email")
+                    return redirect("http://localhost:5173/home")
+            
+            user = user_ura_accs.objects.create(
+                id=id,
+                email=email,
+                name=name
+            )
+            user.set_password(password)  # Hash and store password
+            user.save()
+    else:
+        # Retrieve 'id' and 'password' from cookies
+        id = request.COOKIES.get("registerId")
+        password = request.COOKIES.get("password")
+        # Check if user exists, otherwise create one
+        try:
+            user = user_accs.objects.get(email=email)
+        except user_accs.DoesNotExist:
+            # Create new user if doesn't exist
+            if user_accs.DoesNotExist:
+                if not id or not password:
+                    messages.error(request, "No account registered with this Microsoft email")
                     return redirect('register_page')
         
         user = user_accs.objects.create(
@@ -392,3 +414,60 @@ def user_ura_login(request):
             }
         }, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+
+@csrf_exempt
+def merge_accounts(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        email = data.get("email")
+
+        try:
+            main_acc = user_accs.objects.get(email=email)
+        except user_accs.DoesNotExist:
+            return JsonResponse({"error": "user_accs not found"}, status=404)
+
+        try:
+            ura_acc = user_ura_accs.objects.get(email=email)
+            created = False
+        except user_ura_accs.DoesNotExist:
+            # Try to reuse main_acc.id only if it's not already taken
+            if not user_ura_accs.objects.filter(id=main_acc.id).exists():
+                ura_acc = user_ura_accs.objects.create(
+                    id=main_acc.id,
+                    email=main_acc.email,
+                    name=main_acc.name,
+                    password_hash=main_acc.password_hash,
+                    role=main_acc.role,
+                    phone_number=main_acc.phone_number,
+                    address=main_acc.address,
+                    status=main_acc.status,
+                )
+            else:
+                ura_acc = user_ura_accs.objects.create(
+                    email=main_acc.email,
+                    name=main_acc.name,
+                    password_hash=main_acc.password_hash,
+                    role=main_acc.role,
+                    phone_number=main_acc.phone_number,
+                    address=main_acc.address,
+                    status=main_acc.status,
+                )
+            created = True
+
+        if not created:
+            # Overwrite fields if already existed
+            ura_acc.name = main_acc.name
+            ura_acc.password_hash = main_acc.password_hash
+            ura_acc.role = main_acc.role
+            ura_acc.phone_number = main_acc.phone_number
+            ura_acc.address = main_acc.address
+            ura_acc.status = main_acc.status
+            ura_acc.save()
+
+        return JsonResponse({
+            "message": "Merged successfully",
+            "new_ura_created": created,
+            "ura_id": ura_acc.id
+        })
+
+    return JsonResponse({"error": "Only POST allowed"}, status=405)

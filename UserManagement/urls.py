@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from authentication.views import home  # Import the home view
-from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data, forms, check_id_exists, check_email_exists, landing, user_ura_register, user_ura_login
+from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data, forms, check_id_exists, check_email_exists, landing, user_ura_register, user_ura_login, merge_accounts, merge_accs
 from authentication import views
 from django.contrib.auth import views as auth_views
 from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_pdf, generate_payroll_pdf, view_pdf2, view_payroll_pdf2, view_pdf3, view_payroll_pdf3, change_address_step1, change_address_step2, change_address_step3, diploma_step1, diploma_step2, delete_address, delete_diploma, generate_change_address_pdf, generate_diploma_pdf
@@ -29,6 +29,7 @@ urlpatterns = [
     path('logout/', microsoft_logout, name='microsoft-logout'),
     path("login/", login_page, name="login_page"),  # Renders login.html
     path('basicuser/', basicuser, name='basicuser'),
+    path('merge-accs/', merge_accs, name='merge_accs'),
     path('home/', home, name='home'),
     path('reset_password/', reset_password, name='reset_password'),
     path('adminpage/', adminpage, name='adminpage'),
@@ -37,6 +38,7 @@ urlpatterns = [
     path("api/microsoft-login/", get_auth_data, name="microsoft-login-json"),
     path("api/uranium_login/", user_ura_login, name="uranium_login"),
     path("api/uranium_register/", user_ura_register, name="uranium_register"),
+    path("api/merge_accounts/", merge_accounts, name="merge_accounts"),
     # for testing
     path('generate_payroll_pdf/', generate_payroll_pdf, name='generate_payroll_pdf'),
     # still developing
