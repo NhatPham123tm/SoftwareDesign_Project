@@ -1,51 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Landing Page</title>
-    <style>
-        body {
-            background-color: #f4f4f4;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding-top: 100px;
-        }
+{% load static %}
+<!DOCTYPE HTML>
+<!--
+	Escape Velocity by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+	<head>
+		<title>Escape Velocity by HTML5 UP</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="{% static 'css/main.css' %}">
+	</head>
+	<body class="homepage is-preload">
+		<div id="page-wrapper">
+			<!-- Intro -->
+				<section id="intro" class="wrapper style1">
+					<div class="title">Pick Your Team</div>
+					<div class="container">
+						<a href="#" class="image">
+							<!--<img src="images/hero23.png" alt="" />-->
+						</a>
+						<p class="style2">
+							Trois-Rivières<br class="mobile-hide" />
+						</p>
+						<ul class="actions">
+							<li><a href="http://127.0.0.1:8000/trois-rivieres" class="button style1 large">Proceed</a></li>
+						</ul>
+					</div>
+				</section>
 
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 50px;
-        }
+			<!-- Main -->
+				<section id="intro" class="wrapper style2">
+					<div class="title">Pick Your Team</div>
+					<div class="container">
+							<a href="#" class="image">
+								<!--<img src="images/hero23.png" alt="" />-->
+							</a>
+							<p class="style1">
+								Uranium City<br class="mobile-hide" />
+							</p>
+							<ul class="actions">
+								<li><a href="http://127.0.0.1:5173/" class="button style3 large">Proceed</a></li>
+							</ul>
+					</div>
+				</section>
+		</div>
 
-        .button-container {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-        }
-
-        .landing-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px 30px;
-            font-size: 18px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            text-decoration: none;
-        }
-
-        .landing-button:hover {
-            background-color: #45a049;
-        }
-    </style>
-</head>
-<body>
-
-    <h1>Welcome to the Portal</h1>
-    <div class="button-container">
-        <a class="landing-button" href="http://127.0.0.1:8000/trois-rivieres">Trois-Rivières Team</a>
-        <a class="landing-button" href="http://127.0.0.1:5173/">Uranium City</a>
-    </div>
-
-</body>
+		<!-- Scripts -->
+		<script src="{% static 'assets/js/jquery.min.js' %}"></script>
+		<script src="{% static 'assets/js/jquery.dropotron.min.js' %}"></script>
+		<script src="{% static 'assets/js/browser.min.js' %}"></script>
+		<script src="{% static 'assets/js/breakpoints.min.js' %}"></script>
+		<script src="{% static 'assets/js/util.js' %}"></script>
+		<script src="{% static 'assets/js/main.js' %}"></script>
+	</body>
 </html>

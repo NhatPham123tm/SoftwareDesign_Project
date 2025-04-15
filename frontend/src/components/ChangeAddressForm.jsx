@@ -77,11 +77,11 @@ const ChangeAddressForm = () => {
     try {
       const response = await fetch(url, {
         method: draftId ? "PUT" : "POST",
-        credentials: "include", // ✅ use session cookies
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCSRFToken(),
-      },
+        credentials: "include", //  use session cookies
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken(),
+        },
       body: JSON.stringify(dataToSend),
     });
 
