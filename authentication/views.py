@@ -216,13 +216,13 @@ def microsoft_callback(request):
                     messages.error(request, "No account registered with this Microsoft email")
                     return redirect("http://localhost:5173/home")
             
-            user = user_ura_accs.objects.create(
-                id=id,
-                email=email,
-                name=name
-            )
-            user.set_password(password)  # Hash and store password
-            user.save()
+                user = user_ura_accs.objects.create(
+                    id=id,
+                    email=email,
+                    name=name
+                )
+                user.set_password(password)  # Hash and store password
+                user.save()
     else:
         # Retrieve 'id' and 'password' from cookies
         id = request.COOKIES.get("registerId")
@@ -237,13 +237,13 @@ def microsoft_callback(request):
                     messages.error(request, "No account registered with this Microsoft email")
                     return redirect('register_page')
         
-        user = user_accs.objects.create(
-            id=id,
-            email=email,
-            name=name
-        )
-        user.set_password(password)  # Hash and store password
-        user.save()
+                user = user_accs.objects.create(
+                    id=id,
+                    email=email,
+                    name=name
+                )
+                user.set_password(password)  # Hash and store password
+                user.save()
 
     # Authenticate & log in user
     user.backend = "django.contrib.auth.backends.ModelBackend"
