@@ -157,7 +157,7 @@ Note: If no initialized data is in the database rerun the above commands.
 http://localhost:8000/
 
 ## 7. Create and Login an account
-# Note: For Uranium service you have to use Microsoft login  
+### Note: For Uranium service you have to use Microsoft login  
 
 No account or no Microsoft account is linked to our account.
 
