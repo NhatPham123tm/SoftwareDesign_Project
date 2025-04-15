@@ -70,13 +70,6 @@ const DiplomaRequestForm = () => {
   const handleSubmit = async (e, status = 'submitted') => {
     e.preventDefault();
 
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setMessage("You must be logged in to submit the form.");
-      return;
-    }
-
     const requestData = {};
     for (let key in formData) {
       if (key !== 'draftId') {
