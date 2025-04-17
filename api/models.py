@@ -5,10 +5,23 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db.models import JSONField 
 
+class department(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+    
 class roles(models.Model):
-    role_name = models.CharField(max_length=30)
+    ROLE_CHOICES = [
+        ('admin', 'admin'),
+        ('user', 'user'),
+        ('employee', 'employee'),
+        ('manager', 'manager'),
+    ]
+
+    role_name = models.CharField(max_length=30, choices=ROLE_CHOICES)
     level = models.IntegerField(default=0)  # 0 for admin, 99 for user, 1->98 for other roles
-    department = models.CharField(max_length=30, null=True, blank=True)
+    department = models.ForeignKey(department, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.role_name
@@ -25,10 +38,13 @@ class roles(models.Model):
         self.full_clean()  # Triggers the clean() method
         super().save(*args, **kwargs)
 
+
 class work_assign(models.Model):
     user = models.ForeignKey('user_accs', on_delete=models.CASCADE, null=True, blank=True)
+    department = models.ForeignKey('department', on_delete=models.CASCADE, null=True, blank=True)
     work_name = models.CharField(max_length=100)
     package = models.ForeignKey('work_package', on_delete=models.CASCADE, null=True, blank=True)
+    created_by = models.ForeignKey('roles', on_delete=models.CASCADE, null=True, blank=True)
     deadline = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=[
         ('Pending', 'Pending'),
