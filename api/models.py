@@ -4,11 +4,26 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db.models import JSONField 
+
 class roles(models.Model):
-    role_name = models.CharField(max_length=30, unique=True)
+    role_name = models.CharField(max_length=30)
+    level = models.IntegerField(default=0)  # 0 for admin, 99 for user, 1->98 for other roles
+    department = models.CharField(max_length=30, null=True, blank=True)
 
     def __str__(self):
         return self.role_name
+
+    def clean(self):
+        if self.level == 0:
+            existing_admins = roles.objects.filter(level=0)
+            if self.pk:
+                existing_admins = existing_admins.exclude(pk=self.pk)
+            if existing_admins.exists():
+                raise ValidationError("There can only be one admin role (level=0).")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Triggers the clean() method
+        super().save(*args, **kwargs)
 
 class user_accs(AbstractBaseUser, PermissionsMixin):
     STATUS_CHOICES = [
