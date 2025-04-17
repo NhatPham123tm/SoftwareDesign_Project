@@ -1,3 +1,8 @@
+# V4 Development Idea/ Upgrade User management + approval step
+
+![image](https://github.com/user-attachments/assets/923b303e-7fb5-4111-bd76-20d4987c9da1)
+
+
 # SoftwareDesign_Project
 team_name = Trois-Rivières
 
