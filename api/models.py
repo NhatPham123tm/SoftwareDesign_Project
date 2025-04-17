@@ -25,6 +25,31 @@ class roles(models.Model):
         self.full_clean()  # Triggers the clean() method
         super().save(*args, **kwargs)
 
+class work_assign(models.Model):
+    user = models.ForeignKey('user_accs', on_delete=models.CASCADE, null=True, blank=True)
+    work_name = models.CharField(max_length=100)
+    package = models.ForeignKey('work_package', on_delete=models.CASCADE, null=True, blank=True)
+    deadline = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=[
+        ('Pending', 'Pending'),
+        ('In Progress', 'In Progress'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    ], default='Pending')
+
+
+    def __str__(self):
+        return self.work_name
+    
+class work_package(models.Model):
+    PayrollAssignment = models.ManyToManyField('PayrollAssignment', blank=True)
+    ReimbursementRequest = models.ManyToManyField('ReimbursementRequest', blank=True)
+    ChangeOfAddress_ids = models.ManyToManyField('ChangeOfAddress', blank=True)
+    DiplomaRequest = models.ManyToManyField('DiplomaRequest', blank=True)
+
+    def __str__(self):
+        return self.package_name
+
 class user_accs(AbstractBaseUser, PermissionsMixin):
     STATUS_CHOICES = [
         ('active', 'active'),
