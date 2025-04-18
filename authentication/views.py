@@ -61,13 +61,13 @@ def is_admin(user):
     print(user)
     if not user.is_authenticated:
         return False
-    return getattr(user, 'role_id', None) == 1
+    return getattr(user.role, 'role_name', None) == 'admin'
 
 def is_manager(user):
     print(user)
     if not user.is_authenticated:
         return False
-    return getattr(user, 'role_id', None) == 1
+    return getattr(user.role, 'role_name', None) == 'manager'
 
 
 @login_required
