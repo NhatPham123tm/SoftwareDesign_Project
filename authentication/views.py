@@ -25,6 +25,9 @@ from django.shortcuts import get_object_or_404
 def merge_accs(request):
     return render(request, 'merge.html')
 
+def manager(request):
+    return render(request, 'manager.html')
+
 def landing(request):
     return render(request, 'landing.html')
 
