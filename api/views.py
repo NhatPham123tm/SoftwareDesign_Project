@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
 from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, user_ura_accs, work_assign
-from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer, ChangeOfAddressSerializer, DiplomaRequestSerializer, UserURASerializer, RequestSerializer
+from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer, ChangeOfAddressSerializer, DiplomaRequestSerializer, UserURASerializer, RequestSerializer, WorkAssignSerializer
 import os
 import base64
 import requests
@@ -37,13 +37,13 @@ class RoleViewSet(viewsets.ModelViewSet):
 
 class WorkAssignViewSet(viewsets.ModelViewSet):
     queryset = work_assign.objects.all()
-    serializer_class = RequestSerializer
+    serializer_class = WorkAssignSerializer
 
     # Read (Retrieve) by ID (GET)
     def retrieve(self, request, *args, **kwargs):
         try:
             user = work_assign.objects.get(id=kwargs['pk'])
-            serializer = RequestSerializer(user)
+            serializer = WorkAssignSerializer(user)
             return Response(serializer.data)
         except work_assign.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
@@ -51,7 +51,7 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         try:
             user = work_assign.objects.get(id=kwargs['pk'])
-            serializer = RequestSerializer(user, data=request.data, partial=False)  # partial=False ensures full update
+            serializer = WorkAssignSerializer(user, data=request.data, partial=False)  # partial=False ensures full update
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
@@ -62,7 +62,7 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         try:
             user = work_assign.objects.get(id=kwargs['pk'])
-            serializer = RequestSerializer(user, data=request.data, partial=True) 
+            serializer = WorkAssignSerializer(user, data=request.data, partial=True) 
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
