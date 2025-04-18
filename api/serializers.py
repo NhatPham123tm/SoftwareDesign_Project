@@ -1,11 +1,16 @@
 from rest_framework import serializers
-from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, Request, ChangeOfAddress, DiplomaRequest, user_ura_accs
+from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, Request, ChangeOfAddress, DiplomaRequest, user_ura_accs, work_assign
+
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = roles
         fields = '__all__'  # Serialize all fields
 
+class WorkAssignSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = work_assign
+        fields = '__all__'  # Serialize all fields
 
 class UserSerializer(serializers.ModelSerializer):
     role = RoleSerializer(read_only=True)  # Nested serializer to show role details
