@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from authentication.views import home  # Import the home view
-from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data, forms, check_id_exists, check_email_exists, landing, user_ura_register, user_ura_login, merge_accounts, merge_accs
+from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data, forms, check_id_exists, check_email_exists, landing, user_ura_register, user_ura_login, merge_accounts, merge_accs, manager
 from authentication import views
 from django.contrib.auth import views as auth_views
 from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_pdf, generate_payroll_pdf, view_pdf2, view_payroll_pdf2, view_pdf3, view_payroll_pdf3, change_address_step1, change_address_step2, change_address_step3, diploma_step1, diploma_step2, delete_address, delete_diploma, generate_change_address_pdf, generate_diploma_pdf
@@ -85,5 +85,6 @@ urlpatterns = [
     path('view_diploma_pdf3/<int:form_id>/', view_diploma_pdf3, name='view_diploma_pdf3'),
     path("api/csrf/", get_csrf_token),
     path('accounts/', include('allauth.urls')),
+    path('manager/', manager, name='manager'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
