@@ -43,6 +43,9 @@ def register_page(request):
 def basicuser(request):
     return render(request, 'basicuser.html')
 
+def empregister_page(request):
+    return render(request, "emp_register.html")
+
 def forms(request):
 
     reimbursement = ReimbursementRequest.objects.filter(user=request.user).order_by('-created_at')[:5]
