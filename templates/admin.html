@@ -222,37 +222,60 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{% static 'js/admin.js' %}" defer></script>
     <script>
-        function stuff() {
-            Promise.all([
-                fetch("/api/payroll/").then(r => r.json()),
-                fetch("/api/reimburse/").then(r => r.json()),
-                fetch("/api/address/").then(r => r.json()),
-                fetch("/api/diploma/").then(r => r.json())
-            ])
-            .then(([payrollData, reimburseData, addressData, diplomaData]) => {
-                const pendingTbody = document.getElementById('pendingTableBody');
-                const processedTbody = document.getElementById('processedTableBody');
-                pendingTbody.innerHTML = '';
-                processedTbody.innerHTML = '';
+function stuff() {
+    Promise.all([
+        fetch("/api/payroll/").then(r => r.json()),
+        fetch("/api/reimburse/").then(r => r.json()),
+        fetch("/api/address/").then(r => r.json()),
+        fetch("/api/diploma/").then(r => r.json())
+    ])
+    .then(([payrollData, reimburseData, addressData, diplomaData]) => {
+        const pendingTbody = document.getElementById('pendingTableBody');
+        const processedTbody = document.getElementById('processedTableBody');
+        pendingTbody.innerHTML = '';
+        processedTbody.innerHTML = '';
 
-                const allForms = [
-                    ...payrollData.filter(p => p.status !== "Draft"),
-                    ...reimburseData.filter(r => r.status !== "Draft"),
-                    ...addressData.filter(a => a.status !== "Draft"),
-                    ...diplomaData.filter(d => d.status !== "Draft"),
-                ];
+        const toyForms = [
+            ...payrollData.filter(p => p.status !== "Draft"),
+            ...reimburseData.filter(r => r.status !== "Draft")
+        ];
 
-                const pendingForms = allForms.filter(f => f.status === "Pending")
-                    .sort((a, b) => new Date(b.date_submitted || b.todays_date || b.today_date) - new Date(a.date_submitted || a.todays_date || a.today_date));
+        const umperiumForms = [
+            ...addressData.filter(a => a.status !== "Draft"),
+            ...diplomaData.filter(d => d.status !== "Draft")
+        ];
 
-                const processedForms = allForms.filter(f => f.status !== "Pending")
-                    .sort((a, b) => new Date(b.date_submitted || b.todays_date || b.today_date) - new Date(a.date_submitted || a.todays_date || a.today_date));
+        const departments = [
+            { name: "Toy Department", forms: toyForms },
+            { name: "Umperium Department", forms: umperiumForms }
+        ];
 
-                renderForms(pendingForms, pendingTbody);
-                renderForms(processedForms, processedTbody);
-            })
-            .catch(error => console.error("Error loading forms:", error));
-        }
+        departments.forEach(dept => {
+            const pending = dept.forms
+                .filter(f => f.status === "Pending")
+                .sort((a, b) => new Date(b.date_submitted || b.todays_date || b.today_date) - new Date(a.date_submitted || a.todays_date || a.today_date));
+
+            const processed = dept.forms
+                .filter(f => f.status !== "Pending")
+                .sort((a, b) => new Date(b.date_submitted || b.todays_date || b.today_date) - new Date(a.date_submitted || a.todays_date || a.today_date));
+
+            if (pending.length) {
+                const deptHeader = document.createElement('tr');
+                deptHeader.innerHTML = `<td colspan="8"><strong>${dept.name} - Pending</strong></td>`;
+                pendingTbody.appendChild(deptHeader);
+                renderForms(pending, pendingTbody);
+            }
+
+            if (processed.length) {
+                const deptHeader = document.createElement('tr');
+                deptHeader.innerHTML = `<td colspan="8"><strong>${dept.name} - Processed</strong></td>`;
+                processedTbody.appendChild(deptHeader);
+                renderForms(processed, processedTbody);
+            }
+        });
+    })
+    .catch(error => console.error("Error loading forms:", error));
+}
 
         function renderForms(dataArray, tbody) {
             dataArray.forEach(form => {
