@@ -36,6 +36,8 @@ services:
       DATABASE_PASSWORD: ${DB_PASSWORD}
       DATABASE_HOST: ${DB_HOST}
       DATABASE_PORT: ${DB_PORT}
+    volumes:
+      - ./:/app
     env_file:
       - .env
     logging:
@@ -50,10 +52,12 @@ services:
       dockerfile: ../Dockerfile.frontend  # adjust if you keep the Dockerfile elsewhere
     container_name: vite-frontend
     volumes:
-      - ./frontend:/app
+      - ./frontend/src:/app/src
     ports:
       - "5173:5173"
     command: npm run dev -- --host 0.0.0.0 --port 5173
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
     env_file:
       - .env
     depends_on:

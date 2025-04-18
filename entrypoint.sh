@@ -12,5 +12,5 @@ fi
 python ./manage.py makemigrations api
 python ./manage.py makemigrations
 python ./manage.py migrate
-gunicorn --timeout 300 UserManagement.wsgi:application --bind 0.0.0.0:8000
+gunicorn --timeout 300 UserManagement.wsgi:application --bind 0.0.0.0:8000 --reload
 exec "$@"

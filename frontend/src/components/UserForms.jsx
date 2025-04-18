@@ -140,7 +140,7 @@ const UserForms = () => {
                 {form.pdf && (
                   <div className="pdf-link">
                     <a
-                      href={`http://localhost:8000/${form.pdf}`}
+                      href={`http://localhost:8000${form.pdf}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >

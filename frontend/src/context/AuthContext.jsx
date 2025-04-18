@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     localStorage.removeItem("userData");
+    document.cookie = ""
     setAuth(null);
   }, []);
 
