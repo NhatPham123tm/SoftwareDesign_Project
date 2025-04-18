@@ -5,12 +5,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db.models import JSONField 
 
-class department(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.name
-    
 class roles(models.Model):
     ROLE_CHOICES = [
         ('admin', 'admin'),
@@ -19,9 +13,17 @@ class roles(models.Model):
         ('manager', 'manager'),
     ]
 
+    DEPARTMENT_CHOICES = [
+        ('all', 'all'),
+        ('finance', 'finance'),
+        ('registrar', 'registrar'),
+    ]
+
     role_name = models.CharField(max_length=30, choices=ROLE_CHOICES)
-    level = models.IntegerField(default=0)  # 0 for admin, 99 for user, 1->98 for other roles
-    department = models.ForeignKey(department, on_delete=models.CASCADE, null=True, blank=True)
+    level = models.IntegerField(default=99)  # 0 for admin, 99 for user, 1->98 for other roles
+    # Only admin and basic user can be in 'all' departments
+    # Employee and manager can be in specific departments
+    department = models.CharField(max_length=30, choices=DEPARTMENT_CHOICES, default='all')
 
     def __str__(self):
         return self.role_name
@@ -42,9 +44,11 @@ class roles(models.Model):
 class work_assign(models.Model):
     user = models.ForeignKey('user_accs', on_delete=models.CASCADE, null=True, blank=True)
     department = models.ForeignKey('department', on_delete=models.CASCADE, null=True, blank=True)
-    work_name = models.CharField(max_length=100)
-    package = models.ForeignKey('work_package', on_delete=models.CASCADE, null=True, blank=True)
-    created_by = models.ForeignKey('roles', on_delete=models.CASCADE, null=True, blank=True)
+    PayrollAssignment_id = models.ForeignKey('PayrollAssignment', on_delete=models.CASCADE, null=True, blank=True)
+    ReimbursementRequest_id = models.ForeignKey('ReimbursementRequest', on_delete=models.CASCADE, null=True, blank=True)
+    ChangeOfAddress_id = models.ForeignKey('ChangeOfAddress', on_delete=models.CASCADE, null=True, blank=True)
+    DiplomaRequest_id = models.ForeignKey('DiplomaRequest', on_delete=models.CASCADE, null=True, blank=True)
+    created_by = models.ForeignKey('user_accs', on_delete=models.CASCADE, null=True, blank=True, related_name='created_tasks')
     deadline = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=[
         ('Pending', 'Pending'),
@@ -55,16 +59,19 @@ class work_assign(models.Model):
 
 
     def __str__(self):
-        return self.work_name
+        return f"WorkAssign #{self.id}"
     
-class work_package(models.Model):
-    PayrollAssignment = models.ManyToManyField('PayrollAssignment', blank=True)
-    ReimbursementRequest = models.ManyToManyField('ReimbursementRequest', blank=True)
-    ChangeOfAddress_ids = models.ManyToManyField('ChangeOfAddress', blank=True)
-    DiplomaRequest = models.ManyToManyField('DiplomaRequest', blank=True)
+    def clean(self):
+        if self.user and self.created_by:
+            assignee_level = self.user.role.level
+            assigner_level = self.created_by.role.level
+            if assigner_level > assignee_level:
+                raise ValidationError("Cannot assign work to a user with lower level.")
 
-    def __str__(self):
-        return self.package_name
+    def save(self, *args, **kwargs):
+        self.full_clean()  # triggers clean() before saving
+        super().save(*args, **kwargs)
+    
 
 class user_accs(AbstractBaseUser, PermissionsMixin):
     STATUS_CHOICES = [
