@@ -54,6 +54,27 @@
       background-color: #34495e;
     }
 
+
+
+    .fart {
+      list-style-type: none;
+      margin-bottom: 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      padding: 13px;
+      border-radius: 8px;
+    }
+
+
+    .fart:hover
+    {
+      background-color: #34495e;
+    }
+
+    
+
     .main {
       flex: 1;
       padding: 30px;
@@ -106,6 +127,7 @@ tbody td {
             <li><a href="#forms">Forms</a></li>
             <li><a href="#">Logout</a></li>
           </ul>
+          <a class="fart" href="{% url 'dashboard' %}">Home</a></li>
         </div>
     
         <div class="main">
