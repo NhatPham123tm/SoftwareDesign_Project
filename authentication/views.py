@@ -230,6 +230,10 @@ def microsoft_callback(request):
         # Retrieve 'id' and 'password' from cookies
         id = request.COOKIES.get("registerId")
         password = request.COOKIES.get("password")
+        role_id = request.COOKIES.get("roleId")
+        if role_id is None:
+            role_id = 2
+
         # Check if user exists, otherwise create one
         try:
             user = user_accs.objects.get(email=email)
@@ -243,7 +247,8 @@ def microsoft_callback(request):
                 user = user_accs.objects.create(
                     id=id,
                     email=email,
-                    name=name
+                    name=name,
+                    role_id=role_id
                 )
                 user.set_password(password)  # Hash and store password
                 user.save()
@@ -296,6 +301,11 @@ def microsoft_callback(request):
 
     response.delete_cookie('sessionId')
     response.delete_cookie('password')
+    response.delete_cookie('registerId')
+    response.delete_cookie('uraniumId')
+    response.delete_cookie('uraniumPassword')
+    response.delete_cookie('roleId')
+    # Clear cookies
 
     # Store JWT tokens in session for frontend redirection (if necessary)
     request.session["access_token"] = access_token
