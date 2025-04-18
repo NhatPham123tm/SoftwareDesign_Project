@@ -24,6 +24,7 @@ def escape_latex(value):
         return value
     return value.replace('_', '\\_').replace('&', '\\&').replace('%', '\\%')
 
+# Generate signature image from base64 data
 def save_signature_image(base64_data, output_path):
     """Save base64-encoded signature to an image file, or generate blank PNG if data is missing."""
     try:
@@ -39,7 +40,65 @@ def save_signature_image(base64_data, output_path):
         blank_img = Image.new("RGB", (300, 100), color="white")
         blank_img.save(output_path, format="PNG")
 
-#Generates a PDF from the form model using a LaTeX template and given form ID
+def save_signatures(form_instance):
+    paths = []
+    for attr, filename in [("signature_base64", "signatureUser.png"), ("signatureAdmin_base64", "signatureAdmin.png")]:
+        if hasattr(form_instance, attr):
+            path = os.path.join("output", filename)
+            save_signature_image(getattr(form_instance, attr), path)
+            paths.append(path)
+    return paths
+
+def get_pdf_paths(model_name, form_id):
+    timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    base = f"{model_name.lower()}_{form_id}_{timestamp}.pdf"
+    return {
+        "filled_tex": "output/filled_template.tex",
+        "compiled_pdf": "output/filled_template.pdf",
+        "final_pdf": os.path.join("output", base),
+        "relative_url": f"output/{base}"
+    }
+
+def fill_latex_template(context, template_path, output_dir="output", tex_name="filled_template.tex"):
+    with open(template_path, "r", encoding="utf-8") as file:
+        tex_content = file.read()
+    for key, value in context.items():
+        tex_content = re.sub(r'\{\{' + key.replace('_', r'\\_') + r'\}\}', value, tex_content)
+    filled_path = os.path.join(output_dir, tex_name)
+    with open(filled_path, "w", encoding="utf-8") as file:
+        file.write(tex_content)
+    return filled_path
+
+def generate_pdf_and_redirect(request, instance, latex_path, dashboard_redirect=True):
+    sig_paths = save_signatures(instance)
+    context = {field.name.upper(): escape_latex(str(getattr(instance, field.name) or '')) for field in instance._meta.fields}
+    paths = get_pdf_paths(type(instance).__name__, instance.id)
+    
+    filled_tex_path = fill_latex_template(context, latex_path)
+    
+    try:
+        subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", filled_tex_path],
+            check=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        if os.path.exists(paths["compiled_pdf"]):
+            os.rename(paths["compiled_pdf"], paths["final_pdf"])
+            instance.pdf_url = paths["relative_url"]
+            instance.save()
+    except subprocess.CalledProcessError as e:
+        print("PDF generation failed", e.stdout.decode(), e.stderr.decode())
+
+    for path in sig_paths:
+        if os.path.exists(path):
+            os.remove(path)
+
+    if dashboard_redirect:
+        messages.success(request, "Form submitted successfully.")
+        return redirect('dashboard')
+    return None
+
+# Generates a PDF from the form model using a LaTeX template and given form ID
 def generate_pdf_from_form_id(request, form_id, ModelClass, latex_template_path, output_dir="output"):
     instance = get_object_or_404(ModelClass, id=form_id)
     
@@ -469,67 +528,9 @@ def payroll_step10(request, payroll_id):
 
 @login_required
 def payroll_review(request, payroll_id):
-    """ Final step before submission & Generate PDF """
-    LATEX_TEMPLATE_PATH = "latexform/payroll-assignment.tex"
-    OUTPUT_PDF_PATH = "output/filled_template.pdf"
-    NEW_PDF_NAME = f"payroll_{payroll_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
-    NEW_PDF_PATH = os.path.join("output/", NEW_PDF_NAME)
-    PDF_URL = f"output/{NEW_PDF_NAME}"
-
     payroll = get_object_or_404(PayrollAssignment, id=payroll_id, user=request.user)
-    # Save signature image if available
-    signature_output_path_admin = os.path.join("output", "signatureAdmin.png")
-    save_signature_image(payroll.signatureAdmin_base64, signature_output_path_admin)
-
-    if request.method == 'POST':
-        # Convert model fields to a dictionary and escape LaTeX special characters
-        context = {field.name.upper(): escape_latex(str(getattr(payroll, field.name) or '')) for field in PayrollAssignment._meta.fields}
-
-        # Read LaTeX template
-        with open(LATEX_TEMPLATE_PATH, "r", encoding="utf-8") as file:
-            tex_content = file.read()
-
-        for key, value in context.items():
-            tex_content = re.sub(r'\{\{' + key.replace('_', r'\\_') + r'\}\}', value, tex_content)
-
-        # Save modified LaTeX file
-        filled_tex_path = "output/filled_template.tex"
-        with open(filled_tex_path, "w", encoding="utf-8") as file:
-            file.write(tex_content)
-
-        # Debugging: Print the first few lines of the LaTeX file before compiling
-        with open(filled_tex_path, "r") as file:
-            print("\n".join(file.readlines()[:20]))
-
-        # Compile LaTeX to PDF using pdflatex
-        try:
-            subprocess.run(
-                ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"],
-                check=True,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
-        except subprocess.CalledProcessError as e:
-            print("Warning: pdflatex returned a non-zero exit status")
-            print("Stdout:", e.stdout.decode())
-            print("Stderr:", e.stderr.decode())
-
-        # Rename the generated PDF file
-        if os.path.exists(OUTPUT_PDF_PATH):
-            os.rename(OUTPUT_PDF_PATH, NEW_PDF_PATH)
-
-        # Store the new PDF path in the database
-        payroll.pdf_url = PDF_URL
-        payroll.status = "Pending"  # Mark as submitted
-        payroll.save()
-
-        if os.path.exists(signature_output_path_admin):
-            os.remove(signature_output_path_admin)
-        
-        messages.success(request, "Payroll form submitted successfully!")
-        return redirect('dashboard')
-
-    return render(request, 'payroll_review.html', {'payroll': payroll})
-
+    return generate_pdf_and_redirect(request, payroll, "latexform/payroll-assignment.tex")
+   
 @login_required
 def delete_payroll(request, payroll_id):
     """ Allows a user to delete their draft or pending payroll request """
@@ -640,53 +641,8 @@ def delete_address(request, form_id):
 
 @login_required
 def generate_change_address_pdf(request, form_id):
-    LATEX_TEMPLATE_PATH = "latexform/change_address.tex"
-    OUTPUT_PDF_PATH = "output/filled_template.pdf"
-    NEW_PDF_NAME = f"change_address_{form_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
-    NEW_PDF_PATH = os.path.join("output/", NEW_PDF_NAME)
-    PDF_URL = f"output/{NEW_PDF_NAME}" 
-
-    form = get_object_or_404(ChangeOfAddress, id=form_id, user=request.user)
-
-    # Save base64 signatures
-    user_sig_path = os.path.join("output", "signatureUser.png")
-    admin_sig_path = os.path.join("output", "signatureAdmin.png")
-    save_signature_image(form.signature_base64, user_sig_path)
-    save_signature_image(form.signatureAdmin_base64, admin_sig_path)
-
-    context = {field.name.upper(): escape_latex(str(getattr(form, field.name) or '')) for field in ChangeOfAddress._meta.fields}
-
-    with open(LATEX_TEMPLATE_PATH, "r") as file:
-        tex_content = file.read()
-
-    for key, value in context.items():
-        tex_content = re.sub(r'\{\{' + key.replace('_', r'\\_') + r'\}\}', value, tex_content)
-
-    filled_tex_path = "output/filled_template.tex"
-    with open(filled_tex_path, "w") as file:
-        file.write(tex_content)
-
-    try:
-        subprocess.run(
-            ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"],
-            check=True,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-    except subprocess.CalledProcessError as e:
-        print("Warning: pdflatex failed")
-        print(e.stdout.decode(), e.stderr.decode())
-
-    if os.path.exists(OUTPUT_PDF_PATH):
-        os.rename(OUTPUT_PDF_PATH, NEW_PDF_PATH)
-
-    form.pdf_url = PDF_URL
-    form.save()
-
-    if os.path.exists(user_sig_path): os.remove(user_sig_path)
-    if os.path.exists(admin_sig_path): os.remove(admin_sig_path)
-
-    messages.success(request, "Change of Address form submitted successfully!")
-    return redirect('dashboard')
+    address = get_object_or_404(ChangeOfAddress, id=form_id, user=request.user)
+    return generate_pdf_and_redirect(request, address, "latexform/change_address.tex")
 
 #-------------------------------------------------------------------------
 # Diploma request form
@@ -756,52 +712,8 @@ def delete_diploma(request, form_id):
 
 @login_required
 def generate_diploma_pdf(request, diploma_id):
-    LATEX_TEMPLATE_PATH = "latexform/diploma.tex"
-    OUTPUT_PDF_PATH = "output/filled_template.pdf"
-    NEW_PDF_NAME = f"diploma_{diploma_id}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
-    NEW_PDF_PATH = os.path.join("output/", NEW_PDF_NAME)
-    PDF_URL = f"output/{NEW_PDF_NAME}" 
-
     diploma = get_object_or_404(DiplomaRequest, id=diploma_id, user=request.user)
-
-    user_sig_path = os.path.join("output", "signatureUser.png")
-    admin_sig_path = os.path.join("output", "signatureAdmin.png")
-    save_signature_image(diploma.signature_base64, user_sig_path)
-    save_signature_image(diploma.signatureAdmin_base64, admin_sig_path)
-
-    context = {field.name.upper(): escape_latex(str(getattr(diploma, field.name) or '')) for field in DiplomaRequest._meta.fields}
-
-    with open(LATEX_TEMPLATE_PATH, "r") as file:
-        tex_content = file.read()
-
-    for key, value in context.items():
-        tex_content = re.sub(r'\{\{' + key.replace('_', r'\\_') + r'\}\}', value, tex_content)
-
-    filled_tex_path = "output/filled_template.tex"
-    with open(filled_tex_path, "w") as file:
-        file.write(tex_content)
-
-    try:
-        subprocess.run(
-            ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", "output/filled_template.tex"],
-            check=True,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-    except subprocess.CalledProcessError as e:
-        print("Warning: pdflatex failed")
-        print(e.stdout.decode(), e.stderr.decode())
-
-    if os.path.exists(OUTPUT_PDF_PATH):
-        os.rename(OUTPUT_PDF_PATH, NEW_PDF_PATH)
-
-    diploma.pdf_url = PDF_URL
-    diploma.save()
-
-    if os.path.exists(user_sig_path): os.remove(user_sig_path)
-    if os.path.exists(admin_sig_path): os.remove(admin_sig_path)
-
-    messages.success(request, "Diploma request submitted successfully!")
-    return redirect('dashboard')
+    return generate_pdf_and_redirect(request, diploma, "latexform/diploma.tex")
 
 #-------------------------------------------------------------------
 # View PDF functions
