@@ -8,7 +8,7 @@ from django.db.models import JSONField
 class roles(models.Model):
     ROLE_CHOICES = [
         ('admin', 'admin'),
-        ('user', 'user'),
+        ('basicuser', 'basicuser'),
         ('employee', 'employee'),
         ('manager', 'manager'),
     ]
@@ -21,9 +21,9 @@ class roles(models.Model):
 
     role_name = models.CharField(max_length=30, choices=ROLE_CHOICES)
     level = models.IntegerField(default=99)  # 0 for admin, 99 for user, 1->98 for other roles
+    department = models.CharField(max_length=30, choices=DEPARTMENT_CHOICES, default='all')
     # Only admin and basic user can be in 'all' departments
     # Employee and manager can be in specific departments
-    department = models.CharField(max_length=30, choices=DEPARTMENT_CHOICES, default='all')
 
     def __str__(self):
         return self.role_name
@@ -43,7 +43,6 @@ class roles(models.Model):
 
 class work_assign(models.Model):
     user = models.ForeignKey('user_accs', on_delete=models.CASCADE, null=True, blank=True)
-    department = models.ForeignKey('department', on_delete=models.CASCADE, null=True, blank=True)
     PayrollAssignment_id = models.ForeignKey('PayrollAssignment', on_delete=models.CASCADE, null=True, blank=True)
     ReimbursementRequest_id = models.ForeignKey('ReimbursementRequest', on_delete=models.CASCADE, null=True, blank=True)
     ChangeOfAddress_id = models.ForeignKey('ChangeOfAddress', on_delete=models.CASCADE, null=True, blank=True)
