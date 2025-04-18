@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, Request, ChangeOfAddress, DiplomaRequest, user_ura_accs, work_assign
+from django.contrib.auth.hashers import make_password
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -29,6 +30,11 @@ class UserSerializer(serializers.ModelSerializer):
         """Hash password before saving"""
         validated_data['password_hash'] = serializers.HiddenField(default='')
         return super().create(validated_data)
+    
+    def update(self, instance, validated_data):
+        if 'password_hash' in validated_data:
+            validated_data['password_hash'] = make_password(validated_data['password_hash'])
+        return super().update(instance, validated_data)
     
 class UserURASerializer(serializers.ModelSerializer):
     role = RoleSerializer(read_only=True)  # Nested serializer to show role details

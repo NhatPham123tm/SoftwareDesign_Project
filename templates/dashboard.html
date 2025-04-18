@@ -48,12 +48,18 @@
                     const userRole = userData.role;
                     if (userData && userData.role) {
                         console.log("User role:", userRole);
-                        if (userRole === 1) {
+                        if (userRole === "admin") {
                             document.getElementById("admin_link").style.display = "block";
                             document.getElementById("user-role").textContent = `Role: Admin`;
-                        } else {
+                        } else if (userRole === "manager") {
                             document.getElementById("admin_link").style.display = "none";
-                            document.getElementById("user-role").textContent = `Role: Basic User`;
+                            document.getElementById("user-role").textContent = `Role: manager`;
+                        } else if (userRole === "employee") {
+                            document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("user-role").textContent = `Role: employee`;
+                        } else{
+                            document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("user-role").textContent = `Role: basicuser`;
                         }
                     }
                     if (userData && userData.name) {
@@ -85,7 +91,7 @@
                                 id: fetchedUser.id,
                                 name: fetchedUser.name,
                                 email: fetchedUser.email,
-                                role: fetchedUser.role.id,
+                                role: fetchedUser.role.role_name,
                                 status: fetchedUser.status
                             };
                             
