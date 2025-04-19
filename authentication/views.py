@@ -25,11 +25,14 @@ from django.shortcuts import get_object_or_404
 def merge_accs(request):
     return render(request, 'merge.html')
 
-def manager(request):
-    return render(request, 'manager.html')
-
 def landing(request):
     return render(request, 'landing.html')
+
+def manager(request):
+     return render(request, 'manager.html')
+
+def employees(request):
+     return render(request, 'Employees.html')
 
 def home(request):
     return render(request, 'home.html')
@@ -42,9 +45,6 @@ def register_page(request):
 
 def basicuser(request):
     return render(request, 'basicuser.html')
-
-def empregister_page(request):
-    return render(request, "emp_register.html")
 
 def forms(request):
 
@@ -64,13 +64,7 @@ def is_admin(user):
     print(user)
     if not user.is_authenticated:
         return False
-    return getattr(user.role, 'role_name', None) == 'admin'
-
-def is_manager(user):
-    print(user)
-    if not user.is_authenticated:
-        return False
-    return getattr(user.role, 'role_name', None) == 'manager'
+    return getattr(user, 'role_id', None) == 1
 
 
 @login_required
@@ -131,7 +125,7 @@ def user_login(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role.role_name,
+                "role": user.role_id,
                 "status": user.status,
             }
         }, status=status.HTTP_200_OK)
@@ -239,10 +233,6 @@ def microsoft_callback(request):
         # Retrieve 'id' and 'password' from cookies
         id = request.COOKIES.get("registerId")
         password = request.COOKIES.get("password")
-        role_id = request.COOKIES.get("roleId")
-        if role_id is None:
-            role_id = 2
-
         # Check if user exists, otherwise create one
         try:
             user = user_accs.objects.get(email=email)
@@ -256,8 +246,7 @@ def microsoft_callback(request):
                 user = user_accs.objects.create(
                     id=id,
                     email=email,
-                    name=name,
-                    role_id=role_id
+                    name=name
                 )
                 user.set_password(password)  # Hash and store password
                 user.save()
@@ -280,7 +269,7 @@ def microsoft_callback(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role_name if user.role_name else "basicuser",
+                "role": user.role_id if user.role_id else "2",
                 "status": user.status
             }
         }, status=200)
@@ -292,7 +281,7 @@ def microsoft_callback(request):
             "id": user.id,
             "name": user.name,
             "email": user.email,
-            "role": user.role.role_name,
+            "role": user.role_id if user.role_id else "2",
             "status": user.status
         }
     }
@@ -310,11 +299,6 @@ def microsoft_callback(request):
 
     response.delete_cookie('sessionId')
     response.delete_cookie('password')
-    response.delete_cookie('registerId')
-    response.delete_cookie('uraniumId')
-    response.delete_cookie('uraniumPassword')
-    response.delete_cookie('roleId')
-    # Clear cookies
 
     # Store JWT tokens in session for frontend redirection (if necessary)
     request.session["access_token"] = access_token
