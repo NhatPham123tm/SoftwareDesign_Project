@@ -50,15 +50,23 @@
                         console.log("User role:", userRole);
                         if (userRole === "admin") {
                             document.getElementById("admin_link").style.display = "block";
+                            document.getElementById("manager_link").style.display = "block";
+                            document.getElementById("employees_link").style.display = "block";
                             document.getElementById("user-role").textContent = `Role: Admin`;
                         } else if (userRole === "manager") {
                             document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("manager_link").style.display = "block";
+                            document.getElementById("employees_link").style.display = "none";
                             document.getElementById("user-role").textContent = `Role: manager`;
                         } else if (userRole === "employee") {
                             document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("manager_link").style.display = "none";
+                            document.getElementById("employees_link").style.display = "block";
                             document.getElementById("user-role").textContent = `Role: employee`;
                         } else{
                             document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("manager_link").style.display = "none";
+                            document.getElementById("employees_link").style.display = "none";
                             document.getElementById("user-role").textContent = `Role: basicuser`;
                         }
                     }
@@ -132,8 +140,8 @@
                 <a href="{% url 'merge_accs' %}">SERVICE</a>
                 <a href="{% url 'basicuser' %}">PROFILE</a>
                 <a href="{% url 'forms' %}">FORMS</a>
-                <a href="{% url 'manager' %}">MANAGER</a>
-                <a href="{% url 'employees' %}">EMPLOYEES</a>
+                <a href="{% url 'manager' %}" id="manager_link">MANAGER</a>
+                <a href="{% url 'employees' %}" id="employees_link">EMPLOYEES</a>
                 <a href="#" onclick="logoutUser()">LOGOUT</a>
             </div>
         </div>
