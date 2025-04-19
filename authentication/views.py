@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import logout, authenticate, login
+from django.contrib.auth import logout, login
 from django.contrib import messages
 from django.shortcuts import render
 import msal
@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import user_passes_test
 import json
 from django.contrib.auth.decorators import user_passes_test
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -20,7 +20,6 @@ from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
 from api.serializers import UserSerializer
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import get_object_or_404
 
 def merge_accs(request):
     return render(request, 'merge.html')

@@ -1,10 +1,8 @@
 import os, time
 from PIL import Image
-import io
 import subprocess
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import FileResponse, HttpResponse
-from .forms import PayrollForm
 from .forms import ReimbursementStep1Form, ReimbursementStep2Form, ReimbursementStep3Form,PayrollStep1Form, PayrollStep2Form, PayrollStep3Form, PayrollStep4Form, PayrollStep5Form, PayrollStep6Form, PayrollStep7Form, PayrollStep8Form, PayrollStep9Form, PayrollStep10Form, ChangeAddressStep1Form, ChangeAddressStep2Form, ChangeAddressStep3Form, DiplomaStep1Form, DiplomaStep2Form
 from api.models import ReimbursementRequest, PayrollAssignment, ChangeOfAddress, DiplomaRequest
 import re
@@ -13,9 +11,8 @@ from authentication.views import dashboard
 from django.contrib import messages
 from django.conf import settings
 import datetime
-from django.utils.html import escape
 import base64
-from django.core.files.base import ContentFile
+from workflow.views import assign_workflow_steps, advance_to_next_workflow_step
 
 # utility functions for latex and pdf
 def escape_latex(value):
@@ -151,7 +148,8 @@ def generate_pdf_from_form_id(request, form_id, ModelClass, latex_template_path,
     if hasattr(instance, "pdf_url"):
         instance.pdf_url = pdf_url
         instance.save()
-
+    
+    assign_workflow_steps(instance)
     #messages.success(request, f"PDF generated successfully.")
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
