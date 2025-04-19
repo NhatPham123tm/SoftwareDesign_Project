@@ -123,7 +123,7 @@ tbody td {
           <div style="margin-bottom: 20px; font-size: 20px;">Manager</div>
           <ul class="menu">
             <li><a href="#dashboard" class="active">Dashboard</a></li>
-            <li><a href="#employees">Employees</a></li>
+            <li><a href="#employees" onclick="employeeload(); return false;">Employees</a></li>
             <li><a href="#forms" onclick="stuff(); return false;">Forms</a></li>
             <li><a href="#">Logout</a></li>
           </ul>
@@ -136,7 +136,20 @@ tbody td {
             <p>Overview of all system activities and stats.</p>
           </div>
           <div id="employees" class="part">
-            <h2>Employees</h2>
+            <h2>Assign Work to Employees</h2>
+            <table>
+              <thead>
+                  <tr>
+                      <th>Employee Name</th>
+                      <th>Employee ID</th>
+                      <th>Department</th>
+                      <th>Assign Work</th>
+                  </tr>
+              </thead>
+              <tbody id="employedTableBody"></tbody>
+            </table>
+            <br>
+            <h2>Employees, Change later to assigned work history or delete!</h2>
             <table>
                 <thead>
                     <tr>
@@ -146,7 +159,7 @@ tbody td {
                         <th>Department</th>
                     </tr>
                 </thead>
-                <tbody id="processedTableBody"></tbody>
+                <tbody id="employeeTableBody"></tbody>
             </table>
           </div>
 
@@ -393,6 +406,78 @@ function getCookie(name) {
 // Function to delete cookies
 function deleteCookie(name) {
   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+}
+
+function employeeload() {
+  userLoad();
+}
+async function userLoad() {
+  let currUser = localStorage.getItem("user_data");
+  let currUserData = JSON.parse(currUser);
+  managerRole = {
+    id: '',
+    level: '',
+    role_name: '',
+    department: ''
+  }
+
+      // Check if the value exists
+  if (currUser !== null) {
+    console.log("Retrieved value:", currUser);
+    console.log("Retrieved value:", currUserData.id);
+  } else {
+    console.log("No value found for logged in user.");
+  }
+  await fetch(`/api/users/${currUserData.id}/`)
+  .then(response => response.json())
+  .then(data => {
+    console.log("Retrieved data:", data.role.department);
+    managerRole.id = data.role.id;
+    managerRole.level = data.role.level;
+    managerRole.role_name = data.role.role_name;
+    managerRole.department = data.role.department;
+  });
+  console.log("Retrieved manager:",managerRole.id);
+  
+  await fetch("/api/get_userLoad/")
+  .then(response => response.json())
+  .then(data => {
+    console.log(data);
+      tbody = document.getElementById('employeeTableBody');
+      tbody2 = document.getElementById('employedTableBody');
+      tbody.innerHTML = '';
+      tbody2.innerHTML = '';
+
+      data.users.forEach(user => {
+        employyeeLoad = `
+          <tr>
+              <td>${user.name}</td>
+              <td>${user.id}</td>
+              <td>${user.role.department}</td>
+          </tr>`
+        if(user.role.id == managerRole.id + 2 || managerRole.id == 1) {
+          if(managerRole.id == 1 && user.role.role_name == 'employee') {
+            tbody2.innerHTML += employyeeLoad;
+          }
+          else if(user.role.department == managerRole.department && user.role.role_name == 'employee') {
+            tbody2.innerHTML += employyeeLoad;
+          }
+          
+        }
+
+        if(user.role.id == 2) {
+          tbody.innerHTML += `
+          <tr>
+              <td>${user.name}</td>
+              <td>${user.email}</td>
+              <td>${user.status}</td>
+              <td>${user.role.role_name}</td>
+          </tr>`;}
+      })
+  })
+  .catch(error => {
+      console.error('Error loading users:', error);
+  });
 }
 </script>
 </html>
