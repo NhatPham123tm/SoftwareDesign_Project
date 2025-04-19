@@ -5,7 +5,7 @@ from django.shortcuts import render
 import msal
 import requests
 from django.conf import settings
-from api.models import user_accs, ReimbursementRequest, PayrollAssignment, ChangeOfAddress, DiplomaRequest, user_ura_accs
+from api.models import roles, user_accs, ReimbursementRequest, PayrollAssignment, ChangeOfAddress, DiplomaRequest, user_ura_accs
 from django.contrib.auth.decorators import user_passes_test
 import json
 from django.contrib.auth.decorators import user_passes_test
@@ -24,11 +24,14 @@ from django.views.decorators.csrf import csrf_exempt
 def merge_accs(request):
     return render(request, 'merge.html')
 
-def manager(request):
-    return render(request, 'manager.html')
-
 def landing(request):
     return render(request, 'landing.html')
+
+def manager(request):
+     return render(request, 'manager.html')
+
+def employees(request):
+     return render(request, 'Employees.html')
 
 def home(request):
     return render(request, 'home.html')
@@ -60,13 +63,7 @@ def is_admin(user):
     print(user)
     if not user.is_authenticated:
         return False
-    return getattr(user.role, 'role_name', None) == 'admin'
-
-def is_manager(user):
-    print(user)
-    if not user.is_authenticated:
-        return False
-    return getattr(user.role, 'role_name', None) == 'manager'
+    return getattr(user, 'role_id', None) == 1
 
 
 @login_required
@@ -127,7 +124,7 @@ def user_login(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role.role_name,
+                "role": user.role_id,
                 "status": user.status,
             }
         }, status=status.HTTP_200_OK)
@@ -227,7 +224,7 @@ def microsoft_callback(request):
                 user = user_ura_accs.objects.create(
                     id=id,
                     email=email,
-                    name=name
+                    name=name,
                 )
                 user.set_password(password)  # Hash and store password
                 user.save()
@@ -235,6 +232,7 @@ def microsoft_callback(request):
         # Retrieve 'id' and 'password' from cookies
         id = request.COOKIES.get("registerId")
         password = request.COOKIES.get("password")
+
         # Check if user exists, otherwise create one
         try:
             user = user_accs.objects.get(email=email)
@@ -244,11 +242,15 @@ def microsoft_callback(request):
                 if not id or not password:
                     messages.error(request, "No account registered with this Microsoft email")
                     return redirect('register_page')
-        
+                
+                roleID = int(request.COOKIES.get("roleID"))
+                role_obj = roles.objects.get(id=roleID)
+
                 user = user_accs.objects.create(
                     id=id,
                     email=email,
-                    name=name
+                    name=name,
+                    role=role_obj,
                 )
                 user.set_password(password)  # Hash and store password
                 user.save()
@@ -271,7 +273,7 @@ def microsoft_callback(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role_name if user.role_name else "basicuser",
+                "role": user.role_id if user.role_id else "2",
                 "status": user.status
             }
         }, status=200)
@@ -283,7 +285,7 @@ def microsoft_callback(request):
             "id": user.id,
             "name": user.name,
             "email": user.email,
-            "role": user.role.role_name,
+            "role": user.role_id if user.role_id else "2",
             "status": user.status
         }
     }

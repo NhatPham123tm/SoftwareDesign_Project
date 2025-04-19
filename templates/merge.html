@@ -73,9 +73,23 @@
                         console.log("User role:", userRole);
                         if (userRole === 1) {
                             document.getElementById("admin_link").style.display = "block";
+                            document.getElementById("manager_link").style.display = "none";
+                            document.getElementById("employees_link").style.display = "none";
                             document.getElementById("user-role").textContent = `Role: Admin`;
-                        } else {
+                        } else if (userRole === 3 || userRole === 4) {
                             document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("manager_link").style.display = "block";
+                            document.getElementById("employees_link").style.display = "none";
+                            document.getElementById("user-role").textContent = `Role: Manager`;
+                        } else if (userRole === 5 || userRole === 6) {
+                            document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("manager_link").style.display = "none";
+                            document.getElementById("employees_link").style.display = "block";
+                            document.getElementById("user-role").textContent = `Role: Employee`;
+                        } else{
+                            document.getElementById("admin_link").style.display = "none";
+                            document.getElementById("manager_link").style.display = "none";
+                            document.getElementById("employees_link").style.display = "none";
                             document.getElementById("user-role").textContent = `Role: Basic User`;
                         }
                     }
@@ -133,7 +147,9 @@
         <div class="topbox toplink">
             <div id="user-role"></div>
             <div class="nav-links">
-                <a href="{% url 'adminpage' %}" id="admin_link">MANAGEMENT</a>
+                <a href="{% url 'adminpage' %}" id="admin_link">ADMIN</a>
+                <a href="{% url 'manager' %}"  id="manager_link">MANAGER</a>
+                <a href="{% url 'employees' %}"  id="employees_link">EMPLOYEES</a>
                 <a href="{% url 'dashboard' %}">HOME</a>
                 <a href="{% url 'merge_accs' %}">SERVICE</a>
                 <a href="{% url 'basicuser' %}">PROFILE</a>

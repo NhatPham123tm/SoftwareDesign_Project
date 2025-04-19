@@ -92,3 +92,15 @@ input:disabled {
 .modal button:hover {
     background-color: #0056b3;
 }
+
+.form-group select {
+    flex: 1;
+    min-width: 184px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-left: 5px;
+    font-size: 14px;
+    background-color: white;
+    font-family: inherit;
+}
