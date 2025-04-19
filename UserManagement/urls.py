@@ -11,7 +11,7 @@ from formProcessor.views import (
     payroll_step9, payroll_step10, payroll_review, delete_payroll, view_payroll_pdf,
     view_change_address_pdf, view_diploma_pdf, view_change_address_pdf3, view_diploma_pdf3
 )
-from api.views import get_csrf_token
+from api.views import get_csrf_token, delegate_work_assignment, get_work_assignments
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -39,6 +39,8 @@ urlpatterns = [
     path("api/uranium_login/", user_ura_login, name="uranium_login"),
     path("api/uranium_register/", user_ura_register, name="uranium_register"),
     path("api/merge_accounts/", merge_accounts, name="merge_accounts"),
+    path('delegate_work_assignment/', delegate_work_assignment, name='delegate_work_assignment'),
+    path('api/work_assignments/', get_work_assignments, name='get_work_assignments'),
 
     # still developing
     path('reimbursement/step1/', reimbursement_step1, name='reimbursement_step1'),

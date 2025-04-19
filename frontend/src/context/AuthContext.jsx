@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     localStorage.removeItem("userData");
-    document.cookie = ""
+    document.cookie = "csrftoken=1;expires=Thu, 01 Jan 1970 00:00:00 UTC;" 
     setAuth(null);
   }, []);
 
