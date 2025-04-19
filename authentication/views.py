@@ -64,7 +64,13 @@ def is_admin(user):
     print(user)
     if not user.is_authenticated:
         return False
-    return getattr(user, 'role_id', None) == 1
+    return getattr(user.role, 'role_name', None) == 'admin'
+
+def is_manager(user):
+    print(user)
+    if not user.is_authenticated:
+        return False
+    return getattr(user.role, 'role_name', None) == 'manager'
 
 
 @login_required
@@ -125,7 +131,7 @@ def user_login(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role_id,
+                "role": user.role.role_name,
                 "status": user.status,
             }
         }, status=status.HTTP_200_OK)
@@ -274,7 +280,7 @@ def microsoft_callback(request):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role_id if user.role_id else "2",
+                "role": user.role_name if user.role_name else "basicuser",
                 "status": user.status
             }
         }, status=200)
@@ -286,7 +292,7 @@ def microsoft_callback(request):
             "id": user.id,
             "name": user.name,
             "email": user.email,
-            "role": user.role_id if user.role_id else "2",
+            "role": user.role.role_name,
             "status": user.status
         }
     }
