@@ -40,38 +40,6 @@ class roles(models.Model):
         self.full_clean()  # Triggers the clean() method
         super().save(*args, **kwargs)
 
-
-class work_assign(models.Model):
-    user = models.ForeignKey('user_accs', on_delete=models.CASCADE, null=True, blank=True)
-    PayrollAssignment_id = models.ForeignKey('PayrollAssignment', on_delete=models.CASCADE, null=True, blank=True)
-    ReimbursementRequest_id = models.ForeignKey('ReimbursementRequest', on_delete=models.CASCADE, null=True, blank=True)
-    ChangeOfAddress_id = models.ForeignKey('ChangeOfAddress', on_delete=models.CASCADE, null=True, blank=True)
-    DiplomaRequest_id = models.ForeignKey('DiplomaRequest', on_delete=models.CASCADE, null=True, blank=True)
-    created_by = models.ForeignKey('user_accs', on_delete=models.CASCADE, null=True, blank=True, related_name='created_tasks')
-    deadline = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=[
-        ('Pending', 'Pending'),
-        ('In Progress', 'In Progress'),
-        ('Completed', 'Completed'),
-        ('Cancelled', 'Cancelled'),
-    ], default='Pending')
-
-
-    def __str__(self):
-        return f"WorkAssign #{self.id}"
-    
-    def clean(self):
-        if self.user and self.created_by:
-            assignee_level = self.user.role.level
-            assigner_level = self.created_by.role.level
-            if assigner_level > assignee_level:
-                raise ValidationError("Cannot assign work to a user with lower level.")
-
-    def save(self, *args, **kwargs):
-        self.full_clean()  # triggers clean() before saving
-        super().save(*args, **kwargs)
-    
-
 class user_accs(AbstractBaseUser, PermissionsMixin):
     STATUS_CHOICES = [
         ('active', 'active'),
@@ -122,6 +90,78 @@ class user_accs(AbstractBaseUser, PermissionsMixin):
         if not self.password_hash.startswith('pbkdf2_sha256$'):  
             self.password_hash = make_password(self.password_hash)
         super().save(*args, **kwargs)
+
+class Workflow(models.Model):
+    FORM_TYPE_CHOICES = [
+        ('PayrollAssignment', 'PayrollAssignment'),
+        ('ReimbursementRequest', 'ReimbursementRequest'),
+        ('ChangeOfAddress', 'ChangeOfAddress'),
+        ('DiplomaRequest', 'DiplomaRequest'),
+    ]
+    
+    name = models.CharField(max_length=100)
+    form_type = models.CharField(max_length=50, choices=FORM_TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.form_type})"
+    
+class WorkflowStep(models.Model):
+    workflow = models.ForeignKey(Workflow, on_delete=models.CASCADE, related_name='steps')
+    step_order = models.PositiveIntegerField()
+
+    # Either use role or specific user
+    role = models.ForeignKey(roles, on_delete=models.SET_NULL, null=True, blank=True) # role reponsible for this step
+    user = models.ForeignKey(user_accs, on_delete=models.SET_NULL, null=True, blank=True) # user responsible for this step
+
+    department = models.CharField(max_length=30, blank=True, null=True)  # Optional: specific department filter
+    label = models.CharField(max_length=100, help_text="Label for the step (e.g., Manager Approval)")
+
+    def clean(self):
+        if not self.role and not self.user:
+            raise ValidationError("You must specify either a role or a user for this step.")
+        if self.role and self.user:
+            raise ValidationError("Only one of role or user can be set for a step.")
+
+    class Meta:
+        ordering = ['step_order']
+
+    def __str__(self):
+        target = self.user.name if self.user else self.role.role_name
+        return f"{self.workflow.name} - Step {self.step_order}: {target}"
+    
+class work_assign(models.Model):
+    user = models.ForeignKey('user_accs', on_delete=models.CASCADE, null=True, blank=True)
+    PayrollAssignment_id = models.ForeignKey('PayrollAssignment', on_delete=models.CASCADE, null=True, blank=True)
+    ReimbursementRequest_id = models.ForeignKey('ReimbursementRequest', on_delete=models.CASCADE, null=True, blank=True)
+    ChangeOfAddress_id = models.ForeignKey('ChangeOfAddress', on_delete=models.CASCADE, null=True, blank=True)
+    DiplomaRequest_id = models.ForeignKey('DiplomaRequest', on_delete=models.CASCADE, null=True, blank=True)
+    created_by = models.ForeignKey('user_accs', on_delete=models.CASCADE, null=True, blank=True, related_name='created_tasks')
+    deadline = models.DateTimeField(null=True, blank=True)
+    step = models.ForeignKey(WorkflowStep, on_delete=models.SET_NULL, null=True, blank=True)
+    is_current_step = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=[
+        ('Pending', 'Pending'),
+        ('In Progress', 'In Progress'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    ], default='Pending')
+
+
+    def __str__(self):
+        return f"WorkAssign #{self.id}"
+    
+    def clean(self):
+        if self.user and self.created_by:
+            assignee_level = self.user.role.level
+            assigner_level = self.created_by.role.level
+            if assigner_level > assignee_level:
+                raise ValidationError("Cannot assign work to a user with lower level.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # triggers clean() before saving
+        super().save(*args, **kwargs)
+    
 
 class user_ura_accs(AbstractBaseUser, PermissionsMixin):
     STATUS_CHOICES = [
