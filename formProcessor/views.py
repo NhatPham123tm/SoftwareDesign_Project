@@ -96,6 +96,9 @@ def generate_pdf_and_redirect(request, instance, latex_path, dashboard_redirect=
     for path in sig_paths:
         if os.path.exists(path):
             os.remove(path)
+            
+    # Assign workflow steps
+    assign_workflow_steps(instance)
 
     if dashboard_redirect:
         messages.success(request, "Form submitted successfully.")
@@ -156,7 +159,6 @@ def generate_pdf_from_form_id(request, form_id, ModelClass, latex_template_path,
         instance.pdf_url = pdf_url
         instance.save()
     
-    assign_workflow_steps(instance)
     #messages.success(request, f"PDF generated successfully.")
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
