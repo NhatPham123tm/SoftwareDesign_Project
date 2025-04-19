@@ -179,13 +179,13 @@
         <div class="topbox toplink">
             <div id="user-role"></div>
             <div class="nav-links">
-                <a href="{% url 'adminpage' %}" id="admin_link">MANAGEMENT</a>
+                <a href="{% url 'adminpage' %}" id="admin_link">ADMIN</a>
+                <a href="{% url 'manager' %}"  id="manager_link">MANAGER</a>
+                <a href="{% url 'employees' %}"  id="employees_link">EMPLOYEES</a>
                 <a href="{% url 'dashboard' %}">HOME</a>
                 <a href="{% url 'merge_accs' %}">SERVICE</a>
                 <a href="{% url 'basicuser' %}">PROFILE</a>
                 <a href="{% url 'forms' %}">FORMS</a>
-                <a href="{% url 'manager' %}" id="manager_link">MANAGER</a>
-                <a href="{% url 'employees' %}" id="employees_link">EMPLOYEES</a>
                 <a href="#" onclick="logoutUser()">LOGOUT</a>
             </div>
         </div>
