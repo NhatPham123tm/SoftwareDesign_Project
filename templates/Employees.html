@@ -142,6 +142,7 @@ tbody td {
                   <tr>
                       <th>Employee Name</th>
                       <th>Employee ID</th>
+                      <th>Employee Email</th>
                       <th>Department</th>
                   </tr>
               </thead>
@@ -154,7 +155,7 @@ tbody td {
             <!-- work in progress to hid depending on what department you are in -->
              
             <div id="trois-dept">
-              <h2>Fiance Department</h2>
+              <h2>Finance Department</h2>
               <h3>Pending</h3>
               <table>
                 <thead>
@@ -165,7 +166,6 @@ tbody td {
                     <th>PDF</th>
                     <th>PDF Type</th>
                     <th>Status</th>
-                    <th>Status Change</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -184,7 +184,6 @@ tbody td {
                     <th>PDF</th>
                     <th>PDF Type</th>
                     <th>Status</th>
-                    <th>Status Change</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -205,7 +204,6 @@ tbody td {
                     <th>PDF</th>
                     <th>PDF Type</th>
                     <th>Status</th>
-                    <th>Status Change</th>
                     <th>Action</th>
                   </tr>
                 </thead>
@@ -224,7 +222,6 @@ tbody td {
                   <th>PDF</th>
                   <th>PDF Type</th>
                   <th>Status</th>
-                  <th>Status Change</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -437,6 +434,7 @@ async function userLoad() {
           <tr>
               <td>${user.name}</td>
               <td>${user.id}</td>
+              <td>${user.email}</td>
               <td>${user.role.department}</td>
           </tr>`
 
