@@ -88,12 +88,17 @@ function userLoad() {
         tbody = document.getElementById('userTableBody');
         tbody.innerHTML = '';
         data.users.forEach(user => {
+            const roleId = user.role.id;
+            const roleLabel = (roleId !== 1 && roleId !== 2)
+                ? `${user.role.department} ${user.role.role_name}`
+                : user.role.role_name;
+
             tbody.innerHTML += `
             <tr>
                 <td>${user.name}</td>
                 <td>${user.email}</td>
                 <td>${user.status}</td>
-                <td>${user.role.role_name}</td>
+                <td>${roleLabel}</td>
                 <td><button class="bts" onclick="openEditPanel('${user.id}')">Edit</button></td>
                 <td><button class="btsr"  onclick="deleteUser(${user.id})" class="delete-btn">Delete</button></td>
             </tr>`;
@@ -113,7 +118,14 @@ function openEditPanel(userId) {
             document.getElementById('currentName').textContent = user.name;
             document.getElementById('currentEmail').textContent = user.email;
             document.getElementById('currentStatus').textContent = user.status;
-            document.getElementById('currentRole').textContent = user.role.role_name;
+
+            const roleId = user.role.id;
+            if (roleId !== 1 && roleId !== 2) {
+                document.getElementById('currentRole').textContent = `${user.role.department} ${user.role.role_name}`;
+            } else {
+                document.getElementById('currentRole').textContent = user.role.role_name;
+            }
+
             document.getElementById('newStatus').innerHTML = `
             <option value="active" ${user.status === 'active' ? 'selected' : ''}>Active</option>
             <option value="inactive" ${user.status === 'inactive' ? 'selected' : ''}>Inactive</option>
@@ -122,7 +134,10 @@ function openEditPanel(userId) {
             <option value="1" ${user.role.role_name === 'admin' ? 'selected' : ''}>Admin</option>
             <option value="2" ${user.role.role_name === 'basicuser' ? 'selected' : ''}>User</option>
             <option value="3" ${user.role.id === 3 ? 'selected' : ''}>Finance Manager</option>
-            <option value="4" ${user.role.id === 4 ? 'selected' : ''}>Registrar Manager</option>`;
+            <option value="4" ${user.role.id === 4 ? 'selected' : ''}>Registrar Manager</option>
+            <option value="5" ${user.role.id === 5 ? 'selected' : ''}>Finance Employee</option>
+            <option value="6" ${user.role.id === 6 ? 'selected' : ''}>Registrar Employee</option>`;
+            
 
             // Set hidden user ID
             document.getElementById('userId').value = userId;
