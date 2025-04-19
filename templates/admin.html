@@ -246,8 +246,8 @@ function stuff() {
         ];
 
         const departments = [
-            { name: "Toy Department", forms: toyForms },
-            { name: "Umperium Department", forms: umperiumForms }
+            { name: "Finance Department", forms: toyForms },
+            { name: "Registrar Department", forms: umperiumForms }
         ];
 
         departments.forEach(dept => {
@@ -261,14 +261,14 @@ function stuff() {
 
             if (pending.length) {
                 const deptHeader = document.createElement('tr');
-                deptHeader.innerHTML = `<td colspan="8"><strong>${dept.name} - Pending</strong></td>`;
+                deptHeader.innerHTML = `<td colspan="8"><strong>${dept.name}`;
                 pendingTbody.appendChild(deptHeader);
                 renderForms(pending, pendingTbody);
             }
 
             if (processed.length) {
                 const deptHeader = document.createElement('tr');
-                deptHeader.innerHTML = `<td colspan="8"><strong>${dept.name} - Processed</strong></td>`;
+                deptHeader.innerHTML = `<td colspan="8"><strong>${dept.name}`;
                 processedTbody.appendChild(deptHeader);
                 renderForms(processed, processedTbody);
             }
