@@ -120,7 +120,9 @@ function openEditPanel(userId) {
             <option value="banned" ${user.status === 'banned' ? 'selected' : ''}>Ban</option>`;
             document.getElementById('newRole').innerHTML = `
             <option value="1" ${user.role.role_name === 'admin' ? 'selected' : ''}>Admin</option>
-            <option value="2" ${user.role.role_name === 'basicuser' ? 'selected' : ''}>User</option>`;
+            <option value="2" ${user.role.role_name === 'basicuser' ? 'selected' : ''}>User</option>
+            <option value="3" ${user.role.id === 3 ? 'selected' : ''}>Finance Manager</option>
+            <option value="4" ${user.role.id === 4 ? 'selected' : ''}>Registrar Manager</option>`;
 
             // Set hidden user ID
             document.getElementById('userId').value = userId;
