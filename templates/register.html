@@ -24,6 +24,14 @@
                 <input type="password" id="retypePassword" required>
             </div>
             <div class="form-group">
+                <label for="role">Select Role:</label>
+                <select id="role" required>
+                    <option value="2">Basic User</option>
+                    <option value="5">Finance Employee</option>
+                    <option value="6">Registrar Employee</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="name">Name:</label>
                 <input type="text" id="name" required>
             </div>
@@ -86,6 +94,7 @@
             const password = document.getElementById('password').value;
             const retypePassword = document.getElementById('retypePassword').value;
             const name = document.getElementById('name').value.trim();
+            const role = document.getElementById('role').value;
             const email = document.getElementById('user_email').value.trim();
             const microsoftAuth = document.getElementById('microsoftAuth').checked;
 
@@ -124,7 +133,8 @@
                             id,
                             password,
                             name,
-                            email
+                            email,
+                            role,
                         };
 
                         // Manual form submission
@@ -154,6 +164,7 @@
                         // Microsoft authentication flow: Set cookies for id and password before redirect
                         document.cookie = `registerId=${id}; path=/; max-age=${60}`; // Expires in 1 mins
                         document.cookie = `password=${password}; path=/; max-age=${60}`; // Expires in 1 mins
+                        document.cookie = `roleID=${role}; path=/; max-age=${60}`; // Expires in 1 mins
                         window.location.href = '/login/microsoft/';
                     }
                 });
