@@ -167,8 +167,8 @@ tbody td {
 
             <!-- work in progress to hid depending on what department you are in -->
              
-            <div id="trois-dept">
-              <h2>Finance Department</h2>
+            <div id="trois-dept" class="">
+              <h2>Trois Department</h2>
               <h3>Pending</h3>
               <table>
                 <thead>
@@ -184,9 +184,7 @@ tbody td {
                 </thead>
                 <tbody id="troisPendingBody"></tbody>
               </table>
-            </div>
 
-            <div id="trois-dept">
               <h3>Approved/Rejected</h3>
               <table>
                 <thead>
@@ -205,8 +203,8 @@ tbody td {
             </div>
             
           
-            <div id="ura-dept">
-              <h2>Registrar Department</h2>
+            <div id="ura-dept" class="">
+              <h2>Uranium Department</h2>
               <h3>Pending</h3>
               <table>
                 <thead>
@@ -222,25 +220,23 @@ tbody td {
                 </thead>
                 <tbody id="uraPendingBody"></tbody>
               </table>
+              <h3>Approved/Rejected</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>User ID</th>
+                    <th>PDF</th>
+                    <th>PDF Type</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="uraProcessedBody"></tbody>
+              </table>
             </div>
-
-          <div id="ura-dept">
-            <h3>Approved/Rejected</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Date</th>
-                  <th>User ID</th>
-                  <th>PDF</th>
-                  <th>PDF Type</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="uraProcessedBody"></tbody>
-            </table>
-          </div>
+              
       </div>
     </div>
     </div>
@@ -269,7 +265,42 @@ tbody td {
       });
     });
 
-    function stuff() {
+    async function stuff() {
+      let currUser = localStorage.getItem("user_data");
+  let currUserData = JSON.parse(currUser);
+  managerRole = {
+    id: '',
+    level: '',
+    role_name: '',
+    department: ''
+  }
+
+  if (currUser !== null) {
+    console.log("Retrieved value:", currUser);
+    console.log("Retrieved value:", currUserData.id);
+  } else {
+    console.log("No value found for logged in user.");
+  }
+  await fetch(`/api/users/${currUserData.id}/`)
+  .then(response => response.json())
+  .then(data => {
+    console.log("Retrieved data:", data.role.department);
+    managerRole.id = data.role.id;
+    managerRole.level = data.role.level;
+    managerRole.role_name = data.role.role_name;
+    managerRole.department = data.role.department;
+  });
+  if (managerRole.id == 1) {
+    document.getElementById("trois-dept").style.display = "block";
+    document.getElementById("ura-dept").style.display = "block";
+  }
+  else if (managerRole.department == "finance") {
+    document.getElementById("trois-dept").style.display = "block";
+    document.getElementById("ura-dept").style.display = "none";
+  } else {
+    document.getElementById("trois-dept").style.display = "none";
+    document.getElementById("ura-dept").style.display = "block";
+  }
   Promise.all([
     fetch("/api/payroll/").then(r => r.json()),
     fetch("/api/reimburse/").then(r => r.json()),
