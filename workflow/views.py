@@ -35,7 +35,8 @@ def assign_workflow_steps(form_instance):
                 ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
                 DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
                 step=step,
-                is_current_step=is_current
+                is_current_step=is_current,
+                system_generated=True,
             )
         
         elif step.role:
@@ -53,7 +54,8 @@ def assign_workflow_steps(form_instance):
                     ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
                     DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
                     step=step,
-                    is_current_step=is_current
+                    is_current_step=is_current,
+                    system_generated=True,
                 )
 
 def advance_to_next_workflow_step(form_instance):
@@ -79,7 +81,13 @@ def advance_to_next_workflow_step(form_instance):
     # Get next step
     next_step = WorkflowStep.objects.filter(workflow=workflow, step_order=current_step_order + 1).first()
     if next_step:
+        # Assign next step
         assign_workflow_steps_for_step(form_instance, next_step)
+
+        # Set form status to In Progress if not already
+        if form_instance.status != "In Progress":
+            form_instance.status = "In Progress"
+            form_instance.save()
 
 def assign_workflow_steps_for_step(form_instance, step):
     form_type = form_instance.__class__.__name__
@@ -94,6 +102,7 @@ def assign_workflow_steps_for_step(form_instance, step):
             ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
             ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
             DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
+            system_generated=True,
         )
     elif step.role:
         users = user_accs.objects.filter(role=step.role)
@@ -109,8 +118,8 @@ def assign_workflow_steps_for_step(form_instance, step):
                 ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
                 ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
                 DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
+                system_generated=True,
             )
-
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
@@ -206,3 +215,60 @@ def delete_workflow_step(request, step_id):
     step = get_object_or_404(WorkflowStep, id=step_id)
     step.delete()
     return Response({"message": "Step deleted."}, status=200)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def my_work_assignments(request):
+    assignments = work_assign.objects.filter(user=request.user, is_current_step=True).select_related(
+        'step', 'PayrollAssignment_id', 'ReimbursementRequest_id',
+        'ChangeOfAddress_id', 'DiplomaRequest_id'
+    )
+
+    data = []
+    for a in assignments:
+        form_type = None
+        form_id = None
+        name = None
+        date = None
+        pdf_url = None
+
+        if a.PayrollAssignment_id:
+            form = a.PayrollAssignment_id
+            form_type = "Payroll"
+            form_id = form.id
+            name = form.employee_name
+            date = form.todays_date
+            pdf_url = form.pdf_url
+        elif a.ReimbursementRequest_id:
+            form = a.ReimbursementRequest_id
+            form_type = "Reimburse"
+            form_id = form.id
+            name = form.employee_name
+            date = form.today_date
+            pdf_url = form.pdf_url
+        elif a.ChangeOfAddress_id:
+            form = a.ChangeOfAddress_id
+            form_type = "Address"
+            form_id = form.id
+            name = form.name
+            date = form.date_submitted
+            pdf_url = form.pdf_url
+        elif a.DiplomaRequest_id:
+            form = a.DiplomaRequest_id
+            form_type = "Diploma"
+            form_id = form.id
+            name = form.name
+            date = form.date_submitted
+            pdf_url = form.pdf_url
+
+        data.append({
+            "id": a.id,
+            "form_type": form_type,
+            "form_id": form_id,
+            "name": name,
+            "date": date,
+            "step_label": a.step.label if a.step else "—",
+            "pdf_url": pdf_url,
+            "status": a.status,
+        })
+    return Response(data)
