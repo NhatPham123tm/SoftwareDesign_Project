@@ -147,12 +147,13 @@ class work_assign(models.Model):
         ('Cancelled', 'Cancelled'),
     ], default='Pending')
 
+    system_generated = models.BooleanField(default=False) # For user submit form which is system generated
 
     def __str__(self):
         return f"WorkAssign #{self.id}"
     
     def clean(self):
-        if self.user and self.created_by:
+        if self.user and self.created_by and not self.system_generated:
             assignee_level = self.user.role.level
             assigner_level = self.created_by.role.level
             if assigner_level > assignee_level:
