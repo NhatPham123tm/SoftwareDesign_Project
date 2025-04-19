@@ -438,7 +438,7 @@ async function userLoad() {
               <td>${user.role.department}</td>
           </tr>`
 
-          if(user.role.id != 1 && user.role.department == managerRole.department) {
+          if(user.role.id != 1 && user.role.department == managerRole.department && user.role.id != managerRole.id) {
             tbody.innerHTML += employyeeLoad;
             
           }
