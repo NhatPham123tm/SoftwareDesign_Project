@@ -11,6 +11,7 @@ from formProcessor.views import (
     payroll_step9, payroll_step10, payroll_review, delete_payroll, view_payroll_pdf,
     view_change_address_pdf, view_diploma_pdf, view_change_address_pdf3, view_diploma_pdf3
 )
+from workflow.views import workflow_steps, workflow_list_create, delete_workflow, delete_workflow_step
 from api.views import get_csrf_token
 from django.conf import settings
 from django.conf.urls.static import static
@@ -84,5 +85,9 @@ urlpatterns = [
     path("api/csrf/", get_csrf_token),
     path('accounts/', include('allauth.urls')),
     path('manager/', manager, name='manager'),
+    path("api/workflows/", workflow_list_create),
+    path("api/workflows/<int:workflow_id>/steps/", workflow_steps),
+    path("api/workflows/<int:workflow_id>/delete/", delete_workflow),
+    path("api/workflow-steps/<int:step_id>/delete/", delete_workflow_step),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
