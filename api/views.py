@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
@@ -20,7 +20,7 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework.response import Response    
 from rest_framework import status
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
@@ -153,7 +153,13 @@ class UserURAViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         try:
             user = user_ura_accs.objects.get(id=kwargs['pk'])
-            serializer = UserURASerializer(user, data=request.data, partial=True) 
+            data = request.data
+            role_name = data["role_name"]
+            role_department = data["role_department"]
+            if role_name and role_department:
+                new_role = roles.objects.get(role_name=role_name, department=role_department)
+                data["role_id"] = new_role.id
+            serializer = UserURASerializer(user, data=data, partial=True) 
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
