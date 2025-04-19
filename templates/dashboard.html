@@ -72,6 +72,11 @@
                     }
                     if (userData && userData.name) {
                         document.getElementById("welcome").textContent = `Welcome ${userData.name}!`;
+                        if (userData.role === 3 || userData.role === 5) {
+                            document.getElementById("welcome_deparment").textContent = `Department: Finance`;
+                        } else if (userData.role === 4 || userData.role === 6) {
+                            document.getElementById("welcome_deparment").textContent = `Department: Registra`;
+                        }
                         document.getElementById("welcome_id").textContent = `User ID: ${userData.id}`;
                         console.log("User data displayed:", userData.name);
                     }
@@ -135,13 +140,13 @@
         <div class="topbox toplink">
             <div id="user-role"></div>
             <div class="nav-links">
-                <a href="{% url 'adminpage' %}" id="admin_link">MANAGEMENT</a>
+                <a href="{% url 'adminpage' %}" id="admin_link">ADMIN</a>
+                <a href="{% url 'manager' %}" id="manager_link">MANAGER</a>
+                <a href="{% url 'employees' %}" id="employees_link">EMPLOYEES</a>
                 <a href="{% url 'dashboard' %}">HOME</a>
                 <a href="{% url 'merge_accs' %}">SERVICE</a>
                 <a href="{% url 'basicuser' %}">PROFILE</a>
                 <a href="{% url 'forms' %}">FORMS</a>
-                <a href="{% url 'manager' %}" id="manager_link">MANAGER</a>
-                <a href="{% url 'employees' %}" id="employees_link">EMPLOYEES</a>
                 <a href="#" onclick="logoutUser()">LOGOUT</a>
             </div>
         </div>
@@ -153,6 +158,7 @@
                 <img id="user-image" src="{% static 'pic/default-avatar-profile-picture-male-icon.webp' %}" alt="User Image" class="user-image">
                 <div id="sub1">
                     <h1 id="welcome"></h1>
+                    <h2 id="welcome_deparment"></h2>
                     <h3 id="welcome_id"></h3>
                 </div>
                 
