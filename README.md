@@ -6,6 +6,15 @@
 # SoftwareDesign_Project
 team_name = Trois-Rivières
 
+# Testing accounts:
+- Admin: admin@example.com/admin123
+- Basic User: user@example.com/user123
+- Finance Manager: finmanager@example.com/manager123
+- Registra Manager: regmanager@example.com/manager123
+- Finance Employee: finemployee@example.com/employee123
+- Registra Employee: regemployee@example.com/employee123
+
+  
 # Local Django Project Setup Guide
 ## Prerequisites
 Before downloading and running this project, ensure you have the following installed:
