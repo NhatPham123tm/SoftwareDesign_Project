@@ -8,31 +8,9 @@
     <title>Form</title>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-             console.log("Fetching user data...");
- 
-             fetch('/api/microsoft-login/', {
-                 method: 'GET',
-                 headers: {
-                     'Accept': 'application/json',
-                 }
-             })
-             .then(response => response.json())
-             .then(data => {
- 
-                 console.log("Fetched user data:", data);
-                 if (!localStorage.getItem("access_token")){
-                     localStorage.setItem("access_token", data.access_token);
-                     localStorage.setItem("user", JSON.stringify(data.user)); 
-                 }
- 
-                 // Update the UI after data is fetched
-                 updateUserUI();
-             })
-             .catch(error => {
-                 //console.error("Error fetching user data:", error);
-                 updateUserUI();
-             });
+            updateUserUI();
         })
+
          function updateUserUI() {
              console.log("Checking for user data in localStorage...");
  
@@ -45,32 +23,28 @@
                      const userRole = userData.role;
                      if (userData && userData.role) {
                         console.log("User role:", userRole);
-                        if (userRole === "admin") {
+                        if (userRole === 1) {
                             document.getElementById("admin_link").style.display = "block";
-                            document.getElementById("manager_link").style.display = "block";
-                            document.getElementById("employees_link").style.display = "block";
+                            document.getElementById("manager_link").style.display = "none";
+                            document.getElementById("employees_link").style.display = "none";
                             document.getElementById("user-role").textContent = `Role: Admin`;
-                        } else if (userRole === "manager") {
+                        } else if (userRole === 3 || userRole === 4) {
                             document.getElementById("admin_link").style.display = "none";
                             document.getElementById("manager_link").style.display = "block";
                             document.getElementById("employees_link").style.display = "none";
-                            document.getElementById("user-role").textContent = `Role: manager`;
-                        } else if (userRole === "employee") {
+                            document.getElementById("user-role").textContent = `Role: Manager`;
+                        } else if (userRole === 5 || userRole === 6) {
                             document.getElementById("admin_link").style.display = "none";
                             document.getElementById("manager_link").style.display = "none";
                             document.getElementById("employees_link").style.display = "block";
-                            document.getElementById("user-role").textContent = `Role: employee`;
+                            document.getElementById("user-role").textContent = `Role: Employee`;
                         } else{
                             document.getElementById("admin_link").style.display = "none";
                             document.getElementById("manager_link").style.display = "none";
                             document.getElementById("employees_link").style.display = "none";
-                            document.getElementById("user-role").textContent = `Role: basicuser`;
+                            document.getElementById("user-role").textContent = `Role: Basic User`;
                         }
                     }
-                     if (userData && userData.name) {
-                         document.getElementById("welcome").textContent = `Welcome, ${userData.name} (ID: ${userData.id})!`;
-                         console.log("User data displayed:", userData.name);
-                     }
                  } catch (error) {
                      console.error("Error parsing user data:", error);
                  }
