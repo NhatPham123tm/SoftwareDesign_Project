@@ -30,6 +30,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import JsonResponse
 from authentication.views import is_admin
 from rest_framework.permissions import BasePermission
+from django.utils.dateparse import parse_datetime
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = roles.objects.all()
@@ -625,3 +626,39 @@ class RequestApprovalView(APIView):
             logger = logging.getLogger(__name__)
             logger.error(f"Error generating PDF: {e}", exc_info=True)
             return None
+        
+def create_work_assignment(request):
+    if request.method == 'POST':
+        assignee_id = request.POST.get('assignee')
+        form_type = request.POST.get('form_type')
+        form_id = request.POST.get('form_id')
+        due_date_str = request.POST.get('due_date')
+
+        assignee = get_object_or_404(user_accs, id=assignee_id)
+        due_date = parse_datetime(due_date_str) if due_date_str else None
+
+        assignment = work_assign(
+            user=assignee,
+            created_by=request.user,
+            deadline=due_date,
+            status='Pending'
+        )
+
+        if form_type == 'payroll':
+            assignment.PayrollAssignment_id = get_object_or_404(PayrollAssignment, id=form_id)
+        elif form_type == 'reimburse':
+            assignment.ReimbursementRequest_id = get_object_or_404(ReimbursementRequest, id=form_id)
+        elif form_type == 'address':
+            assignment.ChangeOfAddress_id = get_object_or_404(ChangeOfAddress, id=form_id)
+        elif form_type == 'diploma':
+            assignment.DiplomaRequest_id = get_object_or_404(DiplomaRequest, id=form_id)
+        else:
+            return JsonResponse({'error': 'Invalid form type'}, status=400)
+
+        try:
+            assignment.save()
+            return JsonResponse({'message': 'Work assigned successfully'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)

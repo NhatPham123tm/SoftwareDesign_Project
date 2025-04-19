@@ -27,6 +27,12 @@ def escape_latex(value):
 # Generate signature image from base64 data
 def save_signature_image(base64_data, output_path):
     """Save base64-encoded signature to an image file, or generate blank PNG if data is missing."""
+
+    # Create directory if it doesn't exist was causing issues with docker
+    output_dir = os.path.dirname(output_path)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     try:
         if base64_data and base64_data.startswith("data:image"):
             format, imgstr = base64_data.split(';base64,')
@@ -39,6 +45,7 @@ def save_signature_image(base64_data, output_path):
         # Create a blank white image as fallback
         blank_img = Image.new("RGB", (300, 100), color="white")
         blank_img.save(output_path, format="PNG")
+
 
 def save_signatures(form_instance):
     paths = []
