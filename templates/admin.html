@@ -16,11 +16,10 @@
             <h3>Admin Panel</h3>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="#dashboard" class="active">Summary</a></li>
-            <li><a href="#users" onclick="userLoad(); return false;">Users</a></li>
-            <li><a href="#forms" onclick="stuff(); return false;">Forms</a></li>
-            <li><a href="#workflow" onclick="loadWorkflow(); return false;">Workflow Manager</a></li>
-            <li><a href="#" onclick=logoutUser() id="logoutBtn">Logout</a></li>
+            <li><a href="#dashboard" onclick="showTab('dashboard'); return false;" class="active">Summary</a></li>
+            <li><a href="#users" onclick="showTab('users'); userLoad(); return false;">Users</a></li>
+            <li><a href="#forms" onclick="showTab('forms'); stuff(); return false;">Forms</a></li>
+            <li><a href="#workflow" onclick="showTab('workflow'); loadWorkflow(); return false;">Workflow Manager</a></li>
         </ul>
         <a href="" id="userLink">← Back to Dashboard</a>
     </div>
@@ -760,6 +759,27 @@ function stuff() {
             .then(data => {
                 showSteps(workflowId); // reload the step list
             });
+        }
+
+        function showTab(tabId) {
+            // Hide all sections
+            document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
+
+            // Remove active class from all menu links
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+
+            // Show selected section
+            const section = document.getElementById(tabId);
+            if (section) {
+                section.style.display = 'block';
+                section.classList.add('active');
+            }
+
+            // Highlight the active menu link
+            const link = document.querySelector(`.sidebar-menu a[href="#${tabId}"]`);
+            if (link) {
+                link.classList.add('active');
+            }
         }
         </script>
         
