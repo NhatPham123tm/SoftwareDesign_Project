@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
 from authentication.views import home  # Import the home view
-from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data, forms, check_id_exists, check_email_exists, landing, user_ura_register, user_ura_login, merge_accounts, merge_accs, manager, empregister_page
+from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data, forms, check_id_exists, check_email_exists, landing, user_ura_register, user_ura_login, merge_accounts, merge_accs, manager, employees
 from authentication import views
 from django.contrib.auth import views as auth_views
-from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_reimbursement_pdf, view_reimbursement_pdf2, view_payroll_pdf2, view_reimbursement_pdf3, view_payroll_pdf3, change_address_step1, change_address_step2, change_address_step3, diploma_step1, diploma_step2, delete_address, delete_diploma, generate_change_address_pdf, generate_diploma_pdf
+from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_pdf, generate_payroll_pdf, view_pdf2, view_payroll_pdf2, view_pdf3, view_payroll_pdf3, change_address_step1, change_address_step2, change_address_step3, diploma_step1, diploma_step2, delete_address, delete_diploma, generate_change_address_pdf, generate_diploma_pdf
 from formProcessor.views import (
     payroll_step1, payroll_step2, payroll_step3, payroll_step4,
     payroll_step5, payroll_step6, payroll_step7, payroll_step8,
@@ -23,7 +23,6 @@ urlpatterns = [
     path('dashboard/', dashboard, name='dashboard'),
     path('api/', include('api.urls')),
     path("register/", register_page, name="register_page"),
-    path("empregister/", empregister_page, name="empregister_page"),
     path("api/user_register/", user_register, name="register"),
     path('login/microsoft/', microsoft_login, name='microsoft-login'),
     path("api/user_login/", user_login, name="api_login"),
@@ -40,13 +39,15 @@ urlpatterns = [
     path("api/uranium_login/", user_ura_login, name="uranium_login"),
     path("api/uranium_register/", user_ura_register, name="uranium_register"),
     path("api/merge_accounts/", merge_accounts, name="merge_accounts"),
+    # for testing
+    path('generate_payroll_pdf/', generate_payroll_pdf, name='generate_payroll_pdf'),
     # still developing
     path('reimbursement/step1/', reimbursement_step1, name='reimbursement_step1'),
     path('reimbursement/step2/<int:reimbursement_id>/', reimbursement_step2, name='reimbursement_step2'),
     path('reimbursement/step3/<int:reimbursement_id>/', reimbursement_step3, name='reimbursement_step3'),
     path('generate_reimbursement_pdf/<int:reimbursement_id>/', generate_reimbursement_pdf, name='generate_reimbursement_pdf'),
     path('reimbursement/delete/<int:reimbursement_id>/', delete_reimbursement, name='delete_reimbursement'),
-    path('view_pdf/', view_reimbursement_pdf, name='view_pdf'),
+    path('view_pdf/', view_pdf, name='view_pdf'),
     # payroll
     path('payroll/step1/', payroll_step1, name='payroll_step1'),
     path('payroll/step2/<int:payroll_id>/', payroll_step2, name='payroll_step2'),
@@ -62,9 +63,9 @@ urlpatterns = [
     path('payroll/delete/<int:payroll_id>/', delete_payroll, name='delete_payroll'),
     path('view_payroll_pdf/', view_payroll_pdf, name='view_payroll_pdf'),
     path('forms/', forms, name='forms'),
-    path('view_pdf2/<int:user_id>/', view_reimbursement_pdf2, name='view_pdf2'),
+    path('view_pdf2/<int:user_id>/', view_pdf2, name='view_pdf2'),
     path('view_payroll_pdf2/<int:user_id>/', view_payroll_pdf2, name='view_payroll_pdf2'),
-    path('view_pdf3/<int:form_id>/', view_reimbursement_pdf3, name='view_pdf3'),
+    path('view_pdf3/<int:form_id>/', view_pdf3, name='view_pdf3'),
     path('view_payroll_pdf3/<int:form_id>/', view_payroll_pdf3, name='view_payroll_pdf3'),
     path('check_id_exists/<int:user_id>/', check_id_exists, name='check_id_exists'),
     path('api/check_email_exists/<str:email>/', check_email_exists, name='check_email_exists'),
@@ -85,5 +86,6 @@ urlpatterns = [
     path("api/csrf/", get_csrf_token),
     path('accounts/', include('allauth.urls')),
     path('manager/', manager, name='manager'),
+    path('employees/', employees, name='employees'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
