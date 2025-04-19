@@ -19,7 +19,9 @@
             <li><a href="#dashboard" onclick="showTab('dashboard'); return false;" class="active">Summary</a></li>
             <li><a href="#users" onclick="showTab('users'); userLoad(); return false;">Users</a></li>
             <li><a href="#forms" onclick="showTab('forms'); stuff(); return false;">Forms</a></li>
-            <li><a href="#workflow" onclick="showTab('workflow'); loadWorkflow(); return false;">Workflow Manager</a></li>
+            <li><a href="#workflow" onclick="showTab('workflow'); loadWorkflow(); return false;">Workflow Manager</
+            <li><a href="#approvals" onclick="loadApprovals(); return false;">My Approvals</a></li>
+a></li>
         </ul>
         <a href="" id="userLink">← Back to Dashboard</a>
     </div>
@@ -237,6 +239,26 @@
                 <hr>
                 <h3>Existing Workflows</h3>
                 <div id="workflowList"></div>
+            </div>
+        </div>
+
+        <div class="part" id="approvals" style="display:none;">
+            <div class="container">
+                <h2>My work Assignments</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Form Type</th>
+                            <th>Step</th>
+                            <th>User</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>PDF</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvalTableBody"></tbody>
+                </table>
             </div>
         </div>
         
@@ -780,6 +802,56 @@ function stuff() {
             if (link) {
                 link.classList.add('active');
             }
+        }
+
+        function loadApprovals() {
+            document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
+            document.getElementById('approvals').style.display = 'block';
+
+            fetch("/api/my_work/")
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("approvalTableBody");
+                    tbody.innerHTML = "";
+
+                    data.forEach(row => {
+                        const viewUrl = `/view_${row.form_type.toLowerCase()}_pdf2/${row.form_id}/`;
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${row.form_type}</td>
+                                <td>${row.step_label}</td>
+                                <td>${row.name}</td>
+                                <td>${row.date || "—"}</td>
+                                <td>${row.status}</td>
+                                <td><a href="${row.pdf_url}" target="_blank">View PDF</a></td>
+                                <td>
+                                    <select onchange="updateAssignStatus(${row.id}, this.value)">
+                                        <option value="">Select</option>
+                                        <option value="Completed">Approve</option>
+                                        <option value="Rejected">Reject</option>
+                                    </select>
+                                </td>
+                            </tr>`;
+                    });
+                });
+}
+
+        function updateAssignStatus(assignId, newStatus) {
+            fetch(`/api/workassign/${assignId}/`, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert("Status updated.");
+                loadApprovals();
+            });
         }
         </script>
         

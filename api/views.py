@@ -31,11 +31,15 @@ from django.http import JsonResponse
 from authentication.views import is_admin
 from rest_framework.permissions import BasePermission
 from django.utils.dateparse import parse_datetime
+from workflow.views import advance_to_next_workflow_step
+from django.utils.timezone import now
+from rest_framework.decorators import permission_classes
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = roles.objects.all()
     serializer_class = RoleSerializer
 
+@permission_classes([IsAuthenticated])
 class WorkAssignViewSet(viewsets.ModelViewSet):
     queryset = work_assign.objects.all()
     serializer_class = WorkAssignSerializer
@@ -59,17 +63,71 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except work_assign.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
-    # Partially Update by ID (PATCH)
+        
     def partial_update(self, request, *args, **kwargs):
         try:
-            user = work_assign.objects.get(id=kwargs['pk'])
-            serializer = WorkAssignSerializer(user, data=request.data, partial=True) 
+            assignment = work_assign.objects.get(id=kwargs['pk'])
+
+            # Preserve simple PATCH updates
+            if "status" not in request.data:
+                serializer = WorkAssignSerializer(assignment, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            # Extended logic for step completion (if status is set to Completed or Rejected)
+            if assignment.user != request.user:
+                return Response({'detail': 'Not authorized.'}, status=403)
+
+            if not assignment.is_current_step:
+                return Response({'detail': 'This step is already completed.'}, status=403)
+
+            serializer = WorkAssignSerializer(assignment, data=request.data, partial=True)
             if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                updated = serializer.save()
+
+                new_status = request.data.get("status")
+
+                # Mark this work assignment as done
+                if new_status in ["Completed", "Rejected"]:
+                    assignment.status = new_status
+                    assignment.is_current_step = False
+                    assignment.save()
+
+                    # Identify the actual form instance (DiplomaRequest, etc.)
+                    form = (
+                        assignment.PayrollAssignment_id or
+                        assignment.ReimbursementRequest_id or
+                        assignment.ChangeOfAddress_id or
+                        assignment.DiplomaRequest_id
+                    )
+
+                    workflow = assignment.step.workflow
+                    current_step_order = assignment.step.step_order
+                    next_step = workflow.steps.filter(step_order__gt=current_step_order).order_by("step_order").first()
+
+                    if new_status == "Completed":
+                        if next_step:
+                            # More steps to go
+                            advance_to_next_workflow_step(form)
+                        else:
+                            # Final step completed — approve the form
+                            form.status = "Approved"
+                            form.approve_date = now().date()
+                            form.save()
+                    elif new_status == "Rejected":
+                        # Rejected at any step ends the flow
+                        form.status = "Rejected"
+                        form.approve_date = now().date()
+                        form.save()
+
+                return Response(WorkAssignSerializer(assignment).data)
+
+            return Response(serializer.errors, status=400)
         except work_assign.DoesNotExist:
-            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Assignment not found.'}, status=404)
+        
     # Delete a User by ID (DELETE)
     def destroy(self, request, *args, **kwargs):
         try:
