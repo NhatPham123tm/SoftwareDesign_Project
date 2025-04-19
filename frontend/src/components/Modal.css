@@ -1,0 +1,59 @@
+.btn-modal {
+    padding: 10px 20px;
+    float: right;
+    border-radius: 4px;
+    font-size: 18px;
+    background-color: #808080;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px
+}
+
+.btn-modal:hover {
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19)
+}
+
+.modal .overlay {
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    position: fixed;
+}
+
+.overlay {
+    background: rgba(49,49,49,0.8);
+}
+
+.modal-content {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1.5;
+    background: #f1f1f1;
+    padding: 15px 30px;
+    border-radius: 5px;
+    max-width: 350px;
+    min-width: 350px;
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 7px;
+}
+
+.add-menu-item {
+    margin-top: 10px;
+    padding-right: 20px;
+}
+
+.form-details label {
+    display: block;
+    margin-bottom: 1px;
+}

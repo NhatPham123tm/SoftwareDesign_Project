@@ -10,6 +10,7 @@ import Login from './components/Login';
 import SignUp from './components/SignUp';
 import UserForms from "./components/UserForms";
 import AdminView from './components/AdminView';
+import EmployeeManagement from './components/EmployeeManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import MicrosoftCallback from './components/MicrosoftCallback';
 
@@ -30,6 +31,7 @@ function App() {
           <Route path="/forms" element={<UserForms />} />
           <Route path="/microsoft-callback" element={<MicrosoftCallback />} />
           <Route path="/admin/requests" element={<AdminView />} />
+          <Route path="/employeeManagement" element={<EmployeeManagement />} />
         </Routes>
       </div>
     </AuthProvider>

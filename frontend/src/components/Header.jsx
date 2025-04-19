@@ -91,6 +91,11 @@ const Header = () => {
                 <NavLink to="/admin/requests">Admin</NavLink>
               </li>
             )}
+            {Number(auth?.role) === 1 && (
+              <li>
+                <NavLink to="/employeeManagement">Employee Management</NavLink>
+              </li>
+            )}
             <li>
               <NavLink to="/login" className="logout-btn" onClick={handleLogout}>
                 Logout
