@@ -163,10 +163,15 @@ gap: 35px;
 text-align: left;  
 }
 
-h1, h3 {
+h1, h2, h3 {
 margin: 0;  
 color: white;
-font-size: 24px;  
+font-size: 26px;  
+}
+
+h2 {
+  font-size: 22px;  
+  color: #ccc;  
 }
 
 h3 {
