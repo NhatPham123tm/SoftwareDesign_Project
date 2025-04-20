@@ -293,6 +293,7 @@ def my_work_assignments(request):
             "step_label": a.step.label if a.step else "—",
             "pdf_url": pdf_url,
             "status": a.status,
+            "delegated": a.delegated.id if a.delegated else None,
         })
     return Response(data)
 
