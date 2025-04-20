@@ -10,6 +10,7 @@ from rest_framework import status
 from api.models import Workflow, WorkflowStep, roles, user_accs
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
+import json
 
 def assign_workflow_steps(form_instance):
     form_type = form_instance.__class__.__name__
@@ -294,3 +295,41 @@ def my_work_assignments(request):
             "status": a.status,
         })
     return Response(data)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def delegate_work_assign(request, assign_id):
+
+    data = request.data
+    target_user_id = data.get("target_user_id")
+    created_by_id = data.get("created_by_id")  
+
+    if not target_user_id or not created_by_id:
+        return Response({"error": "target_user_id and created_by_id are required."}, status=400)
+
+    original = get_object_or_404(work_assign, pk=assign_id)
+    target_user = get_object_or_404(user_accs, pk=target_user_id)
+    created_by = get_object_or_404(user_accs, pk=created_by_id)
+
+    try:
+        new_assign = work_assign.objects.create(
+            user=target_user,
+            created_by=created_by,
+            PayrollAssignment_id=original.PayrollAssignment_id,
+            ReimbursementRequest_id=original.ReimbursementRequest_id,
+            ChangeOfAddress_id=original.ChangeOfAddress_id,
+            DiplomaRequest_id=original.DiplomaRequest_id,
+            deadline=original.deadline,
+            step=original.step,
+            is_current_step=True,
+            status="Pending",
+            system_generated=False,
+            delegated=original
+        )
+        return Response({
+            "message": "Delegation successful.",
+            "new_assign_id": new_assign.id
+        }, status=201)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
