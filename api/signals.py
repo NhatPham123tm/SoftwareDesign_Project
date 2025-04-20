@@ -2,6 +2,7 @@ from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from django.contrib.auth.hashers import make_password
 from api.models import roles, user_accs, permission, user_ura_accs
+from api.models import Workflow, WorkflowStep
 
 @receiver(post_migrate)
 def initialize_data(sender, **kwargs):
@@ -127,3 +128,52 @@ def initialize_data(sender, **kwargs):
     for role_name, permission_detail in permission_data:
         role = roles.objects.get(role_name=role_name)
         permission.objects.get_or_create(role=role, permission_detail=permission_detail)
+
+    default_workflows = [
+        {
+            "form_type": "PayrollAssignment",
+            "workflow_name": "Payroll Workflow",
+            "label": "Initial Payroll Approval",
+            "role": manager_role_finance,
+            "department": "finance",
+        },
+        {
+            "form_type": "ReimbursementRequest",
+            "workflow_name": "Reimbursement Workflow",
+            "label": "Initial Reimbursement Approval",
+            "role": manager_role_finance,
+            "department": "finance",
+        },
+        {
+            "form_type": "ChangeOfAddress",
+            "workflow_name": "Address Change Workflow",
+            "label": "Initial Address Approval",
+            "role": manager_role_registrar,
+            "department": "registrar",
+        },
+        {
+            "form_type": "DiplomaRequest",
+            "workflow_name": "Diploma Approval Workflow",
+            "label": "Initial Diploma Approval",
+            "role": manager_role_registrar,
+            "department": "registrar",
+        },
+    ]
+
+    for wf in default_workflows:
+        workflow, created = Workflow.objects.get_or_create(
+            name=wf["workflow_name"],
+            form_type=wf["form_type"]
+        )
+        if created:
+            print("Created workflow:", wf["workflow_name"])
+
+        if not WorkflowStep.objects.filter(workflow=workflow).exists():
+            WorkflowStep.objects.create(
+                workflow=workflow,
+                step_order=1,
+                label=wf["label"],
+                role=wf["role"],
+                department=wf["department"]
+            )
+            
