@@ -79,6 +79,11 @@ def get_userLoad(request):
     serializer = UserSerializer(users, many=True)
     return JsonResponse({'users': serializer.data})
 
+def get_managerLoad(request):
+    users = user_accs.objects.select_related('role').filter(role__id__in=[3, 4])
+    serializer = UserSerializer(users, many=True)
+    return JsonResponse({'users': serializer.data}, safe=False)
+
 @api_view(["POST"])
 @permission_classes([AllowAny])  # Allow public access to register
 def user_register(request):
