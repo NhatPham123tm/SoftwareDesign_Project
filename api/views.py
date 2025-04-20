@@ -364,23 +364,10 @@ class RequestSubmitView(APIView):
                 data=form_data,
                 signature=signature_file
             )
+            request_instance.assigned_to = request_instance.assignable()
         except Exception as e:
             return Response({"error": f"Failed to save the request: {str(e)}"}, 
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        # Temporary before deciding on who gets delegated when user submits a request
-        # Will change to first available employee in the future
-        # Example will go to first employee without a delegation, if all have 1 delegation, then it will go to the first employee and so on
-        try:
-            first_employee = user_accs.objects.filter(role__role_name='employee').first()
-            if first_employee:
-                Delegation.objects.create(
-                    request=request_instance,
-                    delegator=user,
-                    delegatee=first_employee
-                )
-        except Exception as e:
-            print(f"Delegation error: {e}")
 
         return self._process_request(request, request_instance, status_value)
 
@@ -708,9 +695,16 @@ class DelegateWork(APIView):
         request_id = request_data['request']
         delegatee_id = request_data['delegatee']
         
-        delegation = get_object_or_404(Delegation, request_id=request_id)
+        request_form = get_object_or_404(Request, id=request_id)
 
-        delegation.delegatee_id = delegatee_id
+        request_form.assigned_to_id = delegatee_id
+        request_form.save()
+        delegation = Delegation.objects.create(
+            request=request_form,
+            delegator=request.user,
+            delegatee_id=delegatee_id
+        )
+
         delegation.save()
 
         serializer = DelegationSerializer(delegation)
@@ -721,8 +715,7 @@ class DelegatedRequestsView(APIView):
 
     def get(self, request):
         user = request.user
-        delegated_requests = Delegation.objects.filter(delegatee=user).values_list('request', flat=True)
-        requests = Request.objects.filter(id__in=delegated_requests)
+        requests = Request.objects.filter(assigned_to=user_ura_accs.objects.get(id=user.id))
 
         serializer = RequestSerializer(requests, many=True)
         return Response(serializer.data)

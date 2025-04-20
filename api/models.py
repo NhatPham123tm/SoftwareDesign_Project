@@ -431,6 +431,39 @@ class Request(models.Model):
     pdf = models.FileField(upload_to='diploma_pdfs/', null=True, blank=True)
     signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
     admin_signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
+    assigned_to = models.ForeignKey(user_ura_accs, related_name="assigned_to_user", on_delete=models.CASCADE, null=True, blank=True)
+
+    def assignable(self):
+        if(self.form_type == "DiplomaRequestForm"):
+            assigned = user_ura_accs.objects.filter((Q(role__role_name="employee") & Q(role__subdepartment="diploma"))).filter(~Q(id=self.user.id)).first()
+            if not assigned:
+                assigned = user_ura_accs.objects.filter((Q(role__role_name="manager") & Q(role__department="registrar"))).filter(~Q(id=self.user.id)).first()
+            if not assigned:
+                assigned = user_ura_accs.objects.filter((Q(role__role_name="admin"))).filter(~Q(id=self.user.id)).first()
+            return assigned
+        elif(self.form_type == "ChangeAddressForm"):
+            assigned = user_ura_accs.objects.filter((Q(role__role_name="employee") & Q(role__subdepartment="address"))).filter(~Q(id=self.user.id)).first()
+            if not assigned:
+                assigned = user_ura_accs.objects.filter((Q(role__role_name="manager") & Q(role__department="registrar"))).filter(~Q(id=self.user.id)).first()
+            if not assigned:
+                assigned = user_ura_accs.objects.filter((Q(role__role_name="admin"))).filter(~Q(id=self.user.id)).first()
+            return assigned
+        elif(self.form_type == "PayrollRequestForm"):
+            assigned = user_ura_accs.objects.filter((Q(role__role_name="employee") & Q(role__subdepartment="payroll"))).filter(~Q(id=self.user.id)).first()
+            if not assigned:
+                assigned = user_ura_accs.objects.filter((Q(role__role_name="manager") & Q(role__department="finance"))).filter(~Q(id=self.user.id)).first()
+            if not assigned:
+                assigned = user_ura_accs.objects.filter((Q(role__role_name="admin"))).filter(~Q(id=self.user.id)).first()
+            return assigned
+        elif(self.form_type == "ReimbursementForm"):
+            assigned = user_ura_accs.objects.filter((Q(role__role_name="employee") & Q(role__subdepartment="reimbursement"))).filter(~Q(id=self.user.id)).first()
+            if not assigned:
+                assigned = user_ura_accs.objects.filter((Q(role__role_name="manager") & Q(role__department="finance"))).filter(~Q(id=self.user.id)).first()
+            if not assigned:
+                assigned = user_ura_accs.objects.filter((Q(role__role_name="admin"))).filter(~Q(id=self.user.id)).first()
+            return assigned
+        else:
+            return None
 
     def get_status_display(self):
         return dict(self.STATUS_CHOICES).get(self.status, self.status)
