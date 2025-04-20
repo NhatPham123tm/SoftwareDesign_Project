@@ -705,29 +705,43 @@ def delegate_work_assignment(request):
     try:
         new_assignee = get_object_or_404(user_accs, id=employee_id)
 
-        delegated = work_assign(
-            user=new_assignee,
-            created_by=request.user,
-            status='Pending',
-        )
-
-        # Optional: Set a default deadline if needed
-        # delegated.deadline = timezone.now() + timedelta(days=7)
-
-        # Assign only the specific form
+        form_field = None
         if form_type == 'Payroll':
-            delegated.PayrollAssignment_id_id = form_id
+            form_field = 'PayrollAssignment_id_id'
         elif form_type == 'Reimbursement':
-            delegated.ReimbursementRequest_id_id = form_id
+            form_field = 'ReimbursementRequest_id_id'
         elif form_type == 'Change of Address':
-            delegated.ChangeOfAddress_id_id = form_id
+            form_field = 'ChangeOfAddress_id_id'
         elif form_type == 'Diploma Request':
-            delegated.DiplomaRequest_id_id = form_id
+            form_field = 'DiplomaRequest_id_id'
         else:
             return JsonResponse({'error': 'Invalid form type'}, status=400)
 
-        delegated.save()
-        return JsonResponse({'message': 'Work reassigned successfully.'})
+        # Check if this user already has a work_assign row
+        user_assignments = work_assign.objects.filter(user=new_assignee)
+
+        updated = False
+        for assignment in user_assignments:
+            # If the field is empty (None), assign the form ID here
+            if getattr(assignment, form_field) is None:
+                setattr(assignment, form_field, form_id)
+                assignment.status = 'Pending'
+                assignment.save()
+                updated = True
+                break
+
+        if not updated:
+            # Create a new assignment row with this form ID
+            new_assignment = work_assign(
+                user=new_assignee,
+                created_by=request.user,
+                status='Pending',
+                **{form_field: form_id}
+            )
+            new_assignment.save()
+            return JsonResponse({'message': 'New work assignment created for user.'})
+        else:
+            return JsonResponse({'message': 'Existing assignment updated with new form.'})
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
