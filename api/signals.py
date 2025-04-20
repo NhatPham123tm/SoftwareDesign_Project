@@ -160,13 +160,20 @@ def initialize_data(sender, **kwargs):
     ]
 
     for wf in default_workflows:
-        workflow, created = Workflow.objects.get_or_create(
-            name=wf["workflow_name"],
-            form_type=wf["form_type"]
-        )
-        if created:
-            print("Created workflow:", wf["workflow_name"])
+    # Check if a workflow with this form_type already exists
+        existing_workflow = Workflow.objects.filter(form_type=wf["form_type"]).first()
+        
+        if existing_workflow:
+            workflow = existing_workflow
+            print(f"Workflow already exists for {wf['form_type']}: {workflow.name}")
+        else:
+            workflow = Workflow.objects.create(
+                name=wf["workflow_name"],
+                form_type=wf["form_type"]
+            )
+            print(f"Created workflow: {workflow.name}")
 
+        # Only add a step if none exists yet
         if not WorkflowStep.objects.filter(workflow=workflow).exists():
             WorkflowStep.objects.create(
                 workflow=workflow,
@@ -175,4 +182,4 @@ def initialize_data(sender, **kwargs):
                 role=wf["role"],
                 department=wf["department"]
             )
-            
+            print(f"Created step for {wf['form_type']} → {wf['role'].role_name}")
