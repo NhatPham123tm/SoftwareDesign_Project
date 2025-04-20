@@ -419,3 +419,237 @@ canvas {
     background-color: #cc0000; /* Even darker red when clicked */
 }
 
+/* Workflow Manager Container */
+#workflow {
+    padding: 20px;
+  }
+  
+  .workflow-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .workflow-header label {
+    font-weight: bold;
+  }
+  
+  .workflow-header input,
+  .workflow-header select {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    min-width: 150px;
+  }
+  
+  /* Workflow Step Form */
+  #workflow form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
+  
+  #workflow form label {
+    font-weight: bold;
+  }
+  
+  #workflow form input,
+  #workflow form select {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  
+  #workflow form button {
+    padding: 8px 16px;
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  #workflow form button:hover {
+    background-color: #34495e;
+  }
+  
+  /* Steps List */
+  #workflow ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  #workflow ul li {
+    margin: 6px 0;
+    padding: 6px 10px;
+    background-color: #f5f5f5;
+    border-left: 4px solid #2c3e50;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  #workflow ul button {
+    background: none;
+    border: none;
+    color: red;
+    cursor: pointer;
+    font-size: 18px;
+  }
+
+  .step-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-top: 10px;
+  }
+  
+  .form-section {
+    flex: 1 1 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .step-form label {
+    font-weight: bold;
+  }
+  
+  .step-form input,
+  .step-form select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  
+  .step-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  
+  .step-card {
+    background: #f9f9f9;
+    padding: 14px 18px;
+    border-left: 5px solid #2c3e50;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  }
+  
+  .step-header {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  
+  .step-details {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  
+  .step-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .step-actions .delete-btn {
+    background: none;
+    color: red;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .workflow-card {
+    background-color: #f0f0f0;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    margin-top: 20px;
+  }
+  
+  .step-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-top: 10px;
+  }
+  
+  .form-section {
+    flex: 1 1 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .step-form label {
+    font-weight: bold;
+  }
+  
+  .step-form input,
+  .step-form select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  
+  .btn-primary {
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    background-color: #34495e;
+  }
+  
+  .step-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  
+  .step-card {
+    background: white;
+    padding: 14px 18px;
+    border-left: 5px solid #2c3e50;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .step-header {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  
+  .step-details {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 8px;
+  }
+  
+  .step-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .delete-btn {
+    background: none;
+    color: red;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
