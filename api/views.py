@@ -83,15 +83,21 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
             if not assignment.is_current_step:
                 return Response({'detail': 'This step is already completed.'}, status=403)
 
-            serializer = WorkAssignSerializer(assignment, data=request.data, partial=True)
+            # Clean request: map "Rejected" to "Completed" for validation
+            mutable_data = request.data.copy()
+            raw_status = mutable_data.get("status")
+            if raw_status == "Rejected":
+                mutable_data["status"] = "Completed"
+
+            serializer = WorkAssignSerializer(assignment, data=mutable_data, partial=True)
             if serializer.is_valid():
-                updated = serializer.save()
+                serializer.save()
 
                 new_status = request.data.get("status")
 
                 # Mark this work assignment as done
                 if new_status in ["Completed", "Rejected"]:
-                    assignment.status = new_status
+                    assignment.status = "Completed"
                     assignment.is_current_step = False
                     assignment.save()
 

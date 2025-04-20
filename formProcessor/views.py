@@ -97,7 +97,7 @@ def generate_pdf_and_redirect(request, instance, latex_path, dashboard_redirect=
         if os.path.exists(path):
             os.remove(path)
             
-    # Assign workflow steps
+    # Assign workflow steps (flag as system-generated)
     assign_workflow_steps(instance)
 
     if dashboard_redirect:
@@ -197,6 +197,8 @@ def handle_form_pdf_response(request, form_instance, template_name):
 
 #-----------------------------------------------------------------------------------
 # Reimbursement section
+
+# For some reason, if using handle_form_pdf_response function, reimbursement won't save pdf link so I keep it the long way
 def generate_reimbursement_pdf(request, reimbursement_id):
     """ Generates PDF from saved reimbursement form data """
     LATEX_TEMPLATE_PATH = "latexform/reimburse.tex"
@@ -258,6 +260,9 @@ def generate_reimbursement_pdf(request, reimbursement_id):
         os.remove(signature_output_path_user)
     if os.path.exists(signature_output_path_admin):
         os.remove(signature_output_path_admin)
+
+    # Assign workflow steps (flag as system-generated)
+    assign_workflow_steps(reimbursement)
 
     messages.success(request, f"Form submitted successfully!")
     return redirect(dashboard)
