@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employees Dashboard</title>
-    <link rel="stylesheet" href="manage.css">
 </head>
 <style>
     * {
@@ -116,6 +115,7 @@ tbody td {
   font-size: 15px;
 }
 
+
 </style>
 <body>
     <div class="container">
@@ -123,8 +123,8 @@ tbody td {
           <div style="margin-bottom: 20px; font-size: 20px;">Employees</div>
           <ul class="menu">
             <li><a href="#dashboard" class="active">Dashboard</a></li>
-            <li><a href="#employees" onclick="employeeload(); return false;">Employees</a></li>
-            <li><a href="#forms" onclick="stuff(); return false;">Forms</a></li>
+            <li><a href="#employees" onclick="employeeload(); return false;">Coworkers</a></li>
+            <li><a href="#forms" onclick="stuff(); return false;">Assigments</a></li>
             <li><a href="#">Logout</a></li>
           </ul>
           <a class="fart" href="{% url 'dashboard' %}">Home</a></li>
@@ -132,17 +132,16 @@ tbody td {
     
         <div class="main">
           <div id="dashboard" class="part active">
-            <h2>Dashboard</h2>
-            <p>Overview of all system activities and stats.</p>
+            <h1 id="welcome"></h1>
           </div>
           <div id="employees" class="part">
-            <h2>Employees</h2>
+            <h2>Coworkers</h2>
             <table>
               <thead>
                   <tr>
-                      <th>Employee Name</th>
-                      <th>Employee ID</th>
-                      <th>Employee Email</th>
+                      <th>Coworkers Name</th>
+                      <th>Coworkers ID</th>
+                      <th>Coworkers Email</th>
                       <th>Department</th>
                   </tr>
               </thead>
@@ -151,12 +150,9 @@ tbody td {
           </div>
 
           <div id="forms" class="part">
-
-            <!-- work in progress to hid depending on what department you are in -->
              
-            <div id="trois-dept">
-              <h2>Finance Department</h2>
-              <h3>Pending</h3>
+            <div id="trois-dept" class="">
+              <h2>Assigments</h2>
               <table>
                 <thead>
                   <tr>
@@ -166,35 +162,14 @@ tbody td {
                     <th>PDF</th>
                     <th>PDF Type</th>
                     <th>Status</th>
-                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody id="troisPendingBody"></tbody>
               </table>
             </div>
-
-            <div id="trois-dept">
-              <h3>Approved/Rejected</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Date</th>
-                    <th>User ID</th>
-                    <th>PDF</th>
-                    <th>PDF Type</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="troisProcessedBody"></tbody>
-              </table>
-            </div>
-            
           
-            <div id="ura-dept">
-              <h2>Registrar Department</h2>
-              <h3>Pending</h3>
+            <div id="ura-dept" class="">
+              <h2>Assigments</h2>
               <table>
                 <thead>
                   <tr>
@@ -204,30 +179,11 @@ tbody td {
                     <th>PDF</th>
                     <th>PDF Type</th>
                     <th>Status</th>
-                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody id="uraPendingBody"></tbody>
               </table>
             </div>
-
-          <div id="ura-dept">
-            <h3>Approved/Rejected</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Date</th>
-                  <th>User ID</th>
-                  <th>PDF</th>
-                  <th>PDF Type</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="uraProcessedBody"></tbody>
-            </table>
-          </div>
       </div>
     </div>
     </div>
@@ -256,116 +212,226 @@ tbody td {
       });
     });
 
-    function stuff() {
+
+    document.addEventListener("DOMContentLoaded", function () {
+            console.log("Fetching user data...");
+
+            fetch('/api/microsoft-login/', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+
+                console.log("Fetched user data:", data);
+                if (!localStorage.getItem("access_token")){
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("user", JSON.stringify(data.user)); 
+                }
+
+                // Update the UI after data is fetched
+                updateUserUI();
+                updateUserData();
+            })
+            .catch(error => {
+                //console.error("Error fetching user data:", error);
+                updateUserUI();
+            });
+            updateUserData();
+            
+       })
+        function updateUserUI() {
+            console.log("Checking for user data in localStorage...");
+
+            // Try fetching "user_data" first, if not available, fall back to "user"
+            let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
+            
+            if (userDataString) {
+                try {
+                    const userData = JSON.parse(userDataString);
+                    if (userData && userData.name) {
+                        document.getElementById("welcome").textContent = `Welcome, ${userData.name}!`;
+                    }
+                } catch (error) {
+                    console.error("Error parsing user data:", error);
+                }
+            } else {
+                console.warn("No user data found in localStorage.");
+            }
+        }
+
+
+    async function stuff() {
+  let currUser = localStorage.getItem("user_data");
+  let currUserData = JSON.parse(currUser);
+  managerRole = {
+    id: '',
+    level: '',
+    role_name: '',
+    department: ''
+  }
+
+  if (currUser !== null) {
+    console.log("Retrieved value:", currUser);
+    console.log("Retrieved value:", currUserData.id);
+  } else {
+    console.log("No value found for logged in user.");
+    return;
+  }
+
+  await fetch(`/api/users/${currUserData.id}/`)
+    .then(response => response.json())
+    .then(data => {
+      console.log("Retrieved data:", data.role.department);
+      managerRole.id = data.role.id;
+      managerRole.level = data.role.level;
+      managerRole.role_name = data.role.role_name;
+      managerRole.department = data.role.department;
+    });
+
+  // Show/hide sections based on department
+  if (managerRole.id == 1) {
+    document.getElementById("trois-dept").style.display = "block";
+    document.getElementById("ura-dept").style.display = "block";
+  } else if (managerRole.department === "finance") {
+    document.getElementById("trois-dept").style.display = "block";
+    document.getElementById("ura-dept").style.display = "none";
+  } else {
+    document.getElementById("trois-dept").style.display = "none";
+    document.getElementById("ura-dept").style.display = "block";
+  }
+
+  // Fetch all forms + work assignments
   Promise.all([
     fetch("/api/payroll/").then(r => r.json()),
     fetch("/api/reimburse/").then(r => r.json()),
     fetch("/api/address/").then(r => r.json()),
-    fetch("/api/diploma/").then(r => r.json())
+    fetch("/api/diploma/").then(r => r.json()),
+    fetch("/api/work_assignments/").then(r => r.json())
   ])
-  .then(([payrollData, reimburseData, addressData, diplomaData]) => {
+  .then(([payrollData, reimburseData, addressData, diplomaData, assignments]) => {
     const troisPending = document.getElementById('troisPendingBody');
-    const troisProcessed = document.getElementById('troisProcessedBody');
     const uraPending = document.getElementById('uraPendingBody');
-    const uraProcessed = document.getElementById('uraProcessedBody');
 
     // Clear existing
     troisPending.innerHTML = '';
-    troisProcessed.innerHTML = '';
     uraPending.innerHTML = '';
-    uraProcessed.innerHTML = '';
+    
 
-    const toyForms = [
-      ...payrollData.filter(p => p.status !== "Draft"),
-      ...reimburseData.filter(r => r.status !== "Draft")
-    ];
+    // Filter assignments by current user
+    const assignedToMe = assignments.filter(a => a.user_id === currUserData.id);
 
-    const umperiumForms = [
-      ...addressData.filter(a => a.status !== "Draft"),
-      ...diplomaData.filter(d => d.status !== "Draft")
-    ];
+    // Gather form objects from assignments
+    const myForms = [];
+
+    assignedToMe.forEach(assign => {
+      let form = null;
+      if (assign.PayrollAssignment_id_id) {
+        form = payrollData.find(f => f.id === assign.PayrollAssignment_id_id);
+        if (form) form.type = "Payroll";
+      } else if (assign.ReimbursementRequest_id_id) {
+        form = reimburseData.find(f => f.id === assign.ReimbursementRequest_id_id);
+        if (form) form.type = "Reimbursement";
+      } else if (assign.ChangeOfAddress_id_id) {
+        form = addressData.find(f => f.id === assign.ChangeOfAddress_id_id);
+        if (form) form.type = "Change of Address";
+      } else if (assign.DiplomaRequest_id_id) {
+        form = diplomaData.find(f => f.id === assign.DiplomaRequest_id_id);
+        if (form) form.type = "Diploma Request";
+      }
+
+      if (form) {
+        form.assignment_status = assign.status;
+        form.assignment_deadline = assign.deadline;
+        myForms.push(form);
+      }
+    });
+    const toyForms = myForms.filter(f => f.type === "Payroll" || f.type === "Reimbursement");
+    const umpForms = myForms.filter(f => f.type === "Change of Address" || f.type === "Diploma Request");
+
 
     const sortByDate = (a, b) => 
       new Date(b.date_submitted || b.todays_date || b.today_date) -
       new Date(a.date_submitted || a.todays_date || a.today_date);
 
-    const toyPending = toyForms.filter(f => f.status === "Pending").sort(sortByDate);
-    const toyProcessed = toyForms.filter(f => f.status !== "Pending").sort(sortByDate);
-    const umpPending = umperiumForms.filter(f => f.status === "Pending").sort(sortByDate);
-    const umpProcessed = umperiumForms.filter(f => f.status !== "Pending").sort(sortByDate);
+    const toyPending = toyForms.filter(f => f.assignment_status === "Pending").sort(sortByDate);
+    const umpPending = umpForms.filter(f => f.assignment_status === "Pending").sort(sortByDate);
+
+
 
     renderForms(toyPending, troisPending);
-    renderForms(toyProcessed, troisProcessed);
     renderForms(umpPending, uraPending);
-    renderForms(umpProcessed, uraProcessed);
   })
   .catch(error => console.error("Error loading forms:", error));
 }
 
-  function renderForms(dataArray, tbody) {
+
+function renderForms(dataArray, tbody) {
       dataArray.forEach(form => {
-          let formType = "Unknown";
-          let viewUrl = "";
-          let deleteHandler = "";
-          let selectId = "";
+        let formType = "Unknown";
+        let viewUrl = "";
+        let deleteHandler = "";
+        let selectId = "";
 
-          if (form.todays_date) {
-              formType = "Payroll Form";
-              viewUrl = `/view_payroll_pdf2/${form.id}/`;
-              deleteHandler = `deleteForm(${form.id}, 'payroll')`;
-              selectId = `statusSelect_payroll_${form.id}`;
-          } else if (form.today_date) {
-              formType = "Reimburse Form";
-              viewUrl = `/view_pdf2/${form.id}/`;
-              deleteHandler = `deleteForm(${form.id}, 'reimburse')`;
-              selectId = `statusSelect_reimburse_${form.id}`;
-          } else if ('street_address' in form) {
-              formType = "Change Address Form";
-              viewUrl = `/view_change_address_pdf3/${form.id}/`;
-              deleteHandler = `deleteForm(${form.id}, 'address')`;
-              selectId = `statusSelect_address_${form.id}`;
-          } else if ('degree' in form) {
-              formType = "Diploma Form";
-              viewUrl = `/view-diploma-pdf3/${form.id}/`;
-              deleteHandler = `deleteForm(${form.id}, 'diploma')`;
-              selectId = `statusSelect_diploma_${form.id}`;
+        if (form.todays_date) {
+          formType = "Payroll Form";
+          viewUrl = `/view_payroll_pdf2/${form.id}/`;
+          deleteHandler = `deleteForm(${form.id}, 'payroll')`;
+          selectId = `statusSelect_payroll_${form.id}`;
+        } else if (form.today_date) {
+          formType = "Reimburse Form";
+          viewUrl = `/view_pdf2/${form.id}/`;
+          deleteHandler = `deleteForm(${form.id}, 'reimburse')`;
+          selectId = `statusSelect_reimburse_${form.id}`;
+        } else if ('street_address' in form) {
+          formType = "Change Address Form";
+          viewUrl = `/view_change_address_pdf3/${form.id}/`;
+          deleteHandler = `deleteForm(${form.id}, 'address')`;
+          selectId = `statusSelect_address_${form.id}`;
+        } else if ('degree' in form) {
+          formType = "Diploma Form";
+          viewUrl = `/view-diploma-pdf3/${form.id}/`;
+          deleteHandler = `deleteForm(${form.id}, 'diploma')`;
+          selectId = `statusSelect_diploma_${form.id}`;
+        }
+
+        const options = `
+          <option value="Pending" ${form.status === "Pending" ? "selected" : ""}>Pending</option>
+          <option value="Approved">Approve</option>
+          <option value="Rejected">Reject</option>
+          <option value="Cancelled">Cancel</option>
+        `;
+
+        const date = form.date_submitted || form.todays_date || form.today_date || "—";
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${form.name || form.employee_name}</td>
+            <td>${date}</td>
+            <td>${form.employee_id || form.user || "N/A"}</td>
+            <td><a href="${viewUrl}" target="_blank" class="weee"><button>Open PDF</button></a></td>
+            <td>${formType}</td>
+            <td>
+              <p>${form.status}</p>
+              <select id="${selectId}">${options}</select>
+            </td>
+          </tr>
+        `;
+
+        // Add listener to status dropdown
+        setTimeout(() => {
+          const selectElement = document.getElementById(selectId);
+          if (selectElement) {
+            selectElement.addEventListener('change', function () {
+              handleStatusChange(form.id, this.value, formType);
+            });
           }
-
-          const options = `
-              <option value="Pending" ${form.status === "Pending" ? "selected" : ""}>Pending</option>
-              <option value="Approved">Approve</option>
-              <option value="Rejected">Reject</option>
-              <option value="Cancelled">Cancel</option>
-          `;
-
-          const date = form.date_submitted || form.todays_date || form.today_date || "—";
-
-          tbody.innerHTML += `
-              <tr>
-                  <td>${form.name || form.employee_name}</td>
-                  <td>${date}</td>
-                  <td>${form.employee_id || form.user || "N/A"}</td>
-                  <td><a href="${viewUrl}" target="_blank">Open PDF</a></td>
-                  <td>${formType}</td>
-                  <td>
-                      <p>${form.status}</p>
-                      <select id="${selectId}">${options}</select>
-                  </td>
-                  <td>
-                      <button class="del-button" onclick="${deleteHandler}">Delete</button>
-                  </td>
-              </tr>`;
-
-          setTimeout(() => {
-              const selectElement = document.getElementById(selectId);
-              if (selectElement) {
-                  selectElement.addEventListener('change', function () {
-                      handleStatusChange(form.id, this.value, formType);
-                  });
-              }
-          }, 0);
+        }, 0);
       });
-  }
+    }
+    
   // Function to set cookies
 function setCookie(name, value, days) {
   const d = new Date();
@@ -449,5 +515,40 @@ async function userLoad() {
       console.error('Error loading users:', error);
   });
 }
+
+function handleStatusChange(formId, newStatus, formType) {
+      let endpoint = "";
+      let payload = { status: newStatus };
+
+      if (formType === "Payroll Form") {
+        endpoint = `/api/payroll/${formId}/`;
+      } else if (formType === "Reimburse Form") {
+        endpoint = `/api/reimburse/${formId}/`;
+      } else if (formType === "Change Address Form") {
+        endpoint = `/api/address/${formId}/`;
+      } else if (formType === "Diploma Form") {
+        endpoint = `/api/diploma/${formId}/`;
+      }
+
+      fetch(endpoint, {
+        method: "PATCH",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+                              "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      })
+        .then(response => {
+          if (!response.ok) throw new Error("Status update failed");
+          return response.json();
+        })
+        .then(data => {
+          console.log("Updated form status:", data);
+          stuff(); // Refresh the table after update
+        })
+        .catch(error => {
+          console.error("Error updating form status:", error);
+        });
+    }
 </script>
 </html>
