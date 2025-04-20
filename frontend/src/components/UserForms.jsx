@@ -13,6 +13,8 @@ const UserForms = () => {
   const formTypeNames = {
     DiplomaRequestForm: "Diploma Request",
     ChangeAddressForm: "Change of Address",
+    PayrollRequestForm: "Payroll Request",
+    ReimbursementRequestForm: "Reimbursement Request",
   };
 
   const statusOptions = ["Draft", "Pending", "Rejected", "Approved", "Cancelled"];
