@@ -173,8 +173,7 @@
     
         <div class="main">
           <div id="dashboard" class="part active">
-            <h2>Dashboard</h2>
-            <p>Overview of all system activities and stats.</p>
+            <h1 id="welcome"></h1>
           </div>
           <div id="employees" class="part">
             <h2>Employees Table</h2>
@@ -343,6 +342,57 @@
       });
     });
 
+    document.addEventListener("DOMContentLoaded", function () {
+            console.log("Fetching user data...");
+
+            fetch('/api/microsoft-login/', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+
+                console.log("Fetched user data:", data);
+                if (!localStorage.getItem("access_token")){
+                    localStorage.setItem("access_token", data.access_token);
+                    localStorage.setItem("user", JSON.stringify(data.user)); 
+                }
+
+                // Update the UI after data is fetched
+                updateUserUI();
+                updateUserData();
+            })
+            .catch(error => {
+                //console.error("Error fetching user data:", error);
+                updateUserUI();
+            });
+            updateUserData();
+            
+       })
+        function updateUserUI() {
+            console.log("Checking for user data in localStorage...");
+
+            // Try fetching "user_data" first, if not available, fall back to "user"
+            let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
+            
+            if (userDataString) {
+                try {
+                    const userData = JSON.parse(userDataString);
+                    if (userData && userData.name) {
+                        document.getElementById("welcome").textContent = `Welcome, ${userData.name}!`;
+                    }
+                } catch (error) {
+                    console.error("Error parsing user data:", error);
+                }
+            } else {
+                console.warn("No user data found in localStorage.");
+            }
+        }
+
+
+
     async function stuff() {
       let currUser = localStorage.getItem("user_data");
       let currUserData = JSON.parse(currUser);
@@ -467,7 +517,7 @@
             <td>${form.name || form.employee_name}</td>
             <td>${date}</td>
             <td>${form.employee_id || form.user || "N/A"}</td>
-            <td><a href="${viewUrl}" target="_blank">Open PDF</a></td>
+            <td><a href="${viewUrl}" target="_blank"><button>Open PDF</button></a></td>
             <td>${formType}</td>
             <td>
               <p>${form.status}</p>
