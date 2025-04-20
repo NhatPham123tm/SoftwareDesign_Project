@@ -698,37 +698,85 @@ function stuff() {
         }
         
         function showSteps(workflowId) {
-            fetch(`/api/workflows/${workflowId}/steps/`)
-                .then(res => res.json())
-                .then(data => {
-                    const div = document.getElementById(`steps_${workflowId}`);
-                    div.innerHTML = `
-                        <h4>Add Step</h4>
-                        <form onsubmit="addStep(event, ${workflowId})">
-                            <label>Order:</label>
-                            <input type="number" id="stepOrder_${workflowId}" required>
-                            <label>Label:</label>
-                            <input type="text" id="stepLabel_${workflowId}" required>
-                            <label>Role ID:</label>
-                            <input type="number" id="stepRole_${workflowId}">
-                            <label>User ID:</label>
-                            <input type="number" id="stepUser_${workflowId}">
-                            <label>Department:</label>
-                            <input type="text" id="stepDept_${workflowId}">
-                            <button type="submit">Add</button>
-                        </form>
-        
-                        <h4>Current Steps</h4>
-                        <ul>
-                            ${data.map(s => `
-                                <li>
-                                Step ${s.step_order}: ${s.label} → ${s.role_name || s.user_name}
-                                <button onclick="deleteStep(${s.id}, ${workflowId})" style="color:red;">🗑</button>
-                                </li>`).join("")}
-                        </ul>
-                    `;
+            Promise.all([
+                fetch("/api/roles/").then(res => res.json()),
+                fetch("/api/get_userLoad/").then(res => res.json()),
+                fetch(`/api/workflows/${workflowId}/steps/`).then(res => res.json())
+            ]).then(([roles, users, steps]) => {
+                const roleOptions = roles.map(
+                role => `<option value="${role.id}">${role.role_name} (${role.department})</option>`
+                ).join("");
+
+                const userOptions = users.users.map(
+                user => `<option value="${user.id}">${user.name} - ${user.email}</option>`
+                ).join("");
+
+                const div = document.getElementById(`steps_${workflowId}`);
+                div.innerHTML = `
+                <h4>Add Step</h4>
+                <form onsubmit="addStep(event, ${workflowId})">
+                    <label>Order:</label>
+                    <input type="number" id="stepOrder_${workflowId}" required>
+
+                    <label>Label:</label>
+                    <input type="text" id="stepLabel_${workflowId}" required>
+                    <label>Role:</label>
+                    <select id="stepRole_${workflowId}">
+                    <option value="">-- Select Role --</option>
+                    ${roleOptions}
+                    </select>
+
+                    <label>User:</label>
+                    <select id="stepUser_${workflowId}">
+                    <option value="">-- Select User --</option>
+                    ${userOptions}
+                    </select>
+
+                    <label>Department:</label>
+                    <input type="text" id="stepDept_${workflowId}" readonly>
+
+                    <button type="submit">Add</button>
+                </form>
+
+                <h4>Current Steps</h4>
+                <ul>
+                    ${steps.map(s => `
+                    <li>
+                        Step ${s.step_order}: ${s.label} → ${s.role_name || s.user_name}
+                        <button onclick="deleteStep(${s.id}, ${workflowId})" style="color:red;">🗑</button>
+                    </li>`).join("")}
+                </ul>
+                `;
+                const roleSelect = document.getElementById(`stepRole_${workflowId}`);
+                const deptInput = document.getElementById(`stepDept_${workflowId}`);
+                const userSelect = document.getElementById(`stepUser_${workflowId}`);
+
+                roleSelect.addEventListener("change", () => {
+                const selectedRoleId = roleSelect.value;
+                const selectedRole = roles.find(r => r.id == selectedRoleId);
+
+                if (selectedRole) {
+                    deptInput.value = selectedRole.department;
+                } else {
+                    deptInput.value = "";
+                }
                 });
-        }
+            
+                roleSelect.addEventListener("change", () => {
+                if (roleSelect.value) {
+                    userSelect.value = "";  // Clear user selection
+                }
+                });
+
+                userSelect.addEventListener("change", () => {
+                if (userSelect.value) {
+                    roleSelect.value = "";  // Clear role selection
+                    // also clear department field
+                    document.getElementById(`stepDept_${workflowId}`).value = "";
+                }
+                });
+            });
+            }
         
         function addStep(e, workflowId) {
             e.preventDefault();
@@ -804,48 +852,48 @@ function stuff() {
         }
 
         function loadApprovals() {
-    document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
-    document.getElementById('approvals').style.display = 'block';
+            document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
+            document.getElementById('approvals').style.display = 'block';
 
-    fetch("/api/my_work/")
-        .then(res => res.json())
-        .then(data => {
-            const tbody = document.getElementById("approvalTableBody");
-            tbody.innerHTML = "";
+            fetch("/api/my_work/")
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("approvalTableBody");
+                    tbody.innerHTML = "";
 
-            data.forEach(row => {
-                let viewUrl = "#";
-                const formType = row.form_type.toLowerCase();
+                    data.forEach(row => {
+                        let viewUrl = "#";
+                        const formType = row.form_type.toLowerCase();
 
-                if (formType === "payroll") {
-                    viewUrl = `/view_payroll_pdf2/${row.form_id}/`;
-                } else if (formType === "reimburse") {
-                    viewUrl = `/view_pdf2/${row.form_id}/`;
-                } else if (formType === "address") {
-                    viewUrl = `/view_change_address_pdf3/${row.form_id}/`;
-                } else if (formType === "diploma") {
-                    viewUrl = `/view-diploma-pdf3/${row.form_id}/`;
-                }
+                        if (formType === "payroll") {
+                            viewUrl = `/view_payroll_pdf2/${row.form_id}/`;
+                        } else if (formType === "reimburse") {
+                            viewUrl = `/view_pdf2/${row.form_id}/`;
+                        } else if (formType === "address") {
+                            viewUrl = `/view_change_address_pdf3/${row.form_id}/`;
+                        } else if (formType === "diploma") {
+                            viewUrl = `/view-diploma-pdf3/${row.form_id}/`;
+                        }
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${row.form_type}</td>
-                        <td>${row.step_label}</td>
-                        <td>${row.name}</td>
-                        <td>${row.date || "—"}</td>
-                        <td>${row.status}</td>
-                        <td><a href="${viewUrl}" target="_blank">View PDF</a></td>
-                        <td>
-                            <select onchange="updateAssignStatus(${row.id}, this.value)">
-                                <option value="">Select</option>
-                                <option value="Completed">Approve</option>
-                                <option value="Rejected">Reject</option>
-                            </select>
-                        </td>
-                    </tr>`;
-            });
-        });
-}
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${row.form_type}</td>
+                                <td>${row.step_label}</td>
+                                <td>${row.name}</td>
+                                <td>${row.date || "—"}</td>
+                                <td>${row.status}</td>
+                                <td><a href="${viewUrl}" target="_blank">View PDF</a></td>
+                                <td>
+                                    <select onchange="updateAssignStatus(${row.id}, this.value)">
+                                        <option value="">Select</option>
+                                        <option value="Completed">Approve</option>
+                                        <option value="Rejected">Reject</option>
+                                    </select>
+                                </td>
+                            </tr>`;
+                    });
+                });
+        }
 
 
         function updateAssignStatus(assignId, newStatus) {
@@ -864,6 +912,7 @@ function stuff() {
                 loadApprovals();
             });
         }
+
         </script>
         
 </body>
