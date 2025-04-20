@@ -55,7 +55,7 @@ const HomePage = () => {
 
   const fetchForms = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/admin/requests/", {
+      const response = await fetch("http://localhost:8000/api/delegated_requests", {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",

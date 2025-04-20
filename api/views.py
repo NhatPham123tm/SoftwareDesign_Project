@@ -715,3 +715,14 @@ class DelegateWork(APIView):
 
         serializer = DelegationSerializer(delegation)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class DelegatedRequestsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        delegated_requests = Delegation.objects.filter(delegatee=user).values_list('request', flat=True)
+        requests = Request.objects.filter(id__in=delegated_requests)
+
+        serializer = RequestSerializer(requests, many=True)
+        return Response(serializer.data)
