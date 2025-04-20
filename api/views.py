@@ -509,7 +509,7 @@ class IsAdminUserRole(BasePermission):
         return request.user.is_authenticated and getattr(request.user, 'role_id', None) == 1
     
 class AdminRequestsView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUserRole]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         submitted_requests = Request.objects.exclude(status='Draft')
         serializer = RequestSerializer(submitted_requests, many=True)

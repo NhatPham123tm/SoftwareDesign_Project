@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import './HomePage.css';
-import { useEffect } from "react";
+import Signature from "./Signature"; 
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
@@ -13,6 +13,67 @@ function getCSRFToken() {
 const HomePage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [role, setrole] = useState("");
+  const [forms, setForms] = useState([]);
+  const [userDelegations, setUserDelegations] = useState([]);
+  const [message, setMessage] = useState("");
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showDelegateModal, setShowDelegateModal] = useState(false);
+  const [selectedForm, setSelectedForm] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [signatureData, setSignatureData] = useState(null); 
+  const [signatureSaved, setSignatureSaved] = useState(false);
+  const formTypeNames = {
+    DiplomaRequestForm: "Diploma Request",
+    ChangeAddressForm: "Change of Address",
+    PayrollRequestForm: "Payroll Request",
+    ReimbursementForm: "Reimbursement Request",
+  };
+
+  const fetchUserDelegations = async() => {
+    try {
+      const response = await fetch("http://localhost:8000/api/user_delegations", {
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+        },
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserDelegations(data);
+      } else {
+        setMessage("Failed to fetch user delegations.");
+      }
+    } catch (error) {
+      setMessage("Error fetching forms: " + error.message);
+    }
+  }
+
+  const fetchForms = async () => {
+
+    try {
+      const response = await fetch("http://localhost:8000/api/admin/requests/", {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken(),
+      },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const nonDraftForms = data.filter(form => form.status !== "Draft");
+        setForms(nonDraftForms);
+      } else {
+        setMessage("Failed to fetch forms.");
+      }
+    } catch (error) {
+      setMessage("Error fetching forms:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchAuthData = async () => {
@@ -22,6 +83,7 @@ const HomePage = () => {
       if (localUserData && accessToken) {
         const user = JSON.parse(localUserData);
         login(user);
+        setrole(user.role)
         return;
       }
   
@@ -52,18 +114,261 @@ const HomePage = () => {
         navigate("/login");
       });
     };
-  
     fetchAuthData();
+    fetchForms();
+    fetchUserDelegations();
   }, []);
+
+  const handleApproval = async (id, status, reason = "") => {
+
+    const body = { status };
+    if (status === "rejected") {
+      body.reason_for_return = reason;
+    }
+    
+    if (signatureData) {
+      body.admin_signature = signatureData;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/admin/requests/${id}/${status}/`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken(),
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        setMessage(`Form ${status} successfully!`);
+        setForms((prevForms) =>
+          prevForms.map((form) =>
+            form.id === id
+              ? { ...form, status, reason_for_return: body.reason_for_return || "" }
+              : form
+          )
+        );
+        setSignatureData(null);
+
+        
+        setShowApproveModal(false);
+      } else {
+        setMessage("Failed to update form.");
+      }
+    } catch (error) {
+      console.error("Error approving/rejecting form:", error);
+      setMessage("Something went wrong. Please try again.");
+    }
+  };
   
   return (
-    <div className="home-container">
-      <div className="box-container">
-        <div className="box">
-          <h2>Welcome to Uranium City</h2>
-          <p>Under Maintenance</p>
+      <div className="home-container">
+      { role === 2 ? (
+        <div className="box-container">
+          <div className="box">
+            <h2>Welcome to Uranium City</h2>
+            <p>Under Maintenance</p>
+          </div>
         </div>
+      ) : (
+      <div className="admin-view-container">
+        <h2 className="admin-view-header">Tasks</h2>
+        {message && <p className="form-message">{message}</p>}
+
+        {forms.length === 0 ? (
+          <p className="no-forms-message">No matching forms found.</p>
+        ) : (
+          <table className="forms-table">
+            <thead>
+              <tr>
+                <th>Form Type</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Delegator</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {forms.map((form) => (
+                <tr key={form.id}>
+                  <td>{formTypeNames[form.form_type] || form.form_type}</td>
+                  <td>{form.data.name}</td>
+                  <td>{form.status}</td>
+                  <td>is null if originally assigned to this user, will say N/A or smthg</td>
+                  <td>
+                    <button
+                      className="approve-btn"
+                      onClick={() => {
+                        setSelectedForm(form);
+                        setShowApproveModal(true);
+                        setSignatureData(null); 
+                        setSignatureSaved(false); 
+                      }}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      className="reject-btn"
+                      onClick={() => {
+                        setSelectedForm(form);
+                        setShowRejectModal(true);
+                      }}
+                    >
+                      Reject
+                    </button>
+                    <button
+                      className="delegate-btn"
+                      onClick={() => {
+                        setSelectedForm(form);
+                        setShowDelegateModal(true);
+                        setSignatureData(null); 
+                        setSignatureSaved(false); 
+                      }}
+                    >
+                      Delegate
+                    </button>
+                    {form.pdf && (
+                      <div className="pdf-link">
+                        <a
+                          href={`http://localhost:8000${form.pdf}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View PDF
+                        </a>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {showApproveModal && selectedForm && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3>Approve Form</h3>
+              <p>Please sign to approve <strong>{selectedForm?.data?.name}'s</strong> form:</p>
+              <Signature label="Admin Signature" onSave={(signature) => {
+                setSignatureData(signature);
+                setSignatureSaved(true);  
+              }} />
+
+              <div className="modal-buttons">
+                <button
+                  className="reject-btn"
+                  onClick={() => {
+                    setShowApproveModal(false);
+                    setSelectedForm(null);
+                    setSignatureData(null);
+                    setSignatureSaved(false);
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="approve-btn"
+                  onClick={() => {
+                    if (signatureSaved) {
+                      handleApproval(selectedForm.id, "approved");
+                    } else {
+                      setMessage("Please provide a signature before submitting.");
+                    }
+                  }}
+                >
+                  Submit Approval
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showDelegateModal && selectedForm && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3>Delegatees</h3>
+
+              <select>
+                <option defaultValue="">Choose a Delegatee</option>
+                {userDelegations.map((delegatee, i) => (
+                  <option key={i} value={delegatee.id} >{delegatee.name} {delegatee.role_name}</option>
+                ))}
+
+              </select>
+
+              <div className="modal-buttons">
+                <button
+                  className="reject-btn"
+                  onClick={() => {
+                    setShowDelegateModal(false);
+                    setSelectedForm(null);
+                    setSignatureData(null);
+                    setSignatureSaved(false);
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="delegate-btn"
+                  onClick={() => {}}
+                >
+                  Delegate
+                </button>
+                
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showRejectModal && selectedForm && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3>Reject Form</h3>
+              <p>Please provide a reason for rejecting <strong>{selectedForm?.data?.name}'s</strong> form:</p>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter rejection reason..."
+              />
+              <div className="modal-buttons">
+                <button
+                  className="reject-btn"
+                  onClick={() => {
+                    setShowRejectModal(false);
+                    setRejectionReason("");
+                    setSelectedForm(null);
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="reject-btn"
+                  onClick={async () => {
+                    if (!rejectionReason.trim()) {
+                      setMessage("Rejection reason is required.");
+                      return;
+                    }
+
+                    await handleApproval(selectedForm.id, "rejected", rejectionReason);
+                    setShowRejectModal(false);
+                    setRejectionReason("");
+                    setSelectedForm(null);
+                  }}
+                >
+                  Submit Rejection
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+      )}
     </div>
   );
 };

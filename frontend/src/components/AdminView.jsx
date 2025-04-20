@@ -213,6 +213,18 @@ const AdminView = () => {
 
             <div className="modal-buttons">
               <button
+                className="reject-btn"
+                onClick={() => {
+                  setShowApproveModal(false);
+                  setSelectedForm(null);
+                  setSignatureData(null);
+                  setSignatureSaved(false);
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
                 className="approve-btn"
                 onClick={() => {
                   if (signatureSaved) {
@@ -223,17 +235,6 @@ const AdminView = () => {
                 }}
               >
                 Submit Approval
-              </button>
-              <button
-                className="reject-btn"
-                onClick={() => {
-                  setShowApproveModal(false);
-                  setSelectedForm(null);
-                  setSignatureData(null);
-                  setSignatureSaved(false);
-                }}
-              >
-                Cancel
               </button>
             </div>
           </div>
@@ -253,6 +254,17 @@ const AdminView = () => {
             <div className="modal-buttons">
               <button
                 className="reject-btn"
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectionReason("");
+                  setSelectedForm(null);
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="reject-btn"
                 onClick={async () => {
                   if (!rejectionReason.trim()) {
                     setMessage("Rejection reason is required.");
@@ -266,16 +278,6 @@ const AdminView = () => {
                 }}
               >
                 Submit Rejection
-              </button>
-              <button
-                className="reject-btn"
-                onClick={() => {
-                  setShowRejectModal(false);
-                  setRejectionReason("");
-                  setSelectedForm(null);
-                }}
-              >
-                Cancel
               </button>
             </div>
           </div>

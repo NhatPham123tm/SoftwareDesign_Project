@@ -77,6 +77,15 @@ button {
   background-color: #218838;
 }
 
+.delegate-btn {
+  background-color: #a7288c;
+  color: white;
+}
+
+.delegate-btn:hover {
+  background-color: #882177;
+}
+
 .reject-btn {
   background-color: #dc3545;
   color: white;

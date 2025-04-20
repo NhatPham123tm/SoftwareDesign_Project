@@ -24,24 +24,6 @@ const UserForms = () => {
     return match ? match[1] : null;
   };
 
-  // will add to homepage
-  // const fetchUserDelegations = async() => {
-  //   try {
-  //     const response = await fetch("http://localhost:8000/api/user_delegations", {
-  //       headers: {
-  //         'X-CSRFToken': getCSRFToken(),
-  //       },
-  //       method: "GET",
-  //       credentials: "include",
-  //     });
-
-  //     const data = await response.json();
-  //     console.log(data)
-  //   } catch (error) {
-  //     setMessage("Error fetching forms: " + error.message);
-  //   }
-  // }
-
   useEffect(() => {
     const fetchUserForms = async () => {
       try {
@@ -64,7 +46,6 @@ const UserForms = () => {
         setMessage("Error fetching forms: " + error.message);
       }
     };
-    // fetchUserDelegations()
     fetchUserForms();
   }, []);
 
