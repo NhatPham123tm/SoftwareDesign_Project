@@ -21,6 +21,7 @@
             <li><a href="#forms" onclick="showTab('forms'); stuff(); return false;">Forms</a></li>
             <li><a href="#workflow" onclick="showTab('workflow'); loadWorkflow(); return false;">Workflow Manager</a></li>
             <li><a href="#approvals" onclick="loadApprovals(); return false;">My Approvals</a></li>
+            <li><a href="#workassign" onclick="loadAllWorkAssigns(); return false;">Work Assign</a></li>
         </ul>
         <a href="" id="userLink">← Back to Dashboard</a>
     </div>
@@ -232,7 +233,7 @@
                         <option value="ChangeOfAddress">ChangeOfAddress</option>
                         <option value="DiplomaRequest">DiplomaRequest</option>
                     </select>
-                    <button onclick="createWorkflow()">Create</button>
+                    <button class="btn-primary" onclick="createWorkflow()">Create</button>
                 </div>
         
                 <hr>
@@ -261,6 +262,28 @@
             </div>
         </div>
         
+
+        <div class="part" id="workassign" style="display:none;">
+            <div class="container">
+              <h2>All Current Work Assignments</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Form Type</th>
+                    <th>Form ID</th>
+                    <th>Step</th>
+                    <th>Status</th>
+                    <th>Is Current</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="allWorkAssignTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{% static 'js/admin.js' %}" defer></script>
@@ -732,8 +755,8 @@ function stuff() {
                         list.innerHTML += `
                             <div class="workflow-card">
                                 <strong>${wf.name}</strong> (${wf.form_type})
-                                <button onclick="showSteps(${wf.id})">Manage Steps</button>
-                                <button onclick="deleteWorkflow(${wf.id})" style="color:red;">Delete</button>
+                                <button class="btn-primary" onclick="showSteps(${wf.id})">Manage Steps</button>
+                                <button class="del-button" onclick="deleteWorkflow(${wf.id})" ;">Delete</button>
                                 <div id="steps_${wf.id}"></div>
                             </div>`;
                     });
@@ -821,7 +844,7 @@ function stuff() {
                             Assigned to: <strong>${s.user_name || `${s.role_name} (${s.department || '—'})`}</strong>
                         </div>
                         <div class="step-actions">
-                            <button onclick="deleteStep(${s.id}, ${workflowId})" class="delete-btn">🗑 Delete</button>
+                            <button class="del-button" onclick="deleteStep(${s.id}, ${workflowId})">🗑 Delete</button>
                         </div>
                         </div>
                     `).join("")}
@@ -898,7 +921,7 @@ function stuff() {
                 })
                 .then(() => showSteps(workflowId))
                 .catch(error => {
-                    console.error("❌ Step creation failed:", error);
+                    console.error(" Step creation failed:", error);
                 });
             }
 
@@ -982,7 +1005,7 @@ function stuff() {
                                 <td>${row.name}</td>
                                 <td>${row.date || "—"}</td>
                                 <td>${row.status}</td>
-                                <td><a href="${viewUrl}" target="_blank"><button>View PDF</button></a></td>
+                                <td><a href="${viewUrl}" target="_blank"><button class="bts">View PDF</button></a></td>
                                 <td>
                                     <select onchange="updateAssignStatus(${row.id}, this.value)">
                                         <option value="">Select</option>
@@ -1015,5 +1038,71 @@ function stuff() {
 
         </script>
         
+        <script>
+            async function loadAllWorkAssigns() {
+                document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
+                document.getElementById('workassign').style.display = 'block';
+
+                const [assigns, users] = await Promise.all([
+                    fetch('/api/workassign/').then(res => res.json()),
+                    fetch('/api/users/').then(res => res.json())
+                ]);
+
+                const userMap = Object.fromEntries(users.map(u => [u.id, u.name]));
+                console.log(userMap);
+                const tbody = document.getElementById("allWorkAssignTableBody");
+                tbody.innerHTML = "";
+
+                assigns.forEach(item => {
+                    let formType = "Unknown";
+                    let formId = null;
+                    if (item.PayrollAssignment_id) {
+                    formType = "Payroll";
+                    formId = item.PayrollAssignment_id;
+                    } else if (item.ReimbursementRequest_id) {
+                    formType = "Reimburse";
+                    formId = item.ReimbursementRequest_id;
+                    } else if (item.ChangeOfAddress_id) {
+                    formType = "Address";
+                    formId = item.ChangeOfAddress_id;
+                    } else if (item.DiplomaRequest_id) {
+                    formType = "Diploma";
+                    formId = item.DiplomaRequest_id;
+                    }
+
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>${item.id}</td>
+                        <td>${userMap[item.user] || "—"}</td>
+                        <td>${formType}</td>
+                        <td>${formId || "—"}</td>
+                        <td>${item.step || "—"}</td>
+                        <td>${item.status}</td>
+                        <td>${item.is_current_step ? '✅' : '❌'}</td>
+                        <td><button class="del-button" onclick="deleteWorkAssign(${item.id})" ;">Delete</button></td>
+                    </tr>`;
+                });
+                }
+
+                function deleteWorkAssign(id) {
+                if (confirm("Are you sure you want to delete this work assignment?")) {
+                    fetch(`/api/workassign/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                    })
+                    .then(res => {
+                    if (res.ok) {
+                        alert("Deleted successfully.");
+                        loadAllWorkAssigns();
+                    } else {
+                        alert("Failed to delete assignment.");
+                    }
+                    });
+                }
+                }
+                </script>
+
 </body>
 </html>
