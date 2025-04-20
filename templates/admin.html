@@ -629,7 +629,25 @@ function stuff() {
 
 
         function deleteForm(id, type) {
-            const url = type === 'payroll' ? `/api/payroll/${id}/` : `/api/reimburse/${id}/`;
+            let url = "";
+
+            switch (type) {
+                case 'payroll':
+                    url = `/api/payroll/${id}/`;
+                    break;
+                case 'reimburse':
+                    url = `/api/reimburse/${id}/`;
+                    break;
+                case 'address':
+                    url = `/api/address/${id}/`;
+                    break;
+                case 'diploma':
+                    url = `/api/diploma/${id}/`;
+                    break;
+                default:
+                    console.error(`Unknown form type: ${type}`);
+                    return;
+            }
 
             if (confirm("Are you sure you want to delete this form?")) {
                 fetch(url, {
@@ -651,6 +669,31 @@ function stuff() {
                     console.error("Error deleting form:", error);
                 });
             }
+        }
+
+        function getCookie(name) {
+            const cookieValue = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+            return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : null;
+        }
+
+        function userLoad() {
+            fetch("/api/userLoad/")
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("userTableBody");
+                    tbody.innerHTML = "";
+                    data.forEach(user => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${user.name}</td>
+                                <td>${user.email}</td>
+                                <td>${user.status}</td>
+                                <td>${user.role}</td>
+                                <td><button onclick="openEditPanel(${user.id})">Edit</button></td>
+                                <td><button onclick="deleteUser(${user.id})">Delete</button></td>
+                            </tr>`;
+                    });
+                });
         }
     </script>
     
