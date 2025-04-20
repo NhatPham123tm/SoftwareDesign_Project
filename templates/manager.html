@@ -646,109 +646,110 @@
         closeModal();
       }
     }
-    
+    //Fix function to check if user exists instead of just making new row in database
     async function loadExistingWorkAssignments(employeeId) {
-      try {
-        console.log('Loading work assignments for employee ID:', employeeId);
+  try {
+    const [
+      payrollData, reimburseData, addressData, diplomaData, workAssignments
+    ] = await Promise.all([
+      fetch("/api/payroll/").then(res => res.json()),
+      fetch("/api/reimburse/").then(res => res.json()),
+      fetch("/api/address/").then(res => res.json()),
+      fetch("/api/diploma/").then(res => res.json()),
+      fetch("/api/work_assignments/").then(res => res.json())
+    ]);
 
-        const response = await fetch('/api/work_assignments/');
-        if (!response.ok) {
-          throw new Error(`Failed to fetch assignments. Status: ${response.status}`);
-        }
+    const allForms = [
+      ...payrollData.map(f => ({ ...f, type: "Payroll", department: "finance" })),
+      ...reimburseData.map(f => ({ ...f, type: "Reimbursement", department: "finance" })),
+      ...addressData.map(f => ({ ...f, type: "Change of Address", department: "registrar" })),
+      ...diplomaData.map(f => ({ ...f, type: "Diploma Request", department: "registrar" }))
+    ];
 
-        const assignments = await response.json();
-        console.log('Fetched work assignments:', assignments);
+    const tableBody = document.getElementById("workAssignmentTableBody");
+    tableBody.innerHTML = "";
 
-        const tableBody = document.getElementById('workAssignmentTableBody');
-        tableBody.innerHTML = '';
+    const dept = managerRole.department.toLowerCase();
+    const isSuperManager = managerRole.id == 1;
 
-        if (!assignments || assignments.length === 0) {
-          tableBody.innerHTML = '<tr><td colspan="5">No work assignments found in the system</td></tr>';
-          return;
-        }
+    // Extract all assigned form IDs for each type
+    const assignedFormIds = new Set();
+    workAssignments.forEach(assign => {
+      if (assign.PayrollAssignment_id_id) assignedFormIds.add(`Payroll-${assign.PayrollAssignment_id_id}`);
+      if (assign.ReimbursementRequest_id_id) assignedFormIds.add(`Reimbursement-${assign.ReimbursementRequest_id_id}`);
+      if (assign.ChangeOfAddress_id_id) assignedFormIds.add(`Change of Address-${assign.ChangeOfAddress_id_id}`);
+      if (assign.DiplomaRequest_id_id) assignedFormIds.add(`Diploma Request-${assign.DiplomaRequest_id_id}`);
+    });
 
-        const delegatableAssignments = assignments.filter(
-          assignment => assignment.user_id != employeeId
-        );
+    // Filter only pending, unassigned forms
+    const filteredForms = allForms.filter(form =>
+      form.status === "Pending" &&
+      (isSuperManager || form.department === dept) &&
+      !assignedFormIds.has(`${form.type}-${form.id}`)
+    );
 
-        console.log('Delegatable assignments:', delegatableAssignments);
-
-        if (delegatableAssignments.length === 0) {
-          tableBody.innerHTML = '<tr><td colspan="5">No assignments available for delegation</td></tr>';
-          return;
-        }
-
-        delegatableAssignments.forEach(assignment => {
-          let formType = 'Unknown';
-          let formId = 'N/A';
-
-          if (assignment.PayrollAssignment_id_id) {
-            formType = 'Payroll';
-            formId = assignment.PayrollAssignment_id_id;
-          } else if (assignment.ReimbursementRequest_id_id) {
-            formType = 'Reimbursement';
-            formId = assignment.ReimbursementRequest_id_id;
-          } else if (assignment.ChangeOfAddress_id_id) {
-            formType = 'Change of Address';
-            formId = assignment.ChangeOfAddress_id_id;
-          } else if (assignment.DiplomaRequest_id_id) {
-            formType = 'Diploma Request';
-            formId = assignment.DiplomaRequest_id_id;
-          }
-
-          const deadlineDate = assignment.deadline
-            ? new Date(assignment.deadline).toLocaleString()
-            : 'No deadline';
-
-          tableBody.innerHTML += `
-            <tr>
-              <td>${formType}</td>
-              <td>${formId}</td>
-              <td>${assignment.status || 'Unknown'}</td>
-              <td>${deadlineDate}</td>
-              <td>
-                <button class="btn" onclick="delegateWorkAssignment(${assignment.id}, ${employeeId})">
-                  Assign
-                </button>
-              </td>
-            </tr>
-          `;
-        });
-      } catch (error) {
-        console.error('Error loading work assignments:', error);
-        document.getElementById('workAssignmentTableBody').innerHTML =
-          `<tr><td colspan="5">Error loading work assignments: ${error.message}</td></tr>`;
-      }
+    if (filteredForms.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="5">No unassigned pending forms available for your department</td></tr>';
+      return;
     }
 
+    filteredForms.forEach(form => {
+      const deadline = form.deadline ? new Date(form.deadline).toLocaleString() : "No deadline";
+      tableBody.innerHTML += `
+        <tr>
+          <td>${form.type}</td>
+          <td>${form.id}</td>
+          <td>${form.status}</td>
+          <td>${deadline}</td>
+          <td>
+            <button class="btn" onclick="delegateWorkAssignment(${form.id}, ${employeeId}, '${form.type}')">
+              Assign
+            </button>
+          </td>
+        </tr>
+      `;
+    });
 
-    async function delegateWorkAssignment(originalAssignmentId, newAssigneeId) {
-      try {
-        console.log(`Delegating assignment ${originalAssignmentId} to employee ${newAssigneeId}`);
+  } catch (error) {
+    console.error("Error loading forms:", error);
+    document.getElementById("workAssignmentTableBody").innerHTML =
+      `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+  }
+}
 
-        const formData = new FormData();
-        formData.append('original_id', originalAssignmentId);
-        formData.append('new_assignee_id', newAssigneeId);
 
-        const response = await fetch('/delegate_work_assignment/', {
-          method: 'POST',
-          body: formData
-        });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText || 'Failed to delegate work assignment');
-        }
+async function delegateWorkAssignment(formId, employeeId, formType) {
+  try {
+    console.log(`Delegating ${formType} form (ID: ${formId}) to employee ID ${employeeId}`);
 
-        const result = await response.json();
-        alert(result.message || 'Work delegated successfully!');
+    const formData = new FormData();
+    formData.append("form_id", formId);
+    formData.append("employee_id", employeeId);
+    formData.append("form_type", formType);
 
-        loadExistingWorkAssignments(newAssigneeId);
-
-      } catch (error) {
-        console.error('Error delegating work assignment:', error);
-        alert(`Error: ${error.message}`);
-      }
+    const response = await fetch('/delegate_work_assignment/', {
+  method: 'POST',
+  body: formData,
+  headers: {
+    "X-CSRFToken": getCookie("csrftoken"),
+  }
+});
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Failed to delegate form");
     }
+
+    const result = await response.json();
+    alert(result.message || "Work assigned successfully!");
+
+    // Reload updated assignment list
+    loadExistingWorkAssignments(employeeId);
+
+  } catch (error) {
+    console.error("Error delegating form:", error);
+    alert(`Error: ${error.message}`);
+  }
+}
 </script>
 </html>
