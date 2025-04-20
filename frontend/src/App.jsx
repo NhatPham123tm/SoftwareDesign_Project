@@ -6,6 +6,8 @@ import Header from './components/Header';
 import HomePage from './components/HomePage';
 import ChangeAddressForm from './components/ChangeAddressForm';
 import DiplomaRequestForm from './components/DiplomaRequestForm';
+import ReimbursementForm from './components/ReimbursementForm';
+import PayrollRequestForm from './components/PayrollRequestForm';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import UserForms from "./components/UserForms";
@@ -28,6 +30,8 @@ function App() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/changeAddressForm" element={<ChangeAddressForm />} />
           <Route path="/diplomaRequestForm" element={<DiplomaRequestForm />} />
+          <Route path="/reimbursementForm" element={<ReimbursementForm />} />
+          <Route path="/payrollRequestForm" element={<PayrollRequestForm />} />
           <Route path="/forms" element={<UserForms />} />
           <Route path="/microsoft-callback" element={<MicrosoftCallback />} />
           <Route path="/admin/requests" element={<AdminView />} />

@@ -417,8 +417,12 @@ class RequestSubmitView(APIView):
             template_name = "pdf_templates/diploma_template.tex"
             if request_instance.form_type == "ChangeAddressForm":
                 template_name = "pdf_templates/change_address_template.tex"
+            elif request_instance.form_type == "ReimbursementForm":
+                template_name = "pdf_templates/reimbursement_template.tex"
+            elif request_instance.form_type == "PayrollRequestForm":
+                template_name = "pdf_templates/payroll_template.tex"
             context = request_instance.data
-            
+
             try:
                 pdf_path = self.generate_pdf(request, template_name, context, request_instance)
                 if not pdf_path:
@@ -572,6 +576,10 @@ class RequestApprovalView(APIView):
             template_name = "pdf_templates/diploma_template_admin.tex"
             if request_instance.form_type == "ChangeAddressForm":
                 template_name = "pdf_templates/change_address_template_admin.tex"
+            elif request_instance.form_type == "ReimbursementForm":
+                template_name = "pdf_templates/reimbursement_template.tex"
+            elif request_instance.form_type == "PayrollRequestForm":
+                template_name = "pdf_templates/payroll_template.tex"
             context = request_instance.data
 
             try:

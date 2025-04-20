@@ -18,6 +18,8 @@ const AdminView = () => {
   const formTypeNames = {
     DiplomaRequestForm: "Diploma Request",
     ChangeAddressForm: "Change of Address",
+    PayrollRequestForm: "Payroll Request",
+    ReimbursementRequestForm: "Reimbursement Request",
   };
   
   function getCSRFToken() {
@@ -184,7 +186,7 @@ const AdminView = () => {
                   {form.pdf && (
                     <div className="pdf-link">
                       <a
-                        href={`http://localhost:8000/${form.pdf}`}
+                        href={`http://localhost:8000${form.pdf}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
