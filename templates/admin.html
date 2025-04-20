@@ -19,9 +19,8 @@
             <li><a href="#dashboard" onclick="showTab('dashboard'); return false;" class="active">Summary</a></li>
             <li><a href="#users" onclick="showTab('users'); userLoad(); return false;">Users</a></li>
             <li><a href="#forms" onclick="showTab('forms'); stuff(); return false;">Forms</a></li>
-            <li><a href="#workflow" onclick="showTab('workflow'); loadWorkflow(); return false;">Workflow Manager</
+            <li><a href="#workflow" onclick="showTab('workflow'); loadWorkflow(); return false;">Workflow Manager</a></li>
             <li><a href="#approvals" onclick="loadApprovals(); return false;">My Approvals</a></li>
-a></li>
         </ul>
         <a href="" id="userLink">← Back to Dashboard</a>
     </div>
@@ -805,37 +804,49 @@ function stuff() {
         }
 
         function loadApprovals() {
-            document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
-            document.getElementById('approvals').style.display = 'block';
+    document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
+    document.getElementById('approvals').style.display = 'block';
 
-            fetch("/api/my_work/")
-                .then(res => res.json())
-                .then(data => {
-                    const tbody = document.getElementById("approvalTableBody");
-                    tbody.innerHTML = "";
+    fetch("/api/my_work/")
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById("approvalTableBody");
+            tbody.innerHTML = "";
 
-                    data.forEach(row => {
-                        const viewUrl = `/view_${row.form_type.toLowerCase()}_pdf2/${row.form_id}/`;
+            data.forEach(row => {
+                let viewUrl = "#";
+                const formType = row.form_type.toLowerCase();
 
-                        tbody.innerHTML += `
-                            <tr>
-                                <td>${row.form_type}</td>
-                                <td>${row.step_label}</td>
-                                <td>${row.name}</td>
-                                <td>${row.date || "—"}</td>
-                                <td>${row.status}</td>
-                                <td><a href="${row.pdf_url}" target="_blank">View PDF</a></td>
-                                <td>
-                                    <select onchange="updateAssignStatus(${row.id}, this.value)">
-                                        <option value="">Select</option>
-                                        <option value="Completed">Approve</option>
-                                        <option value="Rejected">Reject</option>
-                                    </select>
-                                </td>
-                            </tr>`;
-                    });
-                });
+                if (formType === "payroll") {
+                    viewUrl = `/view_payroll_pdf2/${row.form_id}/`;
+                } else if (formType === "reimburse") {
+                    viewUrl = `/view_pdf2/${row.form_id}/`;
+                } else if (formType === "address") {
+                    viewUrl = `/view_change_address_pdf3/${row.form_id}/`;
+                } else if (formType === "diploma") {
+                    viewUrl = `/view-diploma-pdf3/${row.form_id}/`;
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${row.form_type}</td>
+                        <td>${row.step_label}</td>
+                        <td>${row.name}</td>
+                        <td>${row.date || "—"}</td>
+                        <td>${row.status}</td>
+                        <td><a href="${viewUrl}" target="_blank">View PDF</a></td>
+                        <td>
+                            <select onchange="updateAssignStatus(${row.id}, this.value)">
+                                <option value="">Select</option>
+                                <option value="Completed">Approve</option>
+                                <option value="Rejected">Reject</option>
+                            </select>
+                        </td>
+                    </tr>`;
+            });
+        });
 }
+
 
         function updateAssignStatus(assignId, newStatus) {
             fetch(`/api/workassign/${assignId}/`, {
