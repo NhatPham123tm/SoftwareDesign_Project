@@ -698,23 +698,33 @@ class RequestApprovalView(APIView):
             return None
         
 def delegate_work_assignment(request):
-    original_id = request.POST.get('original_id')
-    new_assignee_id = request.POST.get('new_assignee_id')
+    form_id = request.POST.get('form_id')
+    employee_id = request.POST.get('employee_id')
+    form_type = request.POST.get('form_type')
 
     try:
-        original = get_object_or_404(work_assign, id=original_id)
-        new_assignee = get_object_or_404(user_accs, id=new_assignee_id)
+        new_assignee = get_object_or_404(user_accs, id=employee_id)
 
         delegated = work_assign(
             user=new_assignee,
             created_by=request.user,
-            deadline=original.deadline,
             status='Pending',
-            ChangeOfAddress_id=original.ChangeOfAddress_id,
-            DiplomaRequest_id=original.DiplomaRequest_id,
-            PayrollAssignment_id=original.PayrollAssignment_id,
-            ReimbursementRequest_id=original.ReimbursementRequest_id,
         )
+
+        # Optional: Set a default deadline if needed
+        # delegated.deadline = timezone.now() + timedelta(days=7)
+
+        # Assign only the specific form
+        if form_type == 'Payroll':
+            delegated.PayrollAssignment_id_id = form_id
+        elif form_type == 'Reimbursement':
+            delegated.ReimbursementRequest_id_id = form_id
+        elif form_type == 'Change of Address':
+            delegated.ChangeOfAddress_id_id = form_id
+        elif form_type == 'Diploma Request':
+            delegated.DiplomaRequest_id_id = form_id
+        else:
+            return JsonResponse({'error': 'Invalid form type'}, status=400)
 
         delegated.save()
         return JsonResponse({'message': 'Work reassigned successfully.'})
