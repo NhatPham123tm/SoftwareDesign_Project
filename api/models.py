@@ -122,9 +122,15 @@ class WorkflowStep(models.Model):
             raise ValidationError("You must specify either a role or a user for this step.")
         if self.role and self.user:
             raise ValidationError("Only one of role or user can be set for a step.")
+        if WorkflowStep.objects.filter(workflow=self.workflow, step_order=self.step_order).exclude(pk=self.pk).exists():
+            raise ValidationError("A step with this order already exists in this workflow.")
 
     class Meta:
         ordering = ['step_order']
+        constraints = [
+            models.UniqueConstraint(fields=["workflow", "step_order"], name="unique_step_order_per_workflow")
+        ]
+
 
     def __str__(self):
         target = self.user.name if self.user else self.role.role_name
