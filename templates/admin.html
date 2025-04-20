@@ -659,18 +659,37 @@ function stuff() {
         function loadWorkflow() {
             document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
             document.getElementById('workflow').style.display = 'block';
-        
+
             fetch("/api/workflows/")
                 .then(res => res.json())
                 .then(data => {
                     const list = document.getElementById("workflowList");
+                    const formTypeDropdown = document.getElementById("workflowFormType");
+
                     list.innerHTML = "";
+
+                    // Reset all options first
+                    Array.from(formTypeDropdown.options).forEach(opt => {
+                        opt.disabled = false;
+                        opt.textContent = opt.value;  // reset text
+                    });
+
+                    // Process existing workflows
+                    const usedFormTypes = data.map(wf => wf.form_type);
+                    usedFormTypes.forEach(formType => {
+                        const option = Array.from(formTypeDropdown.options).find(opt => opt.value === formType);
+                        if (option) {
+                            option.disabled = true;
+                            option.textContent += " (used)";
+                        }
+                    });
+
+                    // Render workflow list
                     data.forEach(wf => {
                         list.innerHTML += `
-                            <div>
+                            <div class="workflow-card">
                                 <strong>${wf.name}</strong> (${wf.form_type})
                                 <button onclick="showSteps(${wf.id})">Manage Steps</button>
-                                <div id="steps_${wf.id}"></div>
                                 <button onclick="deleteWorkflow(${wf.id})" style="color:red;">Delete</button>
                                 <div id="steps_${wf.id}"></div>
                             </div>`;

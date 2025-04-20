@@ -99,8 +99,8 @@ class Workflow(models.Model):
         ('DiplomaRequest', 'DiplomaRequest'),
     ]
     
-    name = models.CharField(max_length=100)
-    form_type = models.CharField(max_length=50, choices=FORM_TYPE_CHOICES)
+    name = models.CharField(max_length=100, unique=True)
+    form_type = models.CharField(max_length=50, choices=FORM_TYPE_CHOICES, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

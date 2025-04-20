@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from api.models import Workflow, WorkflowStep, roles, user_accs
 from django.shortcuts import get_object_or_404
+from django.db import IntegrityError
 
 def assign_workflow_steps(form_instance):
     form_type = form_instance.__class__.__name__
@@ -140,8 +141,12 @@ def workflow_list_create(request):
         form_type = request.data.get("form_type")
         if not name or not form_type:
             return Response({"error": "Missing fields"}, status=400)
-        workflow = Workflow.objects.create(name=name, form_type=form_type)
-        return Response({"id": workflow.id, "name": workflow.name}, status=201)
+        try:
+            workflow = Workflow.objects.create(name=name, form_type=form_type)
+            return Response({"id": workflow.id, "name": workflow.name}, status=201)
+        except IntegrityError:
+            print(" A workflow for this form type already exists.")
+        
 
 
 @api_view(["GET", "POST"])
