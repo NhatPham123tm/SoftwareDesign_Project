@@ -615,6 +615,32 @@
         managerRole.department = data.role.department;
       });
       console.log("Retrieved manager:",managerRole.id);
+
+      await fetch("/api/get_managerLoad/")
+        .then(response => response.json())
+        .then(data => {
+          console.log(data);
+          const managerBody = document.getElementById('managerTableBody');
+          managerBody.innerHTML = '';
+
+          data.users.forEach(user => {
+            managerBody.innerHTML += `
+              <tr>
+                <td>${user.id}</td>
+                <td>${user.name}</td>
+                <td>${user.email}</td>
+                <td>${user.role.department}</td>
+                <td>
+                  ${user.id !== currUserData.id ? 
+                    `<button class="btn" onclick="openWorkAssignModal(${user.id}, '${user.name}')">Assign Work</button>` 
+                    : ''}
+                </td>
+              </tr>`;
+          });
+        })
+        .catch(error => {
+          console.error('Error loading managers:', error);
+        });
       
       await fetch("/api/get_userLoad/")
       .then(response => response.json())
