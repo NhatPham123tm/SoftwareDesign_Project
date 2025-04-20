@@ -253,6 +253,8 @@ def my_work_assignments(request):
             name = form.employee_name
             date = form.todays_date
             pdf_url = form.pdf_url
+            userID = form.user.id
+
         elif a.ReimbursementRequest_id:
             form = a.ReimbursementRequest_id
             form_type = "Reimburse"
@@ -260,6 +262,8 @@ def my_work_assignments(request):
             name = form.employee_name
             date = form.today_date
             pdf_url = form.pdf_url
+            userID = form.user.id
+
         elif a.ChangeOfAddress_id:
             form = a.ChangeOfAddress_id
             form_type = "Address"
@@ -267,6 +271,8 @@ def my_work_assignments(request):
             name = form.name
             date = form.date_submitted
             pdf_url = form.pdf_url
+            userID = form.user.id
+
         elif a.DiplomaRequest_id:
             form = a.DiplomaRequest_id
             form_type = "Diploma"
@@ -274,12 +280,14 @@ def my_work_assignments(request):
             name = form.name
             date = form.date_submitted
             pdf_url = form.pdf_url
+            userID = form.user.id
 
         data.append({
             "id": a.id,
             "form_type": form_type,
             "form_id": form_id,
             "name": name,
+            "user_id": userID,
             "date": date,
             "step_label": a.step.label if a.step else "—",
             "pdf_url": pdf_url,
