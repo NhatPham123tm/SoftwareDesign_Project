@@ -61,17 +61,20 @@ def assign_workflow_steps(form_instance):
 def advance_to_next_workflow_step(form_instance):
     form_type = form_instance.__class__.__name__
 
-    current_assignments = work_assign.objects.filter(
-        is_current_step=True,
-        PayrollAssignment_id=form_instance if form_type == "PayrollAssignment" else None,
-        ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
-        ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
-        DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
-    )
+    if form_type == "PayrollAssignment":
+        current_assignments = work_assign.objects.filter(PayrollAssignment_id=form_instance, is_current_step=True)
+    elif form_type == "ReimbursementRequest":
+        current_assignments = work_assign.objects.filter(ReimbursementRequest_id=form_instance, is_current_step=True)
+    elif form_type == "ChangeOfAddress":
+        current_assignments = work_assign.objects.filter(ChangeOfAddress_id=form_instance, is_current_step=True)
+    elif form_type == "DiplomaRequest":
+        current_assignments = work_assign.objects.filter(DiplomaRequest_id=form_instance, is_current_step=True)
+    else:
+        current_assignments = work_assign.objects.none()
 
     if not current_assignments.exists():
         return
-
+    
     current_step_order = current_assignments.first().step.step_order
     workflow = current_assignments.first().step.workflow
 
@@ -80,6 +83,7 @@ def advance_to_next_workflow_step(form_instance):
 
     # Get next step
     next_step = WorkflowStep.objects.filter(workflow=workflow, step_order=current_step_order + 1).first()
+    
     if next_step:
         # Assign next step
         assign_workflow_steps_for_step(form_instance, next_step)
@@ -91,7 +95,7 @@ def advance_to_next_workflow_step(form_instance):
 
 def assign_workflow_steps_for_step(form_instance, step):
     form_type = form_instance.__class__.__name__
-
+    
     if step.user:
         work_assign.objects.create(
             user=step.user,
@@ -219,7 +223,12 @@ def delete_workflow_step(request, step_id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def my_work_assignments(request):
-    assignments = work_assign.objects.filter(user=request.user, is_current_step=True).select_related(
+    try:
+        user_obj = user_accs.objects.get(email=request.user.email)
+    except user_accs.DoesNotExist:
+        return Response([], status=200)
+
+    assignments = work_assign.objects.filter(user=user_obj, is_current_step=True).select_related(
         'step', 'PayrollAssignment_id', 'ReimbursementRequest_id',
         'ChangeOfAddress_id', 'DiplomaRequest_id'
     )

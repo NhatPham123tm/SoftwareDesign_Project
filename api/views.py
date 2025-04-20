@@ -94,13 +94,10 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
                 serializer.save()
 
                 new_status = request.data.get("status")
-
+                print("  new_status:", new_status)
                 # Mark this work assignment as done
                 if new_status in ["Completed", "Rejected"]:
-                    assignment.status = "Completed"
-                    assignment.is_current_step = False
-                    assignment.save()
-
+            
                     # Identify the actual form instance (DiplomaRequest, etc.)
                     form = (
                         assignment.PayrollAssignment_id or
@@ -108,26 +105,29 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
                         assignment.ChangeOfAddress_id or
                         assignment.DiplomaRequest_id
                     )
+                    if assignment.step is None:
+                        return Response({"detail": "Workflow step is not assigned."}, status=400)
 
                     workflow = assignment.step.workflow
                     current_step_order = assignment.step.step_order
                     next_step = workflow.steps.filter(step_order__gt=current_step_order).order_by("step_order").first()
-
+                    print("  next_step found:", next_step)
                     if new_status == "Completed":
+                    # advance_to_next_workflow_step handle marking current step completed
                         if next_step:
-                            # More steps to go
                             advance_to_next_workflow_step(form)
                         else:
-                            # Final step completed — approve the form
                             form.status = "Approved"
                             form.approve_date = now().date()
                             form.save()
                     elif new_status == "Rejected":
-                        # Rejected at any step ends the flow
+                        # This stays manual — we reject immediately
+                        assignment.status = "Completed"
+                        assignment.is_current_step = False
+                        assignment.save()
                         form.status = "Rejected"
                         form.approve_date = now().date()
                         form.save()
-
                 return Response(WorkAssignSerializer(assignment).data)
 
             return Response(serializer.errors, status=400)
