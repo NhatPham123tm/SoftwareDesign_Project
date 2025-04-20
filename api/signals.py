@@ -1,9 +1,38 @@
-from django.db.models.signals import post_migrate
+from django.db.models.signals import post_migrate, post_save
+from django.dispatch import receiver
 from django.dispatch import receiver
 from django.contrib.auth.hashers import make_password
-from api.models import roles, user_accs, permission, user_ura_accs
-from api.models import Workflow, WorkflowStep
+from api.models import roles, user_accs, permission, user_ura_accs, work_assign, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest
 
+
+
+# --- Form status update signal (Completed if Approved/Rejected) ---
+def mark_related_work_completed(instance, form_type):
+    if instance.status in ["Approved", "Rejected"]:
+        work_assign.objects.filter(**{f"{form_type}_id": instance}).update(status="Completed")
+
+
+@receiver(post_save, sender=DiplomaRequest)
+def handle_diploma_status(sender, instance, **kwargs):
+    mark_related_work_completed(instance, "DiplomaRequest")
+
+
+@receiver(post_save, sender=ChangeOfAddress)
+def handle_address_status(sender, instance, **kwargs):
+    mark_related_work_completed(instance, "ChangeOfAddress")
+
+
+@receiver(post_save, sender=ReimbursementRequest)
+def handle_reimburse_status(sender, instance, **kwargs):
+    mark_related_work_completed(instance, "ReimbursementRequest")
+
+
+@receiver(post_save, sender=PayrollAssignment)
+def handle_payroll_status(sender, instance, **kwargs):
+    mark_related_work_completed(instance, "PayrollAssignment")
+
+
+# --- Initialize default roles, users, and permissions after migrations ---
 @receiver(post_migrate)
 def initialize_data(sender, **kwargs):
     """Initialize default roles, users, and permissions after migrations."""
