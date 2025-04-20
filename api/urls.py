@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework_nested import routers
 from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, RoleViewSet, PermissionViewSet, PayrollAssignmentViewSet, ReimbursementRequestViewSet, ChangeOfAddressViewSet, DiplomaRequestViewSet, UserURAViewSet
+from .views import UserViewSet, RoleViewSet, PermissionViewSet, PayrollAssignmentViewSet, ReimbursementRequestViewSet, ChangeOfAddressViewSet, DiplomaRequestViewSet, UserURAViewSet, DelegateWork
 from .views import RequestSubmitView, SignupView, LoginView, UserFormsView, servePDF, RequestDeleteView, AdminRequestsView, RequestApprovalView, WorkAssignViewSet, UsersDelegationView
 from authentication import views
 
@@ -35,5 +35,6 @@ urlpatterns = [
     path('forms/<int:pk>/delete/', RequestDeleteView.as_view(), name='delete_form'),
     path('admin/requests/<int:pk>/approved/', RequestApprovalView.as_view(), name='admin-approve-request'),
     path('admin/requests/<int:pk>/rejected/', RequestApprovalView.as_view(), name='admin-reject-request'),
-    path('user_delegations', UsersDelegationView.as_view(), name="user_delegations")
+    path('user_delegations', UsersDelegationView.as_view(), name="user_delegations"),
+    path('delegate', DelegateWork.as_view(), name='delegate-work'),
 ]

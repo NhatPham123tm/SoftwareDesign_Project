@@ -2,8 +2,8 @@ from rest_framework import viewsets, filters
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
-from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, user_ura_accs, work_assign
-from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer, ChangeOfAddressSerializer, DiplomaRequestSerializer, UserURASerializer, RequestSerializer, WorkAssignSerializer
+from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, user_ura_accs, work_assign, Delegation
+from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer, ChangeOfAddressSerializer, DiplomaRequestSerializer, UserURASerializer, RequestSerializer, WorkAssignSerializer, DelegationSerializer
 import os
 import base64
 import requests
@@ -352,8 +352,10 @@ class RequestSubmitView(APIView):
         status_value = form_data.get("status", "draft")
         signature_data = form_data.get('signature')
         signature_file = None
+
         if signature_data:
             signature_file = self._convert_base64_to_image(signature_data)
+
         try:
             request_instance = Request.objects.create(
                 user=user,
@@ -362,12 +364,26 @@ class RequestSubmitView(APIView):
                 data=form_data,
                 signature=signature_file
             )
-            
-            return self._process_request(request, request_instance, status_value)
-            
         except Exception as e:
             return Response({"error": f"Failed to save the request: {str(e)}"}, 
-                           status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Temporary before deciding on who gets delegated when user submits a request
+        # Will change to first available employee in the future
+        # Example will go to first employee without a delegation, if all have 1 delegation, then it will go to the first employee and so on
+        try:
+            first_employee = user_accs.objects.filter(role__role_name='employee').first()
+            if first_employee:
+                Delegation.objects.create(
+                    request=request_instance,
+                    delegator=user,
+                    delegatee=first_employee
+                )
+        except Exception as e:
+            print(f"Delegation error: {e}")
+
+        return self._process_request(request, request_instance, status_value)
+
 
     def put(self, request, pk=None):
         if not request.data:
@@ -679,3 +695,28 @@ def get_work_assignments(request):
     assignments = list(work_assign.objects.all().values())
     return JsonResponse(assignments, safe=False)
     
+
+class DelegateWork(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        request_data = request.data
+        
+        if 'request' not in request_data or 'delegatee' not in request_data:
+            return Response({"detail": "Request and delegatee are required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        request_id = request_data['request']
+        delegatee_id = request_data['delegatee']
+        
+        request_instance = get_object_or_404(Request, id=request_id)
+        
+        delegator = request.user
+
+        delegation = Delegation.objects.create(
+            request=request_instance,
+            delegator=delegator,
+            delegatee_id=delegatee_id
+        )
+        serializer = DelegationSerializer(delegation)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

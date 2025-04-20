@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, Request, ChangeOfAddress, DiplomaRequest, user_ura_accs, work_assign
+from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, Request, ChangeOfAddress, DiplomaRequest, user_ura_accs, work_assign, Delegation
 from django.contrib.auth.hashers import make_password
 
 
@@ -97,3 +97,11 @@ class RequestSerializer(serializers.ModelSerializer):
         model = Request
         fields = ['id', 'status', 'reason_for_return', 'data', 'form_type', 'pdf', 'signature', 'admin_signature']
         read_only_fields = ['id'] 
+
+class DelegationSerializer(serializers.ModelSerializer):
+    delegatee_role = serializers.CharField(source='delegatee.role.role_name', read_only=True)
+
+    class Meta:
+        model = Delegation
+        fields = ['id', 'request', 'delegator', 'delegatee', 'created_at', 'delegatee_role']
+

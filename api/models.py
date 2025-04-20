@@ -446,6 +446,15 @@ class Request(models.Model):
                 name='unique_pending_form_request_per_user'
             )
         ]
+        
+class Delegation(models.Model):
+    request = models.ForeignKey(Request, on_delete=models.CASCADE, related_name='delegations')
+    delegator = models.ForeignKey(user_accs, on_delete=models.CASCADE, related_name='delegations_made')
+    delegatee = models.ForeignKey(user_accs, on_delete=models.CASCADE, related_name='delegations_received')
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.delegator} delegated to {self.delegatee} for request {self.request.id}"
 
 
 class ChangeOfAddress(models.Model):
