@@ -456,11 +456,12 @@
                     } else if (formType === "diploma") {
                         viewUrl = `/view-diploma-pdf3/${row.form_id}/`;
                     }
-
+                    
+                    const stepDisplay = row.delegated ? "Delegated" : row.step_label;
                     tbody.innerHTML += `
                         <tr>
                             <td>${row.form_type}</td>
-                            <td>${row.step_label}</td>
+                            <td>${stepDisplay}</td>
                             <td>${row.name}</td>
                             <td>${row.user_id}</td>
                             <td>${row.date || "—"}</td>
@@ -481,7 +482,43 @@
             });
       }
 
+        function openDelegateModal(assignId) {
+          const targetUserId = prompt("Enter the user ID to delegate this task to:");
+          if (!targetUserId) return;
 
+          const userData = localStorage.getItem("user_data");
+          if (!userData) {
+            alert("You are not logged in.");
+            return;
+          }
+
+          const createdById = JSON.parse(userData).id;
+
+          fetch(`/api/delegate/${assignId}/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({
+              target_user_id: targetUserId,
+              created_by_id: createdById
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.message) {
+              alert(data.message);
+              loadApprovals();  // Refresh the table
+            } else {
+              alert("Delegation failed: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch(err => {
+            console.error("Delegation error:", err);
+            alert("Error occurred while delegating.");
+          });
+        }
         function updateAssignStatus(assignId, newStatus) {
             fetch(`/api/workassign/${assignId}/`, {
                 method: "PATCH",
