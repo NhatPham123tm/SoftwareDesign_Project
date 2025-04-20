@@ -3,7 +3,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group, Permission
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.db.models import JSONField 
+from django.db.models import JSONField, Q
 
 class roles(models.Model):
     ROLE_CHOICES = [
@@ -19,9 +19,19 @@ class roles(models.Model):
         ('registrar', 'registrar'),
     ]
 
+    # only useful for employees, admins and managers are all
+    SUBDEPARTMENT_CHOICES = [
+        ('all', 'all'),
+        ('payroll', 'payroll'),
+        ('reimbursement', 'reimbursement'),
+        ('address', 'address'),
+        ('diploma', 'diploma'),
+    ]
+
     role_name = models.CharField(max_length=30, choices=ROLE_CHOICES)
     level = models.IntegerField(default=99)  # 0 for admin, 99 for user, 1->98 for other roles
     department = models.CharField(max_length=30, choices=DEPARTMENT_CHOICES, default='all')
+    subdepartment = models.CharField(max_length=30, choices=SUBDEPARTMENT_CHOICES, default='all')
     # Only admin and basic user can be in 'all' departments
     # Employee and manager can be in specific departments
 
@@ -35,6 +45,16 @@ class roles(models.Model):
                 existing_admins = existing_admins.exclude(pk=self.pk)
             if existing_admins.exists():
                 raise ValidationError("There can only be one admin role (level=0).")
+    
+    # Employees can only delegate to employees of same subdepartment or managers of same department
+    # Managers can only delegate to managers of same department or admins
+    def delegatable_roles(self):
+        if(self.role_name == "employee"):
+            return roles.objects.filter((Q(role_name="manager") & Q(department=self.department)) | (Q(role_name="employee") & Q(subdepartment=self.subdepartment)))
+        elif(self.role_name == "manager"):
+            return roles.objects.filter((Q(role_name="manager") & Q(department=self.department)) | Q(role_name="admin"))
+        else:
+            return []
 
     def save(self, *args, **kwargs):
         self.full_clean()  # Triggers the clean() method

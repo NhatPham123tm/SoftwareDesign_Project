@@ -14,7 +14,7 @@ const UserForms = () => {
     DiplomaRequestForm: "Diploma Request",
     ChangeAddressForm: "Change of Address",
     PayrollRequestForm: "Payroll Request",
-    ReimbursementRequestForm: "Reimbursement Request",
+    ReimbursementForm: "Reimbursement Request",
   };
 
   const statusOptions = ["Draft", "Pending", "Rejected", "Approved", "Cancelled"];
@@ -23,6 +23,24 @@ const UserForms = () => {
     const match = document.cookie.match(/csrftoken=([^;]+)/);
     return match ? match[1] : null;
   };
+
+  // will add to homepage
+  // const fetchUserDelegations = async() => {
+  //   try {
+  //     const response = await fetch("http://localhost:8000/api/user_delegations", {
+  //       headers: {
+  //         'X-CSRFToken': getCSRFToken(),
+  //       },
+  //       method: "GET",
+  //       credentials: "include",
+  //     });
+
+  //     const data = await response.json();
+  //     console.log(data)
+  //   } catch (error) {
+  //     setMessage("Error fetching forms: " + error.message);
+  //   }
+  // }
 
   useEffect(() => {
     const fetchUserForms = async () => {
@@ -46,7 +64,7 @@ const UserForms = () => {
         setMessage("Error fetching forms: " + error.message);
       }
     };
-
+    // fetchUserDelegations()
     fetchUserForms();
   }, []);
 

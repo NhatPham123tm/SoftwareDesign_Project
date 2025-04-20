@@ -19,7 +19,7 @@ const AdminView = () => {
     DiplomaRequestForm: "Diploma Request",
     ChangeAddressForm: "Change of Address",
     PayrollRequestForm: "Payroll Request",
-    ReimbursementRequestForm: "Reimbursement Request",
+    ReimbursementForm: "Reimbursement Request",
   };
   
   function getCSRFToken() {

@@ -7,7 +7,7 @@ from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, P
 import os
 import base64
 import requests
-from .models import Request
+from .models import Request, Q
 from .serializers import RequestSerializer
 from django.shortcuts import get_object_or_404
 from django_tex.shortcuts import render_to_pdf
@@ -515,6 +515,14 @@ class AdminRequestsView(APIView):
         serializer = RequestSerializer(submitted_requests, many=True)
         return Response(serializer.data)
 
+# Only allow people to view delegators they can delegate to
+class UsersDelegationView(APIView):
+    def get(self, request):
+        user = request.user
+        users = user_ura_accs.objects.filter(role__in=user.role.delegatable_roles()).filter(~Q(id=user.id))
+        serializer = UserURASerializer(users, many=True)
+        return Response(serializer.data)
+
 class RequestApprovalView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUserRole]
     def put(self, request, pk):
@@ -670,3 +678,4 @@ def delegate_work_assignment(request):
 def get_work_assignments(request):
     assignments = list(work_assign.objects.all().values())
     return JsonResponse(assignments, safe=False)
+    
