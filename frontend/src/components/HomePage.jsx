@@ -188,6 +188,7 @@ const HomePage = () => {
         setShowDelegateModal(false);
         setSelectedForm(null);
         setSelectedDelegatee("");
+        fetchForms();
       } else {
         const data = await response.json();
         setMessage(`Error: ${data.detail}`);
@@ -218,7 +219,7 @@ const HomePage = () => {
               <thead>
                 <tr>
                   <th>Form Type</th>
-                  <th>Name</th>
+                  <th>Submitted By</th>
                   <th>Status</th>
                   <th>Delegator</th>
                   <th>Actions</th>
@@ -230,7 +231,7 @@ const HomePage = () => {
                     <td>{formTypeNames[form.form_type] || form.form_type}</td>
                     <td>{form.data.name}</td>
                     <td>{form.status}</td>
-                    <td>is null if originally assigned to this user, will say N/A or smthg</td>
+                    <td>{form.delegator ? form.delegator.name : "None"}</td>
                     <td>
                       <button
                         className="approve-btn"

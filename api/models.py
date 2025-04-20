@@ -468,6 +468,13 @@ class Request(models.Model):
     def get_status_display(self):
         return dict(self.STATUS_CHOICES).get(self.status, self.status)
     
+    def delegator(self):
+        delegation = Delegation.objects.filter(request=self).last()
+        if(delegation is None):
+            return None
+        
+        return delegation.delegator
+    
     def __str__(self):
         return f"{self.id} ({self.employee_name})"
     
