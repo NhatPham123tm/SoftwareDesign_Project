@@ -1,7 +1,24 @@
-from django.db.models.signals import post_migrate
+from django.db.models.signals import post_migrate, post_save
 from django.dispatch import receiver
 from django.contrib.auth.hashers import make_password
 from api.models import roles, user_accs, permission, user_ura_accs, work_assign, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, Workflow, WorkflowStep
+
+@receiver(post_save, sender=work_assign)
+def complete_delegated_task(sender, instance, **kwargs):
+    if instance.status == "Completed" and not instance.is_current_step:
+        # Start the cascade
+        mark_delegation_chain_completed(instance)
+
+def mark_delegation_chain_completed(assign):
+    delegated = work_assign.objects.filter(delegated=assign).first()
+    if delegated and (delegated.status != "Completed" or delegated.is_current_step):
+        delegated.status = "Completed"
+        delegated.is_current_step = False
+        delegated.save()
+
+        # Recursively update further delegated tasks
+        mark_delegation_chain_completed(delegated)
+
 
 @receiver(post_migrate)
 def initialize_data(sender, **kwargs):
