@@ -540,7 +540,7 @@ class UsersDelegationView(APIView):
         return Response(serializer.data)
 
 class RequestApprovalView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUserRole]
+    permission_classes = [IsAuthenticated]
     def put(self, request, pk):
         req = get_object_or_404(Request, id=pk)
         new_status = request.data.get("status")
@@ -699,24 +699,19 @@ def get_work_assignments(request):
 class DelegateWork(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         request_data = request.data
-        
+
         if 'request' not in request_data or 'delegatee' not in request_data:
-            return Response({"detail": "Request and delegatee are required."}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({"detail": "Request ID and delegatee are required."}, status=status.HTTP_400_BAD_REQUEST)
+
         request_id = request_data['request']
         delegatee_id = request_data['delegatee']
         
-        request_instance = get_object_or_404(Request, id=request_id)
-        
-        delegator = request.user
+        delegation = get_object_or_404(Delegation, request_id=request_id)
 
-        delegation = Delegation.objects.create(
-            request=request_instance,
-            delegator=delegator,
-            delegatee_id=delegatee_id
-        )
+        delegation.delegatee_id = delegatee_id
+        delegation.save()
+
         serializer = DelegationSerializer(delegation)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_200_OK)

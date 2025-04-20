@@ -173,7 +173,7 @@ const HomePage = () => {
 
     try {
       const response = await fetch("http://localhost:8000/api/delegate", {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": getCSRFToken(),
