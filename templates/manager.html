@@ -223,7 +223,6 @@
             <!-- need permition to change forms -->
              
             <div id="trois-dept" class="">
-              <h2>Finance Department</h2>
               <h3>Pending Assigned Works</h3>
               <table>
                 <thead>
@@ -235,22 +234,25 @@
                     <th>Status</th>
                     <th>PDF</th>
                     <th>Actions</th>
+                    <th>Delegation</th>
                   </tr>
                 </thead>
                 <tbody id="PendingBody"></tbody>
               </table>
-
+              <br>
+              <br>
               <h3>Completed Assigned Works</h3>
               <table>
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Date</th>
+                    <th>Form Type</th>
+                    <th>User</th>
                     <th>User ID</th>
-                    <th>PDF</th>
-                    <th>PDF Type</th>
+                    <th>Date</th>
                     <th>Status</th>
-                    <th>Action</th>
+                    <th>PDF</th>
+                    <th>Actions</th>
+                    <th>Delegation</th>
                   </tr>
                 </thead>
                 <tbody id="ProcessedBody"></tbody>
@@ -310,6 +312,14 @@
     document.addEventListener("DOMContentLoaded", function () {
       employeeload();
     });
+
+
+    function stuff() {
+      const welcomeMessage = document.getElementById('welcome');
+      const userData = localStorage.getItem("user_data");
+      const parsedData = JSON.parse(userData);
+      welcomeMessage.textContent = `Welcome ${parsedData.name}`;
+    }
     
     // Function to set cookies
     function setCookie(name, value, days) {
