@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
@@ -20,7 +20,7 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework.response import Response    
 from rest_framework import status
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
@@ -217,7 +217,13 @@ class UserURAViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         try:
             user = user_ura_accs.objects.get(id=kwargs['pk'])
-            serializer = UserURASerializer(user, data=request.data, partial=True) 
+            data = request.data
+            role_name = data["role_name"]
+            role_department = data["role_department"]
+            if role_name and role_department:
+                new_role = roles.objects.get(role_name=role_name, department=role_department)
+                data["role_id"] = new_role.id
+            serializer = UserURASerializer(user, data=data, partial=True) 
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
@@ -691,38 +697,32 @@ class RequestApprovalView(APIView):
             logger.error(f"Error generating PDF: {e}", exc_info=True)
             return None
         
-def create_work_assignment(request):
-    if request.method == 'POST':
-        assignee_id = request.POST.get('assignee')
-        form_type = request.POST.get('form_type')
-        form_id = request.POST.get('form_id')
-        due_date_str = request.POST.get('due_date')
+def delegate_work_assignment(request):
+    original_id = request.POST.get('original_id')
+    new_assignee_id = request.POST.get('new_assignee_id')
 
-        assignee = get_object_or_404(user_accs, id=assignee_id)
-        due_date = parse_datetime(due_date_str) if due_date_str else None
+    try:
+        original = get_object_or_404(work_assign, id=original_id)
+        new_assignee = get_object_or_404(user_accs, id=new_assignee_id)
 
-        assignment = work_assign(
-            user=assignee,
+        delegated = work_assign(
+            user=new_assignee,
             created_by=request.user,
-            deadline=due_date,
-            status='Pending'
+            deadline=original.deadline,
+            status='Pending',
+            ChangeOfAddress_id=original.ChangeOfAddress_id,
+            DiplomaRequest_id=original.DiplomaRequest_id,
+            PayrollAssignment_id=original.PayrollAssignment_id,
+            ReimbursementRequest_id=original.ReimbursementRequest_id,
         )
 
-        if form_type == 'payroll':
-            assignment.PayrollAssignment_id = get_object_or_404(PayrollAssignment, id=form_id)
-        elif form_type == 'reimburse':
-            assignment.ReimbursementRequest_id = get_object_or_404(ReimbursementRequest, id=form_id)
-        elif form_type == 'address':
-            assignment.ChangeOfAddress_id = get_object_or_404(ChangeOfAddress, id=form_id)
-        elif form_type == 'diploma':
-            assignment.DiplomaRequest_id = get_object_or_404(DiplomaRequest, id=form_id)
-        else:
-            return JsonResponse({'error': 'Invalid form type'}, status=400)
+        delegated.save()
+        return JsonResponse({'message': 'Work reassigned successfully.'})
 
-        try:
-            assignment.save()
-            return JsonResponse({'message': 'Work assigned successfully'})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    
 
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+def get_work_assignments(request):
+    assignments = list(work_assign.objects.all().values())
+    return JsonResponse(assignments, safe=False)
