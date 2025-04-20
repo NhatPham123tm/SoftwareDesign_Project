@@ -363,7 +363,7 @@ function stuff() {
                         <td>${form.name || form.employee_name}</td>
                         <td>${date}</td>
                         <td>${form.employee_id || form.user || "N/A"}</td>
-                        <td><a href="${viewUrl}" target="_blank">Open PDF</a></td>
+                        <td><a href="${viewUrl}" target="_blank"><button>Open PDF</button></a></td>
                         <td>${formType}</td>
                         <td>
                             <p>${form.status}</p>
@@ -902,7 +902,7 @@ function stuff() {
                                 <td>${row.name}</td>
                                 <td>${row.date || "—"}</td>
                                 <td>${row.status}</td>
-                                <td><a href="${viewUrl}" target="_blank">View PDF</a></td>
+                                <td><a href="${viewUrl}" target="_blank"><button>View PDF</button></a></td>
                                 <td>
                                     <select onchange="updateAssignStatus(${row.id}, this.value)">
                                         <option value="">Select</option>
