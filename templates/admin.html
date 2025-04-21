@@ -1097,6 +1097,23 @@ function stuff() {
                     function closeTimelineModal() {
                     document.getElementById("timelineModal").style.display = "none";
                     }
+
+                function updateAssignStatus(assignId, newStatus) {
+                    fetch(`/api/workassign/${assignId}/`, {
+                        method: "PATCH",
+                        credentials: "same-origin",
+                        headers: {
+                            "X-CSRFToken": getCookie("csrftoken"),
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert("Status updated.");
+                        loadApprovals();
+                    });
+                }
         </script>
         
         <script>
