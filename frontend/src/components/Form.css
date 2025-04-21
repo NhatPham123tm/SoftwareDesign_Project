@@ -89,8 +89,10 @@
 
 .form-buttons {
   display: flex;
-  justify-content: space-between;
+  justify-content: right;
   margin-top: 20px;
+  align-items: center;
+  margin-right: 25vw;
 }
 
 .form-container button {
@@ -108,7 +110,7 @@
   color: white;
   flex: 1;
   margin-right: 10px;
-  max-width: 20vw;
+  max-width: 5vw;
 }
 
 .form-container button[type="submit"]:hover {

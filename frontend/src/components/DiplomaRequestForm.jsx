@@ -307,6 +307,7 @@ const DiplomaRequestForm = () => {
           >
             Save as Draft
           </button>
+          <button type="submit">Submit</button>
         </div>
       </form>
 
