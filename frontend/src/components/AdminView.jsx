@@ -10,10 +10,16 @@ const AdminView = () => {
   const [selectedFormType, setSelectedFormType] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showDelegateModal, setShowDelegateModal] = useState(false);
+  const [selectedDelegatee, setSelectedDelegatee] = useState("");
+  const [userDelegations, setUserDelegations] = useState([]);
   const [selectedForm, setSelectedForm] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [signatureData, setSignatureData] = useState(null); 
-  const [signatureSaved, setSignatureSaved] = useState(false); 
+  const [signatureSaved, setSignatureSaved] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyForm, setHistoryForm] = useState(null);
+  const [activeTab, setActiveTab] = useState("status");
 
   const formTypeNames = {
     DiplomaRequestForm: "Diploma Request",
@@ -26,35 +32,57 @@ const AdminView = () => {
     const match = document.cookie.match(/csrftoken=([^;]+)/);
     return match ? match[1] : null;
   }
+
+  const fetchUserDelegations = async() => {
+    try {
+      const response = await fetch("http://localhost:8000/api/user_delegations", {
+        headers: {
+          'X-CSRFToken': getCSRFToken(),
+        },
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserDelegations(data);
+      } else {
+        setMessage("Failed to fetch user delegations.");
+      }
+    } catch (error) {
+      setMessage("Error fetching forms: " + error.message);
+    }
+  };
+
+  const fetchForms = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/admin/requests/", {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken(),
+      },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const nonDraftForms = data.filter(form => form.status !== "Draft");
+        setForms(nonDraftForms);
+        setFilteredForms(nonDraftForms);
+        console.log(nonDraftForms);
+      } else {
+        setMessage("Failed to fetch forms.");
+      }
+    } catch (error) {
+      console.error("Error fetching forms:", error);
+      setMessage("Something went wrong. Please try again.");
+    }
+  };
   
   useEffect(() => {
-    const fetchForms = async () => {
-
-      try {
-        const response = await fetch("http://localhost:8000/api/admin/requests/", {
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCSRFToken(),
-        },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const nonDraftForms = data.filter(form => form.status !== "Draft");
-          setForms(nonDraftForms);
-          setFilteredForms(nonDraftForms);
-        } else {
-          setMessage("Failed to fetch forms.");
-        }
-      } catch (error) {
-        console.error("Error fetching forms:", error);
-        setMessage("Something went wrong. Please try again.");
-      }
-    };
-
     fetchForms();
-  }, []); 
+    fetchUserDelegations();
+  }, []);
 
   useEffect(() => {
     const filtered = forms.filter((form) => {
@@ -97,15 +125,54 @@ const AdminView = () => {
           )
         );
         setSignatureData(null);
-
-        
         setShowApproveModal(false);
+        fetchForms();
+        fetchUserDelegations();
       } else {
         setMessage("Failed to update form.");
       }
     } catch (error) {
       console.error("Error approving/rejecting form:", error);
       setMessage("Something went wrong. Please try again.");
+    }
+  };
+
+  const handleDelegate = async () => {
+    if (!selectedDelegatee) {
+      setMessage("Please select a delegatee.");
+      return;
+    }
+
+    const body = {
+      request: selectedForm.id,
+      delegatee: selectedDelegatee,  
+    };
+
+    try {
+      const response = await fetch("http://localhost:8000/api/delegate", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken(),
+        },
+        credentials: "include",
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessage(`Delegation created successfully: ${data.delegator} delegated to ${data.delegatee_role}`);
+        setShowDelegateModal(false);
+        setSelectedForm(null);
+        setSelectedDelegatee("");
+        fetchForms();
+        fetchUserDelegations();
+      } else {
+        const data = await response.json();
+        setMessage(`Error: ${data.detail}`);
+      }
+    } catch (error) {
+      setMessage("Error delegating task: " + error.message);
     }
   };
 
@@ -151,8 +218,9 @@ const AdminView = () => {
           <thead>
             <tr>
               <th>Form Type</th>
-              <th>Name</th>
+              <th>Submitted By</th>
               <th>Status</th>
+              <th>Assigned To</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -162,6 +230,7 @@ const AdminView = () => {
                 <td>{formTypeNames[form.form_type] || form.form_type}</td>
                 <td>{form.data.name}</td>
                 <td>{form.status}</td>
+                <td>{form.assigned_to.name}</td>
                 <td>
                   <button
                     className="approve-btn"
@@ -182,6 +251,26 @@ const AdminView = () => {
                     }}
                   >
                     Reject
+                  </button>
+                  <button
+                    className="delegate-btn"
+                    onClick={() => {
+                      setSelectedForm(form);
+                      setShowDelegateModal(true);
+                      setSignatureData(null); 
+                      setSignatureSaved(false); 
+                    }}
+                  >
+                    Assign
+                  </button>
+                  <button
+                    className="history-btn"
+                    onClick={() => {
+                      setHistoryForm(form);
+                      setShowHistoryModal(true);
+                    }}
+                  >
+                    View History
                   </button>
                   {form.pdf && (
                     <div className="pdf-link">
@@ -279,10 +368,121 @@ const AdminView = () => {
               >
                 Submit Rejection
               </button>
+              
             </div>
           </div>
         </div>
       )}
+      {showDelegateModal && selectedForm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Assignees</h3>
+
+            <select
+              value={selectedDelegatee}
+              onChange={(e) => setSelectedDelegatee(e.target.value)}
+            >
+              <option defaultValue="">Choose an Assignee</option>
+              {userDelegations.map((delegatee, i) => (
+                <option key={i} value={delegatee.id}>{delegatee.name} {delegatee.role_name}</option>
+              ))}
+            </select>
+
+            <div className="modal-buttons">
+              <button
+                className="reject-btn"
+                onClick={() => {
+                  setShowDelegateModal(false);
+                  setSelectedForm(null);
+                  setSignatureData(null); 
+                  setSignatureSaved(false); 
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="delegate-btn"
+                onClick={handleDelegate}
+              >
+                Assign
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+       {showHistoryModal && historyForm && (
+          <div className="modal-overlay">
+            <div className="modal-content history-modal">
+              <h3>History for {historyForm.data?.name}</h3>
+              <div className="history-tabs">
+                <button
+                  className={activeTab === "status" ? "active" : ""}
+                  onClick={() => setActiveTab("status")}
+                >
+                  Status History
+                </button>
+                <button
+                  className={activeTab === "delegation" ? "active" : ""}
+                  onClick={() => setActiveTab("delegation")}
+                >
+                  Delegation History
+                </button>
+              </div>
+              {activeTab === "status" && (
+                <div className="history-content">
+                  <h4>Status History</h4>
+                  {historyForm.status_history?.length > 0 ? (
+                    <div className="history-list">
+                      <ul>
+                        {historyForm.status_history.map((entry, index) => (
+                          <li key={index}>
+                            <strong>Status:</strong> {entry.status} <br />
+                            <strong>Changed By:</strong> User {entry.changed_by} <br />
+                            <strong>Time:</strong> {new Date(entry.timestamp).toLocaleString()}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p>No status history found.</p>
+                  )}
+                </div>
+              )}
+              {activeTab === "delegation" && (
+                <div className="history-content">
+                  <h4>Delegation History</h4>
+                  {historyForm.delegate_history?.length > 0 ? (
+                    <div className="history-list">
+                      <ul>
+                        {historyForm.delegate_history.map((entry, index) => (
+                          <li key={index}>
+                            <strong>Delegated To:</strong> User {entry.delegated_to} <br />
+                            <strong>Delegator:</strong> User {entry.delegator} <br />
+                            <strong>Time:</strong> {new Date(entry.timestamp).toLocaleString()}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p>No delegation history found.</p>
+                  )}
+                </div>
+              )}
+              <div className="modal-buttons">
+                <button
+                  className="reject-btn"
+                  onClick={() => {
+                    setShowHistoryModal(false);
+                    setHistoryForm(null);
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+          )}
     </div>
   );
 };

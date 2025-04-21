@@ -92,11 +92,12 @@ class DiplomaRequestSerializer(serializers.ModelSerializer):
 class RequestSerializer(serializers.ModelSerializer):
     signature = serializers.ImageField(required=False, allow_null = True)
     admin_signature = serializers.ImageField(required=False, allow_null = True)
+    assigned_to = UserSerializer(read_only=True)
     delegator = UserSerializer(read_only=True)
 
     class Meta:
         model = Request
-        fields = ['id', 'status', 'reason_for_return', 'data', 'form_type', 'pdf', 'signature', 'admin_signature', 'delegator', 'delegate_history', 'status_history']
+        fields = ['id', 'status', 'reason_for_return', 'data', 'form_type', 'pdf', 'signature', 'admin_signature', 'delegator', 'delegate_history', 'status_history', 'assigned_to']
         read_only_fields = ['id'] 
 
 class DelegationSerializer(serializers.ModelSerializer):

@@ -53,6 +53,8 @@ class roles(models.Model):
             return roles.objects.filter((Q(role_name="manager") & Q(department=self.department)) | (Q(role_name="employee") & Q(subdepartment=self.subdepartment)))
         elif(self.role_name == "manager"):
             return roles.objects.filter((Q(role_name="manager") & Q(department=self.department)) | Q(role_name="admin"))
+        elif(self.role_name == "admin"):
+            return roles.objects.filter((Q(role_name="manager")) | Q(role_name="employee"))
         else:
             return []
 
