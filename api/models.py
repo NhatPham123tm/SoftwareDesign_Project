@@ -154,7 +154,7 @@ class work_assign(models.Model):
     ], default='Pending')
 
     system_generated = models.BooleanField(default=False) # For user submit form which is system generated
-    delegated = models.ForeignKey('work_assign', on_delete=models.CASCADE, null=True, blank=True)
+    delegated = models.ForeignKey('work_assign', on_delete=models.CASCADE, null=True, blank=True, related_name='delegated_tasks')
 
     def __str__(self):
         return f"WorkAssign #{self.id}"
