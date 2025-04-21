@@ -266,6 +266,13 @@
         <div class="part" id="workassign" style="display:none;">
             <div class="container">
               <h2>All Current Work Assignments</h2>
+              <div id="workStats" style="display: flex; gap: 100px; margin-bottom: 20px;">
+                <div class="stat-card"><strong>Total</strong><br><span id="totalAssignments">0</span></div>
+                <div class="stat-card"><strong>Current</strong><br><span id="currentAssignments">0</span></div>
+                <div class="stat-card"><strong>Completed</strong><br><span id="completedAssignments">0</span></div>
+                <div class="stat-card"><strong>Pending</strong><br><span id="pendingAssignments">0</span></div>
+                <div class="stat-card"><strong>Cancelled</strong><br><span id="cancelledAssignments">0</span></div>
+              </div>
               <div id="groupedWorkAssigns"></div>
             </div>
         </div>
@@ -1037,6 +1044,8 @@ function stuff() {
                 const userMap = Object.fromEntries(users.map(u => [u.id, u.name]));
 
                 const grouped = {};
+                let current = 0, completed = 0, cancelled = 0, pending = 0;
+
                 assigns.forEach(item => {
                     let key = "Unknown";
                     let formId = null;
@@ -1056,12 +1065,25 @@ function stuff() {
 
                     if (!grouped[key]) grouped[key] = [];
                     grouped[key].push({ ...item, formId });
+
+                    if (item.is_current_step) current++;
+                    if (item.status === "Completed") completed++;
+                    if (item.status === "Cancelled") cancelled++;
+                    if (item.status === "Pending") pending++;
+                });
+
+                const sortedGroupKeys = Object.keys(grouped).sort((a, b) => {
+                    const [typeA, idA] = a.split('-');
+                    const [typeB, idB] = b.split('-');
+                    if (typeA === typeB) return Number(idA) - Number(idB);
+                    return typeA.localeCompare(typeB);
                 });
 
                 const container = document.getElementById("groupedWorkAssigns");
                 container.innerHTML = "";
 
-                Object.entries(grouped).forEach(([key, items]) => {
+                sortedGroupKeys.forEach(key => {
+                    const items = grouped[key];
                     const formType = key.split('-')[0];
                     const formId = key.split('-')[1];
 
@@ -1086,7 +1108,7 @@ function stuff() {
                             <td>${item.step || "—"}</td>
                             <td>${item.status}</td>
                             <td>${item.is_current_step ? '✅' : '❌'}</td>
-                            <td><button class="del-button" onclick="deleteWorkAssign(${item.id})" ;">Delete</button></td>
+                            <td><button class="del-button" onclick="deleteWorkAssign(${item.id})">Delete</button></td>
                             </tr>
                         `).join('')}
                         </tbody>
@@ -1096,7 +1118,14 @@ function stuff() {
 
                     container.innerHTML += groupTable;
                 });
+
+                document.getElementById("totalAssignments").textContent = assigns.length;
+                document.getElementById("currentAssignments").textContent = current;
+                document.getElementById("completedAssignments").textContent = completed;
+                document.getElementById("pendingAssignments").textContent = pending;
+                document.getElementById("cancelledAssignments").textContent = cancelled;
                 }
+
 
                 function deleteWorkAssign(id) {
                 if (confirm("Are you sure you want to delete this work assignment?")) {
