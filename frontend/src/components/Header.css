@@ -10,8 +10,8 @@ body {
 }
 
 .navbar {
-  height: 60px;
-  background-color: #bedcf5;
+  height: 7vh;
+  background-color: #BAD8B6;
   position: fixed;
   top: 0;
   left: 0;
@@ -24,10 +24,11 @@ body {
 }
 
 .menu-container {
-  position: relative;
+  position: absolute;
   height: 60px;
   display: flex;
   align-items: center;
+  right: 1vw;
 }
 
 .menu-icon {
@@ -46,7 +47,7 @@ body {
   position: fixed;
   right: -270px;
   top: 0;
-  background-color: #bedcf5;
+  background-color: #BAD8B6;
   width: 270px;
   height: 100vh;
   transition: all 0.3s ease-in-out;
@@ -98,8 +99,8 @@ body {
 
 .back-button {
   position: absolute;
-  left: 15px; 
-  top: 10px;
+  left: 1.5vh;
+  top: 1.5vh;
   display: flex;
   align-items: center;
   justify-content: center;

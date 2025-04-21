@@ -129,26 +129,41 @@ const EmployeeManagement = () => {
         <div className="admin-view-container">
              <Modal modal={modal} setModal={setModal}>
                 { employee !== null &&
-                <div>
+                <div className="form-container">
                     <h2>Edit Employee</h2>
-                    <input name="name" placeholder="Name" value={form.name} onChange={handleInputChange} />
-                    <input name="email" placeholder="Email" value={form.email} onChange={handleInputChange} />
-                    <select name="status" value={form.status} onChange={handleInputChange}>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="banned">Banned</option>
-                    </select>
-                    <select name="role_name" value={form.role_name} onChange={handleInputChange}>
-                        <option value="basicuser">Basic User</option>
-                        <option value="admin">Admin</option>
-                        <option value="manager">Manager</option>
-                        <option value="employee">Employee</option>
-                    </select>
-                    <select name="role_department" value={form.role_department} onChange={handleInputChange}>
+                    <label>
+                        Name:
+                        <input name="name" placeholder="Name" value={form.name} onChange={handleInputChange} />
+                    </label>
+                    <label>
+                        Email:
+                        <input name="email" placeholder="Email" value={form.email} onChange={handleInputChange} />
+                    </label>
+                    <label>
+                        Status:
+                        <select name="status" value={form.status} onChange={handleInputChange}>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="banned">Banned</option>
+                        </select>
+                    </label>
+                    <label>
+                        Role:
+                        <select name="role_name" value={form.role_name} onChange={handleInputChange}>
+                            <option value="basicuser">Basic User</option>
+                            <option value="admin">Admin</option>
+                            <option value="manager">Manager</option>
+                            <option value="employee">Employee</option>
+                        </select>
+                    </label>
+                    <label>
+                        Department:
+                        <select name="role_department" value={form.role_department} onChange={handleInputChange}>
                         <option value="all">All</option>
                         <option value="finance">Finance</option>
                         <option value="registrar">Registrar</option>
                     </select>
+                    </label>
                     <button className="approve-btn" onClick={() => handleSubmit(employee.id)}>
                         Update User
                     </button>
@@ -226,7 +241,7 @@ const EmployeeManagement = () => {
                                     <div>
                                         <button onClick={() => toggleModal(employee)}>Edit</button>
                                     </div>
-                                    <button onClick={() => handleDelete(employee.id)}>Delete</button>
+                                    <button className="reject-btn" onClick={() => handleDelete(employee.id)}>Delete</button>
                                 </td>
                             </tr>
                         ))}

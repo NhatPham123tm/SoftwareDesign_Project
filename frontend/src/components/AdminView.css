@@ -1,10 +1,10 @@
 .admin-view-container {
-  width: 800px;
-  height: 600px;
+  width: 100vw;
+  height: 100vh;
   margin: 0 auto;
   padding: 20px;
-  font-family: 'Arial', sans-serif;
-  background-color: #f9f9f9;
+  font-family: Arial;
+  background-color: #E1EACD;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
@@ -18,7 +18,8 @@
 .admin-view-header {
   text-align: center;
   font-size: 2rem;
-  margin-bottom: 20px;
+  margin-bottom: 2vh;
+  margin-top: 5vh;
   color: #333;
 }
 
@@ -36,9 +37,14 @@
 }
 
 .forms-table {
-  width: 100%;
-  border-collapse: collapse;
+  width: 75%;
+  border-collapse: separate;
+  border-spacing: 0;
   margin-top: 20px;
+  margin-bottom: 40px;
+  background-color: #F9F6E6;
+  border-radius: 4px;
+  border: 3px solid #8D77AB;
 }
 
 .forms-table th,
@@ -49,12 +55,12 @@
 }
 
 .forms-table th {
-  background-color: #007bff;
+  background-color: #8D77AB;
   color: white;
 }
 
 .forms-table tr:hover {
-  background-color: #f1f1f1;
+  background-color: #f6f2da;
 }
 
 
@@ -69,30 +75,30 @@ button {
 }
 
 .approve-btn {
-  background-color: #28a745;
+  background-color: #59886B;
   color: white;
 }
 
 .approve-btn:hover {
-  background-color: #218838;
+  background-color: #507a60;
 }
 
 .delegate-btn {
-  background-color: #a7288c;
+  background-color: #89375F;
   color: white;
 }
 
 .delegate-btn:hover {
-  background-color: #882177;
+  background-color: #7b3255;
 }
 
 .reject-btn {
-  background-color: #dc3545;
+  background-color: #B80000;
   color: white;
 }
 
 .reject-btn:hover {
-  background-color: #c82333;
+  background-color: #9c0000;
 }
 
 .view-details-link {
@@ -126,6 +132,15 @@ button {
   width: 400px;
   max-width: 90%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content select{
+  margin-top: 5px;
+  padding: 10px 10px;
+  font-size: 1rem;
+  border-radius: 3px;
+  border: 1px solid gray;
+  cursor: pointer;
 }
 
 .modal-content textarea {

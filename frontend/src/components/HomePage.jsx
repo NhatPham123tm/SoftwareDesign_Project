@@ -204,7 +204,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="home-container">
+    <div className="">
       { role === 2 ? (
         <div className="box-container">
           <div className="box">
