@@ -4,20 +4,23 @@ from django.contrib.auth.hashers import make_password
 from api.models import roles, user_accs, permission, user_ura_accs, work_assign, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, Workflow, WorkflowStep
 
 @receiver(post_save, sender=work_assign)
-def complete_delegated_task(sender, instance, **kwargs):
+def handle_work_assign_status(sender, instance, created, **kwargs):
+    # Step 1: ensure is_current_step = False if status is Completed
+    if instance.status == "Completed" and instance.is_current_step:
+        instance.is_current_step = False
+        instance.save(update_fields=["is_current_step"])
+
+    # Step 2: recursively complete all delegated-to tasks
+    def mark_chain(assign):
+        delegated = assign.delegated
+        if delegated and (delegated.status != "Completed" or delegated.is_current_step):
+            delegated.status = "Completed"
+            delegated.is_current_step = False
+            delegated.save()
+            mark_chain(delegated)
+
     if instance.status == "Completed" and not instance.is_current_step:
-        # Start the cascade
-        mark_delegation_chain_completed(instance)
-
-def mark_delegation_chain_completed(assign):
-    delegated = work_assign.objects.filter(delegated=assign).first()
-    if delegated and (delegated.status != "Completed" or delegated.is_current_step):
-        delegated.status = "Completed"
-        delegated.is_current_step = False
-        delegated.save()
-
-        # Recursively update further delegated tasks
-        mark_delegation_chain_completed(delegated)
+        mark_chain(instance)
 
 
 @receiver(post_migrate)
