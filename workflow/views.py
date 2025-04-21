@@ -10,7 +10,9 @@ from rest_framework import status
 from api.models import Workflow, WorkflowStep, roles, user_accs
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
-import json
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from api.models import work_assign, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest
 
 def assign_workflow_steps(form_instance):
     form_type = form_instance.__class__.__name__
@@ -287,6 +289,82 @@ def my_work_assignments(request):
         })
     return Response(data)
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def my_completed_work_assignments(request):
+    try:
+        user_obj = user_accs.objects.get(email=request.user.email)
+    except user_accs.DoesNotExist:
+        return Response([], status=200)
+
+    assignments = work_assign.objects.filter(
+        user=user_obj,
+        is_current_step=False,
+        status="Completed"
+    ).select_related(
+        'step', 'PayrollAssignment_id', 'ReimbursementRequest_id',
+        'ChangeOfAddress_id', 'DiplomaRequest_id'
+    )
+
+    data = []
+    for a in assignments:
+        form_type = None
+        form_id = None
+        name = None
+        date = None
+        pdf_url = None
+
+        if a.PayrollAssignment_id:
+            form = a.PayrollAssignment_id
+            form_type = "Payroll"
+            form_id = form.id
+            name = form.employee_name
+            date = form.todays_date
+            pdf_url = form.pdf_url
+            userID = form.user.id
+
+        elif a.ReimbursementRequest_id:
+            form = a.ReimbursementRequest_id
+            form_type = "Reimburse"
+            form_id = form.id
+            name = form.employee_name
+            date = form.today_date
+            pdf_url = form.pdf_url
+            userID = form.user.id
+
+        elif a.ChangeOfAddress_id:
+            form = a.ChangeOfAddress_id
+            form_type = "Address"
+            form_id = form.id
+            name = form.name
+            date = form.date_submitted
+            pdf_url = form.pdf_url
+            userID = form.user.id
+
+        elif a.DiplomaRequest_id:
+            form = a.DiplomaRequest_id
+            form_type = "Diploma"
+            form_id = form.id
+            name = form.name
+            date = form.date_submitted
+            pdf_url = form.pdf_url
+            userID = form.user.id
+
+        data.append({
+            "id": a.id,
+            "form_type": form_type,
+            "form_id": form_id,
+            "name": name,
+            "user_id": userID,
+            "date": date,
+            "step_label": a.step.label if a.step else "—",
+            "pdf_url": pdf_url,
+            "status": a.status,
+            "delegated": a.delegated.id if a.delegated else None,
+        })
+
+    return Response(data)
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def delegate_work_assign(request, assign_id):
@@ -324,3 +402,42 @@ def delegate_work_assign(request, assign_id):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+    
+
+@require_GET
+def form_workflow_progress(request, form_type, form_id):
+    form_model_map = {
+        "Payroll": PayrollAssignment,
+        "Reimburse": ReimbursementRequest,
+        "Address": ChangeOfAddress,
+        "Diploma": DiplomaRequest,
+    }
+
+    model = form_model_map.get(form_type)
+    if not model:
+        return JsonResponse({"error": "Invalid form type."}, status=400)
+
+    try:
+        form_instance = model.objects.get(id=form_id)
+    except model.DoesNotExist:
+        return JsonResponse({"error": "Form not found."}, status=404)
+
+    # Use actual model name to filter correctly
+    filter_kwargs = {
+        f"{model.__name__}_id": form_instance
+    }
+
+    assignments = work_assign.objects.filter(**filter_kwargs).select_related("step", "user", "step__role")
+
+    result = []
+    for assign in assignments.order_by("step__step_order"):
+        result.append({
+            "step_order": assign.step.step_order if assign.step else None,
+            "label": assign.step.label if assign.step else "—",
+            "user_name": assign.user.name if assign.user else None,
+            "role_name": assign.step.role.role_name if assign.step and assign.step.role else None,
+            "status": assign.status,
+            "is_current_step": assign.is_current_step,
+        })
+
+    return JsonResponse(result, safe=False)
