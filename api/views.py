@@ -128,6 +128,16 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
                         form.status = "Rejected"
                         form.approve_date = now().date()
                         form.save()
+                        # Clean up all future steps
+                        work_assign.objects.filter(
+                            status="Pending",
+                            step__step_order__gt=assignment.step.step_order,
+                            PayrollAssignment_id=form if form.__class__.__name__ == "PayrollAssignment" else None,
+                            ReimbursementRequest_id=form if form.__class__.__name__ == "ReimbursementRequest" else None,
+                            ChangeOfAddress_id=form if form.__class__.__name__ == "ChangeOfAddress" else None,
+                            DiplomaRequest_id=form if form.__class__.__name__ == "DiplomaRequest" else None,
+                        ).update(is_current_step=False, status="Cancelled")
+
                 return Response(WorkAssignSerializer(assignment).data)
 
             return Response(serializer.errors, status=400)
