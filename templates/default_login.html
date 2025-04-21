@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+  <script>
+    function loginUser(event) {
+      event.preventDefault();
+  
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+  
+      fetch("/api/user_login/", {
+        method: "POST",
+        credentials: "same-origin",  // Ensures cookies are sent and received
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ email, password })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { throw err; });
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log("Login response:", data);
+        if (data.user) {
+          // Optionally save user data in localStorage if needed
+          localStorage.setItem("access_token", data.access_token);
+          localStorage.setItem("user_data", JSON.stringify(data.user));
+
+          console.log(Number(data.user.role));
+          // redirection
+          if (data.user.status === "active") {
+              window.location.href = "/dashboard/";
+          } else {
+            window.location.href = "/suspend/";
+          }
+
+        }
+      })
+      .catch(error => {
+        const errorMsg = error.detail || error.message || "Login failed";
+        document.getElementById("message").innerHTML = `<p style="color:red;">${errorMsg}</p>`;
+      });
+    }
+  </script>
+  
+</head>
+<body>
+    <div class="login-container">
+        <h1>Login</h1>
+        <form onsubmit="loginUser(event)">
+
+            <label for="email"><b>Email</b></label><br>
+            <input type="text" placeholder="Enter Email" id="email" name="email" pattern="^[^@]+@[^@]+\.[^@]{3}$" required><br>
+            
+            <label for="password"><b>Password</b></label><br>
+            <input type="password" placeholder="Enter Password" id="password" name="password" required><br>
+
+            <button type="submit" id="log">Login</button><br>
+
+        </form>
+            <div id="message"></div>
+
+            <div class="links">
+                <a href="{% url 'reset_password' %}">Forgot Username / Password?</a>
+                <a href="{% url 'register_page' %}">Create your Account</a>
+                <a href="{% url 'microsoft-login' %}">Login with Microsoft</a>
+            </div>
+    </div>
+</body>
+</html>
+{% if messages %}
+    <div id="message-popup" class="popup">
+        {% for message in messages %}
+            <p class="{{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+    </div>
+
+    <script>
+        // Automatically close the popup after 3 seconds
+        setTimeout(function () {
+            document.getElementById("message-popup").style.display = "none";
+        }, 3000);
+    </script>
+
+    <style>
+        .popup {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: green;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+{% endif %}
