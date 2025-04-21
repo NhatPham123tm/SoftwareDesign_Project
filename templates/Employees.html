@@ -134,24 +134,40 @@ tbody td {
           <div id="dashboard" class="part active">
             <h1 id="welcome"></h1>
           </div>
+
           <div id="employees" class="part">
-            <h2>Coworkers</h2>
+            <h2>Coworkers Table</h2>
             <table>
               <thead>
-                  <tr>
-                      <th>Coworkers ID</th>
-                      <th>Coworkers Name</th>
-                      <th>Coworkers Email</th>
-                      <th>Department</th>
-                      <th>ROLE</th>
-                  </tr>
+                <tr>
+                  <th>Coworkers ID</th>
+                  <th>Coworkers Name</th>
+                  <th>Coworkers Email</th>
+                  <th>Department</th>
+                  <th>ROLE</th>
+                </tr>
               </thead>
               <tbody id="employedTableBody"></tbody>
+            </table>
+          
+            <br>
+          
+            <h2>Users Table</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>User Name</th>
+                  <th>User Email</th>
+                  <th>Status</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+              <tbody id="userTableBody"></tbody>
             </table>
           </div>
 
           <div id="forms" class="part">
-             
             <div id="trois-dept" class="">
               <h2>Assigments</h2>
               <table>
@@ -165,26 +181,10 @@ tbody td {
                     <th>Status</th>
                   </tr>
                 </thead>
-                <tbody id="troisPendingBody"></tbody>
+                <tbody id="PendingBody"></tbody>
               </table>
             </div>
-          
-            <div id="ura-dept" class="">
-              <h2>Assigments</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Date</th>
-                    <th>User ID</th>
-                    <th>PDF</th>
-                    <th>PDF Type</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="uraPendingBody"></tbody>
-              </table>
-            </div>
+          </div>
       </div>
     </div>
     </div>
@@ -263,175 +263,6 @@ tbody td {
             }
         }
 
-
-    async function stuff() {
-  let currUser = localStorage.getItem("user_data");
-  let currUserData = JSON.parse(currUser);
-  managerRole = {
-    id: '',
-    level: '',
-    role_name: '',
-    department: ''
-  }
-
-  if (currUser !== null) {
-    console.log("Retrieved value:", currUser);
-    console.log("Retrieved value:", currUserData.id);
-  } else {
-    console.log("No value found for logged in user.");
-    return;
-  }
-
-  await fetch(`/api/users/${currUserData.id}/`)
-    .then(response => response.json())
-    .then(data => {
-      console.log("Retrieved data:", data.role.department);
-      managerRole.id = data.role.id;
-      managerRole.level = data.role.level;
-      managerRole.role_name = data.role.role_name;
-      managerRole.department = data.role.department;
-    });
-
-  // Show/hide sections based on department
-  if (managerRole.id == 1) {
-    document.getElementById("trois-dept").style.display = "block";
-    document.getElementById("ura-dept").style.display = "block";
-  } else if (managerRole.department === "finance") {
-    document.getElementById("trois-dept").style.display = "block";
-    document.getElementById("ura-dept").style.display = "none";
-  } else {
-    document.getElementById("trois-dept").style.display = "none";
-    document.getElementById("ura-dept").style.display = "block";
-  }
-
-  // Fetch all forms + work assignments
-  Promise.all([
-    fetch("/api/payroll/").then(r => r.json()),
-    fetch("/api/reimburse/").then(r => r.json()),
-    fetch("/api/address/").then(r => r.json()),
-    fetch("/api/diploma/").then(r => r.json()),
-    fetch("/api/work_assignments/").then(r => r.json())
-  ])
-  .then(([payrollData, reimburseData, addressData, diplomaData, assignments]) => {
-    const troisPending = document.getElementById('troisPendingBody');
-    const uraPending = document.getElementById('uraPendingBody');
-
-    // Clear existing
-    troisPending.innerHTML = '';
-    uraPending.innerHTML = '';
-    
-
-    // Filter assignments by current user
-    const assignedToMe = assignments.filter(a => a.user_id === currUserData.id);
-
-    // Gather form objects from assignments
-    const myForms = [];
-
-    assignedToMe.forEach(assign => {
-      let form = null;
-      if (assign.PayrollAssignment_id_id) {
-        form = payrollData.find(f => f.id === assign.PayrollAssignment_id_id);
-        if (form) form.type = "Payroll";
-      } else if (assign.ReimbursementRequest_id_id) {
-        form = reimburseData.find(f => f.id === assign.ReimbursementRequest_id_id);
-        if (form) form.type = "Reimbursement";
-      } else if (assign.ChangeOfAddress_id_id) {
-        form = addressData.find(f => f.id === assign.ChangeOfAddress_id_id);
-        if (form) form.type = "Change of Address";
-      } else if (assign.DiplomaRequest_id_id) {
-        form = diplomaData.find(f => f.id === assign.DiplomaRequest_id_id);
-        if (form) form.type = "Diploma Request";
-      }
-
-      if (form) {
-        form.assignment_status = assign.status;
-        form.assignment_deadline = assign.deadline;
-        myForms.push(form);
-      }
-    });
-    const toyForms = myForms.filter(f => f.type === "Payroll" || f.type === "Reimbursement");
-    const umpForms = myForms.filter(f => f.type === "Change of Address" || f.type === "Diploma Request");
-
-
-    const sortByDate = (a, b) => 
-      new Date(b.date_submitted || b.todays_date || b.today_date) -
-      new Date(a.date_submitted || a.todays_date || a.today_date);
-
-    const toyPending = toyForms.filter(f => f.assignment_status === "Pending").sort(sortByDate);
-    const umpPending = umpForms.filter(f => f.assignment_status === "Pending").sort(sortByDate);
-
-
-
-    renderForms(toyPending, troisPending);
-    renderForms(umpPending, uraPending);
-  })
-  .catch(error => console.error("Error loading forms:", error));
-}
-
-
-function renderForms(dataArray, tbody) {
-      dataArray.forEach(form => {
-        let formType = "Unknown";
-        let viewUrl = "";
-        let deleteHandler = "";
-        let selectId = "";
-
-        if (form.todays_date) {
-          formType = "Payroll Form";
-          viewUrl = `/view_payroll_pdf2/${form.id}/`;
-          deleteHandler = `deleteForm(${form.id}, 'payroll')`;
-          selectId = `statusSelect_payroll_${form.id}`;
-        } else if (form.today_date) {
-          formType = "Reimburse Form";
-          viewUrl = `/view_pdf2/${form.id}/`;
-          deleteHandler = `deleteForm(${form.id}, 'reimburse')`;
-          selectId = `statusSelect_reimburse_${form.id}`;
-        } else if ('street_address' in form) {
-          formType = "Change Address Form";
-          viewUrl = `/view_change_address_pdf3/${form.id}/`;
-          deleteHandler = `deleteForm(${form.id}, 'address')`;
-          selectId = `statusSelect_address_${form.id}`;
-        } else if ('degree' in form) {
-          formType = "Diploma Form";
-          viewUrl = `/view-diploma-pdf3/${form.id}/`;
-          deleteHandler = `deleteForm(${form.id}, 'diploma')`;
-          selectId = `statusSelect_diploma_${form.id}`;
-        }
-
-        const options = `
-          <option value="Pending" ${form.status === "Pending" ? "selected" : ""}>Pending</option>
-          <option value="Approved">Approve</option>
-          <option value="Rejected">Reject</option>
-          <option value="Cancelled">Cancel</option>
-        `;
-
-        const date = form.date_submitted || form.todays_date || form.today_date || "—";
-
-        tbody.innerHTML += `
-          <tr>
-            <td>${form.name || form.employee_name}</td>
-            <td>${date}</td>
-            <td>${form.employee_id || form.user || "N/A"}</td>
-            <td><a href="${viewUrl}" target="_blank" class="weee"><button>Open PDF</button></a></td>
-            <td>${formType}</td>
-            <td>
-              <p>${form.status}</p>
-              <select id="${selectId}">${options}</select>
-            </td>
-          </tr>
-        `;
-
-        // Add listener to status dropdown
-        setTimeout(() => {
-          const selectElement = document.getElementById(selectId);
-          if (selectElement) {
-            selectElement.addEventListener('change', function () {
-              handleStatusChange(form.id, this.value, formType);
-            });
-          }
-        }, 0);
-      });
-    }
     
   // Function to set cookies
 function setCookie(name, value, days) {
@@ -464,93 +295,81 @@ function employeeload() {
 async function userLoad() {
   let currUser = localStorage.getItem("user_data");
   let currUserData = JSON.parse(currUser);
-  managerRole = {
+
+  const managerRole = {
     id: '',
     level: '',
     role_name: '',
     department: ''
+  };
+
+  if (!currUserData) {
+    console.log("No value found for logged in user.");
+    return;
   }
 
-      // Check if the value exists
-  if (currUser !== null) {
-    console.log("Retrieved value:", currUser);
-    console.log("Retrieved value:", currUserData.id);
-  } else {
-    console.log("No value found for logged in user.");
-  }
+  console.log("Retrieved user ID:", currUserData.id);
+
   await fetch(`/api/users/${currUserData.id}/`)
-  .then(response => response.json())
-  .then(data => {
-    console.log("Retrieved data:", data.role.department);
-    managerRole.id = data.role.id;
-    managerRole.level = data.role.level;
-    managerRole.role_name = data.role.role_name;
-    managerRole.department = data.role.department;
-  });
-  console.log("Retrieved manager:",managerRole.id);
+    .then(response => response.json())
+    .then(data => {
+      console.log("Retrieved role data:", data.role.department);
+      managerRole.id = data.role.id;
+      managerRole.level = data.role.level;
+      managerRole.role_name = data.role.role_name;
+      managerRole.department = data.role.department;
+    });
+
+  console.log("Retrieved manager role ID:", managerRole.id);
 
   await fetch("/api/get_userLoad/")
-  .then(response => response.json())
-  .then(data => {
-    console.log(data);
-      tbody = document.getElementById('employedTableBody');
-      tbody.innerHTML = '';
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+
+      const empTable = document.getElementById('employedTableBody');
+      const userTable = document.getElementById('userTableBody');
+      empTable.innerHTML = '';
+      userTable.innerHTML = '';
 
       data.users.forEach(user => {
-        employyeeLoad = `
-          <tr>
+        // Coworkers Table: Same department, same role, not admin
+        if (
+          user.role.id !== 1 &&
+          user.role.department === managerRole.department &&
+          user.role.id === managerRole.id
+        ) {
+          empTable.innerHTML += `
+            <tr>
               <td>${user.id}</td>
               <td>${user.name}</td>
               <td>${user.email}</td>
               <td>${user.role.department}</td>
               <td>${user.role.role_name}</td>
-          </tr>`
+            </tr>`;
+        }
 
-          if(user.role.id != 1 && user.role.department == managerRole.department && user.role.id == managerRole.id) {
-            tbody.innerHTML += employyeeLoad;
-            
-          }
-
-      })
-  })
-  .catch(error => {
+        // Users Table: Show all users
+        if (
+          user.role.id == 2
+        ) {
+          userTable.innerHTML += `
+            <tr>
+              <td>${user.id}</td>
+              <td>${user.name}</td>
+              <td>${user.email}</td>
+              <td>${user.status}</td>
+              <td>${user.role.role_name}</td>
+            </tr>`;
+        }
+      });
+    })
+    .catch(error => {
       console.error('Error loading users:', error);
-  });
+    });
 }
 
-function handleStatusChange(formId, newStatus, formType) {
-      let endpoint = "";
-      let payload = { status: newStatus };
 
-      if (formType === "Payroll Form") {
-        endpoint = `/api/payroll/${formId}/`;
-      } else if (formType === "Reimburse Form") {
-        endpoint = `/api/reimburse/${formId}/`;
-      } else if (formType === "Change Address Form") {
-        endpoint = `/api/address/${formId}/`;
-      } else if (formType === "Diploma Form") {
-        endpoint = `/api/diploma/${formId}/`;
-      }
 
-      fetch(endpoint, {
-        method: "PATCH",
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken"),
-                              "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      })
-        .then(response => {
-          if (!response.ok) throw new Error("Status update failed");
-          return response.json();
-        })
-        .then(data => {
-          console.log("Updated form status:", data);
-          stuff(); // Refresh the table after update
-        })
-        .catch(error => {
-          console.error("Error updating form status:", error);
-        });
-    }
 </script>
 </html>
