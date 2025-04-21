@@ -11,7 +11,7 @@ from formProcessor.views import (
     payroll_step9, payroll_step10, payroll_review, delete_payroll, view_payroll_pdf,
     view_change_address_pdf, view_diploma_pdf, view_change_address_pdf3, view_diploma_pdf3
 )
-from workflow.views import workflow_steps, workflow_list_create, delete_workflow, delete_workflow_step, my_work_assignments, delegate_work_assign
+from workflow.views import workflow_steps, workflow_list_create, delete_workflow, delete_workflow_step, my_work_assignments, delegate_work_assign, get_manager_notifications, mark_notification_read
 from api.views import get_csrf_token, delegate_work_assignment, get_work_assignments
 from django.conf import settings
 from django.conf.urls.static import static
@@ -101,6 +101,9 @@ urlpatterns = [
 
     path("api/my_work/", my_work_assignments),
     path('api/delegate/<int:assign_id>/', delegate_work_assign, name='delegate_work_assign'),
+
+    path("api/notification/<int:pk>/read/", mark_notification_read, name="mark_notification_read"),
+    path('api/manager_notifications/', get_manager_notifications, name='get_manager_notifications'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
