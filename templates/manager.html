@@ -267,6 +267,45 @@
         </div>
       </div>
     </div>
+    <div id="delegateModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeDelegateModal()">&times;</span>
+        <h2>Delegate Task</h2>
+        <p>Select a user below to delegate this task:</p>
+    
+        <h3>Employees Table</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>USER ID</th>
+              <th>NAME</th>
+              <th>EMAIL</th>
+              <th>DEPARTMENT</th>
+              <th>ROLE</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="delegateEmployeeTableBody"></tbody>
+        </table>
+    
+        <br>
+    
+        <h3>Other Department Managers</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>USER ID</th>
+              <th>NAME</th>
+              <th>EMAIL</th>
+              <th>DEPARTMENT</th>
+              <th>ROLE</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="delegateManagerTableBody"></tbody>
+        </table>
+      </div>
+    </div>
 </body>
 <script>
     const links = document.querySelectorAll('.menu a');
@@ -291,6 +330,113 @@
         }
       });
     });
+    let currentDelegateAssignId = null;
+
+    function openDelegateModal(assignId) {
+      currentDelegateAssignId = assignId;
+      document.getElementById('delegateModal').style.display = 'block';
+      loadDelegateUsers(); // <-- new function
+    }
+
+    function closeDelegateModal() {
+      document.getElementById('delegateModal').style.display = 'none';
+      currentDelegateAssignId = null;
+    }
+
+    
+    async function loadDelegateUsers() {
+      const empBody = document.getElementById("delegateEmployeeTableBody");
+      const manBody = document.getElementById("delegateManagerTableBody");
+
+      empBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+      manBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+
+      const currUserData = JSON.parse(localStorage.getItem("user_data"));
+
+      // ✅ Wait for department data before continuing
+      let currUserDepartment = null;
+      await fetch(`/api/users/${currUserData.id}/`)
+        .then(response => response.json())
+        .then(data => {
+          currUserDepartment = data.role.department;
+        });
+
+      await fetch("/api/get_userLoad/")
+        .then(res => res.json())
+        .then(data => {
+          empBody.innerHTML = '';
+          data.users.forEach(user => {
+            if (user.role.role_name === "employee" && user.role.department === currUserDepartment) {
+              empBody.innerHTML += `
+                <tr>
+                  <td>${user.id}</td>
+                  <td>${user.name}</td>
+                  <td>${user.email}</td>
+                  <td>${user.role.department}</td>
+                  <td>${user.role.role_name}</td>
+                  <td><button class="btn" onclick="submitDelegateTo(${user.id})">Choose</button></td>
+                </tr>`;
+            }
+          });
+        });
+
+        await fetch("/api/get_managerLoad/")
+        .then(res => res.json())
+        .then(data => {
+          manBody.innerHTML = '';
+          data.users.forEach(user => {
+            // ✅ Skip the current user
+            if (user.id !== currUserData.id) {
+              manBody.innerHTML += `
+                <tr>
+                  <td>${user.id}</td>
+                  <td>${user.name}</td>
+                  <td>${user.email}</td>
+                  <td>${user.role.department}</td>
+                  <td>${user.role.role_name}</td>
+                  <td><button class="btn" onclick="submitDelegateTo(${user.id})">Choose</button></td>
+                </tr>`;
+            }
+          });
+        });
+      }
+
+
+
+    function submitDelegateTo(targetUserId) {
+      if (!currentDelegateAssignId) return alert("Missing task info.");
+
+      const userData = localStorage.getItem("user_data");
+      if (!userData) return alert("You are not logged in.");
+      const createdById = JSON.parse(userData).id;
+
+      fetch(`/api/delegate/${currentDelegateAssignId}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({
+          target_user_id: targetUserId,
+          created_by_id: createdById
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          closeDelegateModal();
+          if (data.message) {
+            alert(data.message);
+            loadApprovals();
+          } else {
+            alert("Delegation failed: " + (data.error || "Unknown error"));
+          }
+        })
+        .catch(err => {
+          console.error("Delegation error:", err);
+          alert("Error occurred while delegating.");
+        });
+    }
+
 
     document.addEventListener("DOMContentLoaded", function () {
       employeeload();
@@ -476,43 +622,6 @@
             });
       }
 
-        function openDelegateModal(assignId) {
-          const targetUserId = prompt("Enter the user ID to delegate this task to:");
-          if (!targetUserId) return;
-
-          const userData = localStorage.getItem("user_data");
-          if (!userData) {
-            alert("You are not logged in.");
-            return;
-          }
-
-          const createdById = JSON.parse(userData).id;
-
-          fetch(`/api/delegate/${assignId}/`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": getCookie("csrftoken"),
-            },
-            body: JSON.stringify({
-              target_user_id: targetUserId,
-              created_by_id: createdById
-            })
-          })
-          .then(res => res.json())
-          .then(data => {
-            if (data.message) {
-              alert(data.message);
-              loadApprovals();  // Refresh the table
-            } else {
-              alert("Delegation failed: " + (data.error || "Unknown error"));
-            }
-          })
-          .catch(err => {
-            console.error("Delegation error:", err);
-            alert("Error occurred while delegating.");
-          });
-        }
         function updateAssignStatus(assignId, newStatus) {
             fetch(`/api/workassign/${assignId}/`, {
                 method: "PATCH",
