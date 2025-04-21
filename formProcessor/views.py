@@ -541,6 +541,9 @@ def payroll_step10(request, payroll_id):
 @login_required
 def payroll_review(request, payroll_id):
     payroll = get_object_or_404(PayrollAssignment, id=payroll_id, user=request.user)
+    if payroll.status != "Pending":
+        payroll.status = "Pending"
+        payroll.save()
     return generate_pdf_and_redirect(request, payroll, "latexform/payroll-assignment.tex")
    
 @login_required
