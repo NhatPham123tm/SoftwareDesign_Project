@@ -81,7 +81,7 @@ const EmployeeManagement = () => {
 
         if (response.ok) {
             const data = await response.json();
-            const Employees = data.filter(user => user.role.role_name !== "basicuser");
+            const Employees = data.filter(user => user.role.role_name !== "");
             setEmployees(Employees);
             setFilteredEmployees(Employees);
         }             
