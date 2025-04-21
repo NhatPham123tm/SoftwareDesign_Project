@@ -28,6 +28,7 @@ const HomePage = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyForm, setHistoryForm] = useState(null);
   const [activeTab, setActiveTab] = useState("status");
+  const [viewMode, setViewMode] = useState("current"); 
 
   const formTypeNames = {
     DiplomaRequestForm: "Diploma Request",
@@ -64,7 +65,7 @@ const HomePage = () => {
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": getCSRFToken(),
-      },
+        },
       });
 
       if (response.ok) {
@@ -210,6 +211,14 @@ const HomePage = () => {
     }
   };
 
+  const filteredForms = forms.filter(form => {
+    if (viewMode === "current") {
+      return !["approved", "rejected"].includes(form.status.toLowerCase());
+    } else {
+      return ["approved", "rejected"].includes(form.status.toLowerCase());
+    }
+  });
+
   return (
     <div className="">
       { role === 2 ? (
@@ -221,11 +230,28 @@ const HomePage = () => {
         </div>
       ) : (
         <div className="admin-view-container">
-          <h2 className="admin-view-header">Tasks</h2>
+          <div className="admin-header">
+            <h2 className="admin-view-header">Tasks</h2>
+            <div className="view-toggle">
+              <button 
+                className={`toggle-btn ${viewMode === "current" ? "active" : ""}`}
+                onClick={() => setViewMode("current")}
+              >
+                Current Tasks
+              </button>
+              <button 
+                className={`toggle-btn ${viewMode === "completed" ? "active" : ""}`}
+                onClick={() => setViewMode("completed")}
+              >
+                Completed Tasks
+              </button>
+            </div>
+          </div>
+          
           {message && <p className="form-message">{message}</p>}
 
-          {forms.length === 0 ? (
-            <p className="no-forms-message">No matching forms found.</p>
+          {filteredForms.length === 0 ? (
+            <p className="no-forms-message">No {viewMode} tasks found.</p>
           ) : (
             <table className="forms-table">
               <thead>
@@ -238,44 +264,48 @@ const HomePage = () => {
                 </tr>
               </thead>
               <tbody>
-                {forms.map((form) => (
+                {filteredForms.map((form) => (
                   <tr key={form.id}>
                     <td>{formTypeNames[form.form_type] || form.form_type}</td>
                     <td>{form.data.name}</td>
                     <td>{form.status}</td>
-                    <td>{form.delegator ? form.delegator.name : "None"}</td>
+                    <td>{form.delegator ? form.delegator.name : "System"}</td>
                     <td>
-                      <button
-                        className="approve-btn"
-                        onClick={() => {
-                          setSelectedForm(form);
-                          setShowApproveModal(true);
-                          setSignatureData(null); 
-                          setSignatureSaved(false); 
-                        }}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        className="reject-btn"
-                        onClick={() => {
-                          setSelectedForm(form);
-                          setShowRejectModal(true);
-                        }}
-                      >
-                        Reject
-                      </button>
-                      <button
-                        className="delegate-btn"
-                        onClick={() => {
-                          setSelectedForm(form);
-                          setShowDelegateModal(true);
-                          setSignatureData(null); 
-                          setSignatureSaved(false); 
-                        }}
-                      >
-                        Delegate
-                      </button>
+                      {viewMode === "current" && (
+                        <>
+                          <button
+                            className="approve-btn"
+                            onClick={() => {
+                              setSelectedForm(form);
+                              setShowApproveModal(true);
+                              setSignatureData(null); 
+                              setSignatureSaved(false); 
+                            }}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            className="reject-btn"
+                            onClick={() => {
+                              setSelectedForm(form);
+                              setShowRejectModal(true);
+                            }}
+                          >
+                            Reject
+                          </button>
+                          <button
+                            className="delegate-btn"
+                            onClick={() => {
+                              setSelectedForm(form);
+                              setShowDelegateModal(true);
+                              setSignatureData(null); 
+                              setSignatureSaved(false); 
+                            }}
+                          >
+                            Delegate
+                          </button>
+                        </>
+                      )}
                       <button
                         className="history-btn"
                         onClick={() => {

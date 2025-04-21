@@ -81,3 +81,23 @@
   overflow-y: scroll;
   padding-right: 10px;
 }
+
+.toggle-btn {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background-color: #f4f4f4;
+  cursor: pointer;
+  margin-right: 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.toggle-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.toggle-btn.active {
+  background-color: #4caf50;
+  color: white;
+  border-color: #4caf50;
+}
