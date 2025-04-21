@@ -155,6 +155,7 @@ const HomePage = () => {
         );
         setSignatureData(null);
         setShowApproveModal(false);
+        fetchForms();
       } else {
         setMessage("Failed to update form.");
       }
