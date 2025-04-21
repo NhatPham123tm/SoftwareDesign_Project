@@ -22,6 +22,26 @@ def handle_work_assign_status(sender, instance, created, **kwargs):
     if instance.status == "Completed" and not instance.is_current_step:
         mark_chain(instance)
 
+@receiver(post_save, sender=work_assign)
+def handle_work_assign_status2(sender, instance, created, **kwargs):
+    # Step 1: Ensure is_current_step is False if Completed
+    if instance.status == "Completed" and instance.is_current_step:
+        instance.is_current_step = False
+        instance.save(update_fields=["is_current_step"])
+
+    # Step 2: Recursively complete all tasks that delegated FROM this one
+    def mark_delegated_chain(assign):
+        for child in assign.delegated_tasks.all():  # delegated FROM this assign
+            if child.status != "Completed" or child.is_current_step:
+                child.status = "Completed"
+                child.is_current_step = False
+                child.save()
+                mark_delegated_chain(child)
+
+    # If already completed and not current, check for delegated chain
+    if instance.status == "Completed" and not instance.is_current_step:
+        mark_delegated_chain(instance)
+
 
 @receiver(post_migrate)
 def initialize_data(sender, **kwargs):
