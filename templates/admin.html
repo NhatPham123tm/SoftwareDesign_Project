@@ -266,23 +266,9 @@
         <div class="part" id="workassign" style="display:none;">
             <div class="container">
               <h2>All Current Work Assignments</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>User</th>
-                    <th>Form Type</th>
-                    <th>Form ID</th>
-                    <th>Step</th>
-                    <th>Status</th>
-                    <th>Is Current</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="allWorkAssignTableBody"></tbody>
-              </table>
+              <div id="groupedWorkAssigns"></div>
             </div>
-          </div>
+        </div>
 
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1049,38 +1035,66 @@ function stuff() {
                 ]);
 
                 const userMap = Object.fromEntries(users.map(u => [u.id, u.name]));
-                console.log(userMap);
-                const tbody = document.getElementById("allWorkAssignTableBody");
-                tbody.innerHTML = "";
 
+                const grouped = {};
                 assigns.forEach(item => {
-                    let formType = "Unknown";
+                    let key = "Unknown";
                     let formId = null;
                     if (item.PayrollAssignment_id) {
-                    formType = "Payroll";
+                    key = `Payroll-${item.PayrollAssignment_id}`;
                     formId = item.PayrollAssignment_id;
                     } else if (item.ReimbursementRequest_id) {
-                    formType = "Reimburse";
+                    key = `Reimburse-${item.ReimbursementRequest_id}`;
                     formId = item.ReimbursementRequest_id;
                     } else if (item.ChangeOfAddress_id) {
-                    formType = "Address";
+                    key = `Address-${item.ChangeOfAddress_id}`;
                     formId = item.ChangeOfAddress_id;
                     } else if (item.DiplomaRequest_id) {
-                    formType = "Diploma";
+                    key = `Diploma-${item.DiplomaRequest_id}`;
                     formId = item.DiplomaRequest_id;
                     }
 
-                    tbody.innerHTML += `
-                    <tr>
-                        <td>${item.id}</td>
-                        <td>${userMap[item.user] || "—"}</td>
-                        <td>${formType}</td>
-                        <td>${formId || "—"}</td>
-                        <td>${item.step || "—"}</td>
-                        <td>${item.status}</td>
-                        <td>${item.is_current_step ? '✅' : '❌'}</td>
-                        <td><button class="del-button" onclick="deleteWorkAssign(${item.id})" ;">Delete</button></td>
-                    </tr>`;
+                    if (!grouped[key]) grouped[key] = [];
+                    grouped[key].push({ ...item, formId });
+                });
+
+                const container = document.getElementById("groupedWorkAssigns");
+                container.innerHTML = "";
+
+                Object.entries(grouped).forEach(([key, items]) => {
+                    const formType = key.split('-')[0];
+                    const formId = key.split('-')[1];
+
+                    const groupTable = `
+                    <h3>${formType} (Form ID: ${formId})</h3>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Step</th>
+                            <th>Status</th>
+                            <th>Is Current</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        ${items.map(item => `
+                            <tr>
+                            <td>${item.id}</td>
+                            <td>${userMap[item.user] || "—"}</td>
+                            <td>${item.step || "—"}</td>
+                            <td>${item.status}</td>
+                            <td>${item.is_current_step ? '✅' : '❌'}</td>
+                            <td><button class="del-button" onclick="deleteWorkAssign(${item.id})" ;">Delete</button></td>
+                            </tr>
+                        `).join('')}
+                        </tbody>
+                    </table>
+                    <hr />
+                    `;
+
+                    container.innerHTML += groupTable;
                 });
                 }
 
@@ -1102,7 +1116,8 @@ function stuff() {
                     });
                 }
                 }
-                </script>
+    </script>
+
 
 </body>
 </html>
