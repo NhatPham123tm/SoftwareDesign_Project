@@ -184,7 +184,7 @@
                     <th>NAME</th>
                     <th>EMAIL</th>
                     <th>DEPARTMENT</th>
-                    <th>ASSIGN WORK</th>
+                    <th>ROLE</th>
                   </tr>
               </thead>
               <tbody id="employedTableBody"></tbody>
@@ -198,7 +198,7 @@
                       <th>NAME</th>
                       <th>EMAIL</th>
                       <th>DEPARTMENT</th>
-                      <th>ASSIGN WORK</th>
+                      <th>ROLE</th>
                     </tr>
                 </thead>
                 <tbody id="managerTableBody"></tbody>
@@ -383,11 +383,7 @@
                 <td>${user.name}</td>
                 <td>${user.email}</td>
                 <td>${user.role.department}</td>
-                <td>
-                  ${user.id !== currUserData.id ? 
-                    `<button class="btn" onclick="openWorkAssignModal(${user.id}, '${user.name}')">Assign Work</button>` 
-                    : ''}
-                </td>
+                <td>${user.role.role_name}</td>
               </tr>`;
           });
         })
@@ -412,9 +408,7 @@
                 <td>${user.name}</td>
                 <td>${user.email}</td>
                 <td>${user.role.department}</td>
-                <td>
-                  <button class="btn" onclick="openWorkAssignModal(${user.id}, '${user.name}')">Assign Work</button>
-                </td>
+                <td>${user.role.role_name}</td>
               </tr>`;
           }
 
@@ -535,17 +529,6 @@
                 loadApprovals();
             });
         }
-
-
-
-
-
-
-
-
-
-
-
 
 
     function openWorkAssignModal(employeeId, employeeName) {
