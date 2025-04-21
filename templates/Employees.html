@@ -115,6 +115,30 @@ tbody td {
   font-size: 15px;
 }
 
+.modal {
+  display: none; /* default hidden */
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 30px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 900px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
 
 </style>
 <body>
@@ -124,10 +148,10 @@ tbody td {
           <ul class="menu">
             <li><a href="#dashboard" class="active">Dashboard</a></li>
             <li><a href="#employees" onclick="employeeload(); return false;">Coworkers</a></li>
-            <li><a href="#forms" onclick="stuff(); return false;">Assigments</a></li>
-            <li><a href="#">Logout</a></li>
+            <li><a href="#forms" onclick="stuff(); return false;">Approvals</a></li>
+            <li><a href="#" onclick="logoutUser()">Logout</a></li>
           </ul>
-          <a class="fart" href="{% url 'dashboard' %}">Home</a></li>
+          <a class="fart" href="{% url 'dashboard' %}">← Back To Dashboard</a></li>
         </div>
     
         <div class="main">
@@ -169,16 +193,19 @@ tbody td {
 
           <div id="forms" class="part">
             <div id="trois-dept" class="">
-              <h2>Assigments</h2>
+              <h2>Pending Assigned Works</h2>
               <table>
                 <thead>
                   <tr>
+                    <th>Form Type</th>
+                    <th>Step</th>
                     <th>Name</th>
+                    <th>Form ID</th>
                     <th>Date</th>
-                    <th>User ID</th>
-                    <th>PDF</th>
-                    <th>PDF Type</th>
                     <th>Status</th>
+                    <th>PDF</th>
+                    <th>Actions</th>
+                    <th>Delegation</th>
                   </tr>
                 </thead>
                 <tbody id="PendingBody"></tbody>
@@ -187,6 +214,29 @@ tbody td {
           </div>
       </div>
     </div>
+    </div>
+
+    <div id="delegateModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeDelegateModal()">&times;</span>
+        <h2>Delegate Task</h2>
+        <p>Select a user below to delegate this task:</p>
+    
+        <h3>Employees Table</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>USER ID</th>
+              <th>NAME</th>
+              <th>EMAIL</th>
+              <th>DEPARTMENT</th>
+              <th>ROLE</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="delegateEmployeeTableBody"></tbody>
+        </table>
+      </div>
     </div>
 </body>
 <script>
@@ -213,55 +263,104 @@ tbody td {
       });
     });
 
+let currentDelegateAssignId = null;
 
-    document.addEventListener("DOMContentLoaded", function () {
-            console.log("Fetching user data...");
+function openDelegateModal(assignId) {
+  currentDelegateAssignId = assignId;
+  document.getElementById('delegateModal').style.display = 'block';
+  loadDelegateUsers(); // <-- new function
+}
 
-            fetch('/api/microsoft-login/', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
+function closeDelegateModal() {
+  document.getElementById('delegateModal').style.display = 'none';
+  currentDelegateAssignId = null;
+}
 
-                console.log("Fetched user data:", data);
-                if (!localStorage.getItem("access_token")){
-                    localStorage.setItem("access_token", data.access_token);
-                    localStorage.setItem("user", JSON.stringify(data.user)); 
-                }
 
-                // Update the UI after data is fetched
-                updateUserUI();
-                updateUserData();
-            })
-            .catch(error => {
-                //console.error("Error fetching user data:", error);
-                updateUserUI();
-            });
-            updateUserData();
-            
-       })
-        function updateUserUI() {
-            console.log("Checking for user data in localStorage...");
+async function loadDelegateUsers() {
+  const empBody = document.getElementById("delegateEmployeeTableBody");
+  const manBody = document.getElementById("delegateManagerTableBody");
 
-            // Try fetching "user_data" first, if not available, fall back to "user"
-            let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
-            
-            if (userDataString) {
-                try {
-                    const userData = JSON.parse(userDataString);
-                    if (userData && userData.name) {
-                        document.getElementById("welcome").textContent = `Welcome, ${userData.name}!`;
-                    }
-                } catch (error) {
-                    console.error("Error parsing user data:", error);
-                }
-            } else {
-                console.warn("No user data found in localStorage.");
-            }
+  empBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+
+  const currUserData = JSON.parse(localStorage.getItem("user_data"));
+
+  // ✅ Wait for department data before continuing
+  let currUserDepartment = null;
+  await fetch(`/api/users/${currUserData.id}/`)
+    .then(response => response.json())
+    .then(data => {
+      currUserDepartment = data.role.department;
+    });
+
+  await fetch("/api/get_userLoad/")
+    .then(res => res.json())
+    .then(data => {
+      empBody.innerHTML = '';
+      data.users.forEach(user => {
+        if (user.role.role_name === "employee" && user.role.department === currUserDepartment) {
+          empBody.innerHTML += `
+            <tr>
+              <td>${user.id}</td>
+              <td>${user.name}</td>
+              <td>${user.email}</td>
+              <td>${user.role.department}</td>
+              <td>${user.role.role_name}</td>
+              <td><button class="btn" onclick="submitDelegateTo(${user.id})">Choose</button></td>
+            </tr>`;
         }
+      });
+    });
+  }
+
+
+
+function submitDelegateTo(targetUserId) {
+  if (!currentDelegateAssignId) return alert("Missing task info.");
+
+  const userData = localStorage.getItem("user_data");
+  if (!userData) return alert("You are not logged in.");
+  const createdById = JSON.parse(userData).id;
+
+  fetch(`/api/delegate/${currentDelegateAssignId}/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({
+      target_user_id: targetUserId,
+      created_by_id: createdById
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      closeDelegateModal();
+      if (data.message) {
+        alert(data.message);
+        loadApprovals();
+      } else {
+        alert("Delegation failed: " + (data.error || "Unknown error"));
+      }
+    })
+    .catch(err => {
+      console.error("Delegation error:", err);
+      alert("Error occurred while delegating.");
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  employeeload();
+    stuff();
+});
+
+
+function stuff() {
+  const welcomeMessage = document.getElementById('welcome');
+  const userData = localStorage.getItem("user_data");
+  const parsedData = JSON.parse(userData);
+  welcomeMessage.textContent = `Welcome ${parsedData.name}`;
+}
 
     
   // Function to set cookies
@@ -284,6 +383,9 @@ function getCookie(name) {
 }
 
 
+
+
+
 // Function to delete cookies
 function deleteCookie(name) {
   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -291,6 +393,7 @@ function deleteCookie(name) {
 
 function employeeload() {
   userLoad();
+  loadApprovals();
 }
 async function userLoad() {
   let currUser = localStorage.getItem("user_data");
@@ -369,7 +472,78 @@ async function userLoad() {
     });
 }
 
+function logoutUser() {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("user_data");
+      window.location.href = "/logout/";
+}
 
+function loadApprovals() {
+  document.getElementById('trois-dept').style.display = 'block';
+
+  fetch("/api/my_work/")
+      .then(res => res.json())
+      .then(data => {
+          const tbody = document.getElementById("PendingBody");
+          tbody.innerHTML = "";
+
+          data.forEach(row => {
+              let viewUrl = "#";
+              const formType = row.form_type.toLowerCase();
+
+              if (formType === "payroll") {
+                  viewUrl = `/view_payroll_pdf2/${row.form_id}/`;
+              } else if (formType === "reimburse") {
+                  viewUrl = `/view_pdf2/${row.form_id}/`;
+              } else if (formType === "address") {
+                  viewUrl = `/view_change_address_pdf3/${row.form_id}/`;
+              } else if (formType === "diploma") {
+                  viewUrl = `/view-diploma-pdf3/${row.form_id}/`;
+              }
+              
+              const stepDisplay = row.delegated ? "Delegated" : row.step_label;
+              tbody.innerHTML += `
+                  <tr>
+                      <td>${row.form_type}</td>
+                      <td>${stepDisplay}</td>
+                      <td>${row.name}</td>
+                      <td>${row.form_id}</td>
+                      <td>${row.date || "—"}</td>
+                      <td>${row.status}</td>
+                      <td><a href="${viewUrl}" target="_blank"><button>View PDF</button></a></td>
+                      <td>
+                          <select onchange="updateAssignStatus(${row.id}, this.value)">
+                              <option value="">Select</option>
+                              <option value="Completed">Approve</option>
+                              <option value="Rejected">Reject</option>
+                          </select>
+                      </td>
+                      <td>
+                        <button onclick="openDelegateModal(${row.id})">Delegate</button>
+                      </td>
+                  </tr>`;
+          });
+      });
+}
+
+function updateAssignStatus(assignId, newStatus) {
+    fetch(`/api/workassign/${assignId}/`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Status updated.");
+        loadApprovals();
+    });
+}
 
 </script>
 </html>
