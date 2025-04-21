@@ -90,6 +90,7 @@
   margin-right: 8px;
   border-radius: 4px;
   transition: background-color 0.3s ease;
+  font-family: "Montserrat", sans-serif;
 }
 
 .toggle-btn:hover {

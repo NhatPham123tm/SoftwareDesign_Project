@@ -226,6 +226,7 @@ const EmployeeManagement = () => {
                             <th>Status</th>
                             <th>Role</th>
                             <th>Department</th>
+                            <th>Subdepartment</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -237,6 +238,7 @@ const EmployeeManagement = () => {
                                 <td>{employee.status}</td>
                                 <td>{employee.role.role_name}</td>
                                 <td>{employee.role.department}</td>
+                                <td>{employee.role.subdepartment == "all" ? ("") : ( employee.role.subdepartment )}</td>
                                 <td>
                                     <div>
                                         <button onClick={() => toggleModal(employee)}>Edit</button>
