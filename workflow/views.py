@@ -60,56 +60,46 @@ def assign_workflow_steps(form_instance):
                     system_generated=True,
                 )
 
-def advance_to_next_workflow_step(form_instance):
-    form_type = form_instance.__class__.__name__
+def advance_to_next_workflow_step(form_instance, current_step_order, workflow):
+    print(f"Advancing workflow for {form_instance} at step {current_step_order} in workflow {workflow}")
 
-    if form_type == "PayrollAssignment":
-        current_assignments = work_assign.objects.filter(PayrollAssignment_id=form_instance, is_current_step=True)
-    elif form_type == "ReimbursementRequest":
-        current_assignments = work_assign.objects.filter(ReimbursementRequest_id=form_instance, is_current_step=True)
-    elif form_type == "ChangeOfAddress":
-        current_assignments = work_assign.objects.filter(ChangeOfAddress_id=form_instance, is_current_step=True)
-    elif form_type == "DiplomaRequest":
-        current_assignments = work_assign.objects.filter(DiplomaRequest_id=form_instance, is_current_step=True)
-    else:
-        current_assignments = work_assign.objects.none()
-
-    if not current_assignments.exists():
-        return
-    
-    current_step_order = current_assignments.first().step.step_order
-    workflow = current_assignments.first().step.workflow
-
-    # Complete current step
-    current_assignments.update(is_current_step=False, status="Completed")
-
-    # Get next step
+    # Get next step directly
     next_step = WorkflowStep.objects.filter(workflow=workflow, step_order=current_step_order + 1).first()
+    print(f"Next step: {next_step}")
     
     if next_step:
-        # Assign next step
         assign_workflow_steps_for_step(form_instance, next_step)
 
-        # Set form status to In Progress if not already
         if form_instance.status != "In Progress":
             form_instance.status = "In Progress"
             form_instance.save()
-
+            
 def assign_workflow_steps_for_step(form_instance, step):
     form_type = form_instance.__class__.__name__
-    
+
+    # Cleanup: remove non-current duplicates of this step
+    work_assign.objects.filter(
+        step=step,
+        PayrollAssignment_id=form_instance if form_type == "PayrollAssignment" else None,
+        ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
+        ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
+        DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
+        is_current_step=False
+    ).delete()
+
     if step.user:
         work_assign.objects.create(
             user=step.user,
             created_by=form_instance.user,
             step=step,
             is_current_step=True,
+            system_generated=True,
             PayrollAssignment_id=form_instance if form_type == "PayrollAssignment" else None,
             ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
             ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
             DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
-            system_generated=True,
         )
+
     elif step.role:
         users = user_accs.objects.filter(role=step.role)
         if step.department and step.department != 'all':
@@ -120,11 +110,11 @@ def assign_workflow_steps_for_step(form_instance, step):
                 created_by=form_instance.user,
                 step=step,
                 is_current_step=True,
+                system_generated=True,
                 PayrollAssignment_id=form_instance if form_type == "PayrollAssignment" else None,
                 ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
                 ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
                 DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
-                system_generated=True,
             )
 
 @api_view(["GET", "POST"])
