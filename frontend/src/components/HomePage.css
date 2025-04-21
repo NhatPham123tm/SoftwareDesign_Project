@@ -9,9 +9,12 @@
 .box-container {
   text-align: center;
   padding: 20px;
-  background-color: #bedcf5;
+  background-color: #BAD8B6;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 40vh;
+  margin-left: 40vw;
+  margin-right: 40vw;
 }
 
 .box h2 {

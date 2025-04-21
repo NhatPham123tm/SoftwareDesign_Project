@@ -88,6 +88,9 @@ const HomePage = () => {
         const user = JSON.parse(localUserData);
         login(user);
         setrole(user.role)
+        if(user.role == 2){
+          navigate("/forms");
+        }
         return;
       }
   
@@ -108,6 +111,10 @@ const HomePage = () => {
             role: user.role,
             status: user.status,
           });
+          setrole(user.role)
+          if(user.role == 2){
+            navigate("/forms");
+          }
         } else {
           console.warn("Unexpected response status. Redirecting.");
           navigate("/login");
@@ -209,7 +216,7 @@ const HomePage = () => {
         <div className="box-container">
           <div className="box">
             <h2>Welcome to Uranium City</h2>
-            <p>Under Maintenance</p>
+            <p>Access Forms on the Right</p>
           </div>
         </div>
       ) : (
