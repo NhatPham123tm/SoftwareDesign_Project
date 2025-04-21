@@ -30,7 +30,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import JsonResponse
 from authentication.views import is_admin
 from rest_framework.permissions import BasePermission
-from django.utils.dateparse import parse_datetime
+from django.utils.timezone import now
+
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = roles.objects.all()
@@ -531,12 +532,22 @@ class RequestApprovalView(APIView):
     def put(self, request, pk):
         req = get_object_or_404(Request, id=pk)
         new_status = request.data.get("status")
+        user = request.user
         if new_status not in ['approved', 'rejected']:
             return Response(
                 {"error": "Invalid status. Must be 'approved' or 'rejected'."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+        history_entry = {
+            "changed_by": user.name,
+            "status": new_status,
+            "timestamp": now().isoformat()
+        }
+
+        if not req.status_history:
+            req.status_history = []
+
+        req.status_history.append(history_entry)
         if new_status == "rejected":
             reason = request.data.get("reason_for_return", "")
             req.reason_for_return = reason
@@ -698,6 +709,17 @@ class DelegateWork(APIView):
         request_form = get_object_or_404(Request, id=request_id)
 
         request_form.assigned_to_id = delegatee_id
+        request_form.save()
+
+        if request_form.delegate_history is None:
+            request_form.delegate_history = []
+
+        request_form.delegate_history.append({
+            "delegated_to": user_ura_accs.objects.get(id=delegatee_id).name if user_ura_accs.objects.filter(id=delegatee_id).exists() else "Unknown User",
+            "delegator": request.user.name,
+            "timestamp": now().isoformat()
+        })
+
         request_form.save()
         delegation = Delegation.objects.create(
             request=request_form,

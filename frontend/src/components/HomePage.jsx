@@ -25,6 +25,10 @@ const HomePage = () => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [signatureData, setSignatureData] = useState(null); 
   const [signatureSaved, setSignatureSaved] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyForm, setHistoryForm] = useState(null);
+  const [activeTab, setActiveTab] = useState("status");
+
   const formTypeNames = {
     DiplomaRequestForm: "Diploma Request",
     ChangeAddressForm: "Change of Address",
@@ -264,6 +268,16 @@ const HomePage = () => {
                       >
                         Delegate
                       </button>
+                      <button
+                        className="history-btn"
+                        onClick={() => {
+                          setHistoryForm(form);
+                          setShowHistoryModal(true);
+                        }}
+                      >
+                        View History
+                      </button>
+
                       {form.pdf && (
                         <div className="pdf-link">
                           <a
@@ -321,7 +335,6 @@ const HomePage = () => {
               </div>
             </div>
           )}
-
           {showDelegateModal && selectedForm && (
             <div className="modal-overlay">
               <div className="modal-content">
@@ -360,7 +373,6 @@ const HomePage = () => {
               </div>
             </div>
           )}
-
           {showRejectModal && selectedForm && (
             <div className="modal-overlay">
               <div className="modal-content">
@@ -403,6 +415,84 @@ const HomePage = () => {
               </div>
             </div>
           )}
+
+          {showHistoryModal && historyForm && (
+            <div className="modal-overlay">
+              <div className="modal-content history-modal">
+                <h3>History for {historyForm.data?.name}</h3>
+
+                <div className="history-tabs">
+                  <button
+                    className={activeTab === "status" ? "active" : ""}
+                    onClick={() => setActiveTab("status")}
+                  >
+                    Status History
+                  </button>
+                  <button
+                    className={activeTab === "delegation" ? "active" : ""}
+                    onClick={() => setActiveTab("delegation")}
+                  >
+                    Delegation History
+                  </button>
+                </div>
+
+                {activeTab === "status" && (
+                  <div className="history-content">
+                    <h4>Status History</h4>
+                    {historyForm.status_history?.length > 0 ? (
+                      <div className="history-list">
+                        <ul>
+                          {historyForm.status_history.map((entry, index) => (
+                            <li key={index}>
+                              <strong>Status:</strong> {entry.status} <br />
+                              <strong>Changed By:</strong> User {entry.changed_by} <br />
+                              <strong>Time:</strong> {new Date(entry.timestamp).toLocaleString()}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p>No status history found.</p>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "delegation" && (
+                  <div className="history-content">
+                    <h4>Delegation History</h4>
+                    {historyForm.delegate_history?.length > 0 ? (
+                      <div className="history-list">
+                        <ul>
+                          {historyForm.delegate_history.map((entry, index) => (
+                            <li key={index}>
+                              <strong>Delegated To:</strong> User {entry.delegated_to} <br />
+                              <strong>Delegator:</strong> User {entry.delegator} <br />
+                              <strong>Time:</strong> {new Date(entry.timestamp).toLocaleString()}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p>No delegation history found.</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="modal-buttons">
+                  <button
+                    className="reject-btn"
+                    onClick={() => {
+                      setShowHistoryModal(false);
+                      setHistoryForm(null);
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       )}
     </div>

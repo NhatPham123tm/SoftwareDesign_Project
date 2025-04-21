@@ -96,7 +96,7 @@ class RequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Request
-        fields = ['id', 'status', 'reason_for_return', 'data', 'form_type', 'pdf', 'signature', 'admin_signature', 'delegator']
+        fields = ['id', 'status', 'reason_for_return', 'data', 'form_type', 'pdf', 'signature', 'admin_signature', 'delegator', 'delegate_history', 'status_history']
         read_only_fields = ['id'] 
 
 class DelegationSerializer(serializers.ModelSerializer):

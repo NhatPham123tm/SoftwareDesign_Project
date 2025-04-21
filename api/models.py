@@ -432,7 +432,9 @@ class Request(models.Model):
     signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
     admin_signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
     assigned_to = models.ForeignKey(user_ura_accs, related_name="assigned_to_user", on_delete=models.CASCADE, null=True, blank=True)
-
+    delegate_history = JSONField(default=list, blank=True, null=True)
+    status_history = JSONField(default=list, blank=True, null=True)
+    
     def assignable(self):
         if(self.form_type == "DiplomaRequestForm"):
             assigned = user_ura_accs.objects.filter((Q(role__role_name="employee") & Q(role__subdepartment="diploma"))).filter(~Q(id=self.user.id)).first()

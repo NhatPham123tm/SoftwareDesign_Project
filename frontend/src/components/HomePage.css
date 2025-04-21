@@ -23,3 +23,57 @@
   font-size: 18px;
   color: #f00; 
 }
+
+.history-modal h4 {
+  margin-top: 20px;
+  color: #333;
+}
+
+.history-modal ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.history-modal li {
+  margin-bottom: 15px;
+  background-color: #f7f7f7;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.history-tabs {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.history-tabs button {
+  padding: 10px 20px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  border-radius: 4px;
+}
+
+.history-tabs button:hover {
+  background-color: #f0f0f0;
+}
+
+.history-tabs button.active {
+  background-color: green;
+  color: white;
+}
+
+.history-content {
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.history-list {
+  max-height: 300px;
+  overflow-y: scroll;
+  padding-right: 10px;
+}
