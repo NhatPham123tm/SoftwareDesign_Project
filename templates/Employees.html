@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employees Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 </head>
 <style>
     * {
@@ -115,6 +116,30 @@ tbody td {
   font-size: 15px;
 }
 
+.modal {
+  display: none; /* default hidden */
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 30px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 900px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
 
 </style>
 <body>
@@ -124,69 +149,105 @@ tbody td {
           <ul class="menu">
             <li><a href="#dashboard" class="active">Dashboard</a></li>
             <li><a href="#employees" onclick="employeeload(); return false;">Coworkers</a></li>
-            <li><a href="#forms" onclick="stuff(); return false;">Assigments</a></li>
-            <li><a href="#" onclick="logoutUser()" >Logout</a></li>
+            <li><a href="#forms" onclick="stuff(); return false;">Approvals</a></li>
+            <li><a href="#" onclick="logoutUser()">Logout</a></li>
           </ul>
-          <a class="fart" href="{% url 'dashboard' %}">Home</a></li>
+          <a class="fart" href="{% url 'dashboard' %}">← Back To Dashboard</a></li>
         </div>
     
         <div class="main">
           <div id="dashboard" class="part active">
             <h1 id="welcome"></h1>
           </div>
+
           <div id="employees" class="part">
-            <h2>Coworkers</h2>
+            <h2>Coworkers Table</h2>
             <table>
               <thead>
-                  <tr>
-                      <th>Coworkers Name</th>
-                      <th>Coworkers ID</th>
-                      <th>Coworkers Email</th>
-                      <th>Department</th>
-                  </tr>
+                <tr>
+                  <th>Coworkers ID</th>
+                  <th>Coworkers Name</th>
+                  <th>Coworkers Email</th>
+                  <th>Department</th>
+                  <th>ROLE</th>
+                </tr>
               </thead>
               <tbody id="employedTableBody"></tbody>
+            </table>
+          
+            <br>
+          
+            <h2>Users Table</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>User Name</th>
+                  <th>User Email</th>
+                  <th>Status</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+              <tbody id="userTableBody"></tbody>
             </table>
           </div>
 
           <div id="forms" class="part">
-             
             <div id="trois-dept" class="">
-              <h2>Assigments</h2>
+              <h2>Pending Assigned Works</h2>
               <table>
                 <thead>
                   <tr>
+                    <th>Form Type</th>
+                    <th>Step</th>
                     <th>Name</th>
+                    <th>Form ID</th>
                     <th>Date</th>
-                    <th>User ID</th>
-                    <th>PDF</th>
-                    <th>PDF Type</th>
                     <th>Status</th>
+                    <th>PDF</th>
+                    <th>Actions</th>
+                    <th>Delegation</th>
                   </tr>
                 </thead>
-                <tbody id="troisPendingBody"></tbody>
+                <tbody id="PendingBody"></tbody>
               </table>
             </div>
-          
-            <div id="ura-dept" class="">
-              <h2>Assigments</h2>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Date</th>
-                    <th>User ID</th>
-                    <th>PDF</th>
-                    <th>PDF Type</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="uraPendingBody"></tbody>
-              </table>
-            </div>
+          </div>
       </div>
     </div>
     </div>
+
+    <div id="delegateModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeDelegateModal()">&times;</span>
+        <h2>Delegate Task</h2>
+        <p>Select a user below to delegate this task:</p>
+    
+        <h3>Employees Table</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>USER ID</th>
+              <th>NAME</th>
+              <th>EMAIL</th>
+              <th>DEPARTMENT</th>
+              <th>ROLE</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="delegateEmployeeTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="signatureModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%, 0); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
+      <h3>Supervisor Signature</h3>
+      <canvas id="signatureCanvas" width="400" height="150" style="border:1px solid #000;"></canvas><br>
+      <button onclick="saveSignature()">Save</button>
+      <button onclick="clearSignature()">Clear</button>
+      <button onclick="closeSignatureModal()">Cancel</button>
+   </div>
+
 </body>
 <script>
     const links = document.querySelectorAll('.menu a');
@@ -212,225 +273,103 @@ tbody td {
       });
     });
 
+let currentDelegateAssignId = null;
 
-    document.addEventListener("DOMContentLoaded", function () {
-            console.log("Fetching user data...");
+function openDelegateModal(assignId) {
+  currentDelegateAssignId = assignId;
+  document.getElementById('delegateModal').style.display = 'block';
+  loadDelegateUsers(); // <-- new function
+}
 
-            fetch('/api/microsoft-login/', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-
-                console.log("Fetched user data:", data);
-                if (!localStorage.getItem("access_token")){
-                    localStorage.setItem("access_token", data.access_token);
-                    localStorage.setItem("user", JSON.stringify(data.user)); 
-                }
-
-                // Update the UI after data is fetched
-                updateUserUI();
-                updateUserData();
-            })
-            .catch(error => {
-                //console.error("Error fetching user data:", error);
-                updateUserUI();
-            });
-            updateUserData();
-            
-       })
-        function updateUserUI() {
-            console.log("Checking for user data in localStorage...");
-
-            // Try fetching "user_data" first, if not available, fall back to "user"
-            let userDataString = localStorage.getItem("user_data") || localStorage.getItem("user");
-            
-            if (userDataString) {
-                try {
-                    const userData = JSON.parse(userDataString);
-                    if (userData && userData.name) {
-                        document.getElementById("welcome").textContent = `Welcome, ${userData.name}!`;
-                    }
-                } catch (error) {
-                    console.error("Error parsing user data:", error);
-                }
-            } else {
-                console.warn("No user data found in localStorage.");
-            }
-        }
-
-
-    async function stuff() {
-  let currUser = localStorage.getItem("user_data");
-  let currUserData = JSON.parse(currUser);
-  managerRole = {
-    id: '',
-    level: '',
-    role_name: '',
-    department: ''
-  }
-
-  if (currUser !== null) {
-    console.log("Retrieved value:", currUser);
-    console.log("Retrieved value:", currUserData.id);
-  } else {
-    console.log("No value found for logged in user.");
-    return;
-  }
-
-  await fetch(`/api/users/${currUserData.id}/`)
-    .then(response => response.json())
-    .then(data => {
-      console.log("Retrieved data:", data.role.department);
-      managerRole.id = data.role.id;
-      managerRole.level = data.role.level;
-      managerRole.role_name = data.role.role_name;
-      managerRole.department = data.role.department;
-    });
-
-  // Show/hide sections based on department
-  if (managerRole.id == 1) {
-    document.getElementById("trois-dept").style.display = "block";
-    document.getElementById("ura-dept").style.display = "block";
-  } else if (managerRole.department === "finance") {
-    document.getElementById("trois-dept").style.display = "block";
-    document.getElementById("ura-dept").style.display = "none";
-  } else {
-    document.getElementById("trois-dept").style.display = "none";
-    document.getElementById("ura-dept").style.display = "block";
-  }
-
-  // Fetch all forms + work assignments
-  Promise.all([
-    fetch("/api/payroll/").then(r => r.json()),
-    fetch("/api/reimburse/").then(r => r.json()),
-    fetch("/api/address/").then(r => r.json()),
-    fetch("/api/diploma/").then(r => r.json()),
-    fetch("/api/work_assignments/").then(r => r.json())
-  ])
-  .then(([payrollData, reimburseData, addressData, diplomaData, assignments]) => {
-    const troisPending = document.getElementById('troisPendingBody');
-    const uraPending = document.getElementById('uraPendingBody');
-
-    // Clear existing
-    troisPending.innerHTML = '';
-    uraPending.innerHTML = '';
-    
-
-    // Filter assignments by current user
-    const assignedToMe = assignments.filter(a => a.user_id === currUserData.id);
-
-    // Gather form objects from assignments
-    const myForms = [];
-
-    assignedToMe.forEach(assign => {
-      let form = null;
-      if (assign.PayrollAssignment_id_id) {
-        form = payrollData.find(f => f.id === assign.PayrollAssignment_id_id);
-        if (form) form.type = "Payroll";
-      } else if (assign.ReimbursementRequest_id_id) {
-        form = reimburseData.find(f => f.id === assign.ReimbursementRequest_id_id);
-        if (form) form.type = "Reimbursement";
-      } else if (assign.ChangeOfAddress_id_id) {
-        form = addressData.find(f => f.id === assign.ChangeOfAddress_id_id);
-        if (form) form.type = "Change of Address";
-      } else if (assign.DiplomaRequest_id_id) {
-        form = diplomaData.find(f => f.id === assign.DiplomaRequest_id_id);
-        if (form) form.type = "Diploma Request";
-      }
-
-      if (form) {
-        form.assignment_status = assign.status;
-        form.assignment_deadline = assign.deadline;
-        myForms.push(form);
-      }
-    });
-    const toyForms = myForms.filter(f => f.type === "Payroll" || f.type === "Reimbursement");
-    const umpForms = myForms.filter(f => f.type === "Change of Address" || f.type === "Diploma Request");
-
-
-    const sortByDate = (a, b) => 
-      new Date(b.date_submitted || b.todays_date || b.today_date) -
-      new Date(a.date_submitted || a.todays_date || a.today_date);
-
-    const toyPending = toyForms.filter(f => f.assignment_status === "Pending").sort(sortByDate);
-    const umpPending = umpForms.filter(f => f.assignment_status === "Pending").sort(sortByDate);
-
-
-
-    renderForms(toyPending, troisPending);
-    renderForms(umpPending, uraPending);
-  })
-  .catch(error => console.error("Error loading forms:", error));
+function closeDelegateModal() {
+  document.getElementById('delegateModal').style.display = 'none';
+  currentDelegateAssignId = null;
 }
 
 
-function renderForms(dataArray, tbody) {
-      dataArray.forEach(form => {
-        let formType = "Unknown";
-        let viewUrl = "";
-        let deleteHandler = "";
-        let selectId = "";
+async function loadDelegateUsers() {
+  const empBody = document.getElementById("delegateEmployeeTableBody");
+  const manBody = document.getElementById("delegateManagerTableBody");
 
-        if (form.todays_date) {
-          formType = "Payroll Form";
-          viewUrl = `/view_payroll_pdf2/${form.id}/`;
-          deleteHandler = `deleteForm(${form.id}, 'payroll')`;
-          selectId = `statusSelect_payroll_${form.id}`;
-        } else if (form.today_date) {
-          formType = "Reimburse Form";
-          viewUrl = `/view_pdf2/${form.id}/`;
-          deleteHandler = `deleteForm(${form.id}, 'reimburse')`;
-          selectId = `statusSelect_reimburse_${form.id}`;
-        } else if ('street_address' in form) {
-          formType = "Change Address Form";
-          viewUrl = `/view_change_address_pdf3/${form.id}/`;
-          deleteHandler = `deleteForm(${form.id}, 'address')`;
-          selectId = `statusSelect_address_${form.id}`;
-        } else if ('degree' in form) {
-          formType = "Diploma Form";
-          viewUrl = `/view-diploma-pdf3/${form.id}/`;
-          deleteHandler = `deleteForm(${form.id}, 'diploma')`;
-          selectId = `statusSelect_diploma_${form.id}`;
+  empBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+
+  const currUserData = JSON.parse(localStorage.getItem("user_data"));
+
+  // ✅ Wait for department data before continuing
+  let currUserDepartment = null;
+  await fetch(`/api/users/${currUserData.id}/`)
+    .then(response => response.json())
+    .then(data => {
+      currUserDepartment = data.role.department;
+    });
+
+  await fetch("/api/get_userLoad/")
+    .then(res => res.json())
+    .then(data => {
+      empBody.innerHTML = '';
+      data.users.forEach(user => {
+        if (user.role.role_name === "employee" && user.role.department === currUserDepartment) {
+          empBody.innerHTML += `
+            <tr>
+              <td>${user.id}</td>
+              <td>${user.name}</td>
+              <td>${user.email}</td>
+              <td>${user.role.department}</td>
+              <td>${user.role.role_name}</td>
+              <td><button class="btn" onclick="submitDelegateTo(${user.id})">Choose</button></td>
+            </tr>`;
         }
-
-        const options = `
-          <option value="Pending" ${form.status === "Pending" ? "selected" : ""}>Pending</option>
-          <option value="Approved">Approve</option>
-          <option value="Rejected">Reject</option>
-          <option value="Cancelled">Cancel</option>
-        `;
-
-        const date = form.date_submitted || form.todays_date || form.today_date || "—";
-
-        tbody.innerHTML += `
-          <tr>
-            <td>${form.name || form.employee_name}</td>
-            <td>${date}</td>
-            <td>${form.employee_id || form.user || "N/A"}</td>
-            <td><a href="${viewUrl}" target="_blank" class="weee"><button>Open PDF</button></a></td>
-            <td>${formType}</td>
-            <td>
-              <p>${form.status}</p>
-              <select id="${selectId}">${options}</select>
-            </td>
-          </tr>
-        `;
-
-        // Add listener to status dropdown
-        setTimeout(() => {
-          const selectElement = document.getElementById(selectId);
-          if (selectElement) {
-            selectElement.addEventListener('change', function () {
-              handleStatusChange(form.id, this.value, formType);
-            });
-          }
-        }, 0);
       });
-    }
+    });
+  }
+
+function submitDelegateTo(targetUserId) {
+  if (!currentDelegateAssignId) return alert("Missing task info.");
+
+  const userData = localStorage.getItem("user_data");
+  if (!userData) return alert("You are not logged in.");
+  const createdById = JSON.parse(userData).id;
+
+  fetch(`/api/delegate/${currentDelegateAssignId}/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({
+      target_user_id: targetUserId,
+      created_by_id: createdById
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      closeDelegateModal();
+      if (data.message) {
+        alert(data.message);
+        loadApprovals();
+      } else {
+        alert("Delegation failed: " + (data.error || "Unknown error"));
+      }
+    })
+    .catch(err => {
+      console.error("Delegation error:", err);
+      alert("Error occurred while delegating.");
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  employeeload();
+    stuff();
+});
+
+
+function stuff() {
+  const welcomeMessage = document.getElementById('welcome');
+  const userData = localStorage.getItem("user_data");
+  const parsedData = JSON.parse(userData);
+  welcomeMessage.textContent = `Welcome ${parsedData.name}`;
+}
+
     
   // Function to set cookies
 function setCookie(name, value, days) {
@@ -452,6 +391,9 @@ function getCookie(name) {
 }
 
 
+
+
+
 // Function to delete cookies
 function deleteCookie(name) {
   document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -459,104 +401,302 @@ function deleteCookie(name) {
 
 function employeeload() {
   userLoad();
+  loadApprovals();
 }
 async function userLoad() {
   let currUser = localStorage.getItem("user_data");
   let currUserData = JSON.parse(currUser);
-  managerRole = {
+
+  const managerRole = {
     id: '',
     level: '',
     role_name: '',
     department: ''
+  };
+
+  if (!currUserData) {
+    console.log("No value found for logged in user.");
+    return;
   }
 
-      // Check if the value exists
-  if (currUser !== null) {
-    console.log("Retrieved value:", currUser);
-    console.log("Retrieved value:", currUserData.id);
-  } else {
-    console.log("No value found for logged in user.");
-  }
+  console.log("Retrieved user ID:", currUserData.id);
+
   await fetch(`/api/users/${currUserData.id}/`)
-  .then(response => response.json())
-  .then(data => {
-    console.log("Retrieved data:", data.role.department);
-    managerRole.id = data.role.id;
-    managerRole.level = data.role.level;
-    managerRole.role_name = data.role.role_name;
-    managerRole.department = data.role.department;
-  });
-  console.log("Retrieved manager:",managerRole.id);
+    .then(response => response.json())
+    .then(data => {
+      console.log("Retrieved role data:", data.role.department);
+      managerRole.id = data.role.id;
+      managerRole.level = data.role.level;
+      managerRole.role_name = data.role.role_name;
+      managerRole.department = data.role.department;
+    });
+
+  console.log("Retrieved manager role ID:", managerRole.id);
 
   await fetch("/api/get_userLoad/")
-  .then(response => response.json())
-  .then(data => {
-    console.log(data);
-      tbody = document.getElementById('employedTableBody');
-      tbody.innerHTML = '';
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+
+      const empTable = document.getElementById('employedTableBody');
+      const userTable = document.getElementById('userTableBody');
+      empTable.innerHTML = '';
+      userTable.innerHTML = '';
 
       data.users.forEach(user => {
-        employyeeLoad = `
-          <tr>
-              <td>${user.name}</td>
+        // Coworkers Table: Same department, same role, not admin
+        if (
+          user.role.id !== 1 &&
+          user.role.department === managerRole.department &&
+          user.role.id === managerRole.id
+        ) {
+          empTable.innerHTML += `
+            <tr>
               <td>${user.id}</td>
+              <td>${user.name}</td>
               <td>${user.email}</td>
               <td>${user.role.department}</td>
-          </tr>`
+              <td>${user.role.role_name}</td>
+            </tr>`;
+        }
 
-          if(user.role.id != 1 && user.role.department == managerRole.department && user.role.id != managerRole.id) {
-            tbody.innerHTML += employyeeLoad;
-            
-          }
-
-      })
-  })
-  .catch(error => {
+        // Users Table: Show all users
+        if (
+          user.role.id == 2
+        ) {
+          userTable.innerHTML += `
+            <tr>
+              <td>${user.id}</td>
+              <td>${user.name}</td>
+              <td>${user.email}</td>
+              <td>${user.status}</td>
+              <td>${user.role.role_name}</td>
+            </tr>`;
+        }
+      });
+    })
+    .catch(error => {
       console.error('Error loading users:', error);
-  });
+    });
 }
 
-function handleStatusChange(formId, newStatus, formType) {
-      let endpoint = "";
-      let payload = { status: newStatus };
+function logoutUser() {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("user_data");
+      window.location.href = "/logout/";
+}
 
-      if (formType === "Payroll Form") {
-        endpoint = `/api/payroll/${formId}/`;
-      } else if (formType === "Reimburse Form") {
-        endpoint = `/api/reimburse/${formId}/`;
-      } else if (formType === "Change Address Form") {
-        endpoint = `/api/address/${formId}/`;
-      } else if (formType === "Diploma Form") {
-        endpoint = `/api/diploma/${formId}/`;
-      }
+function loadApprovals() {
+  document.getElementById('trois-dept').style.display = 'block';
 
-      fetch(endpoint, {
+  fetch("/api/my_work/")
+      .then(res => res.json())
+      .then(data => {
+          const tbody = document.getElementById("PendingBody");
+          tbody.innerHTML = "";
+
+          data.forEach(row => {
+              let viewUrl = "#";
+              const formType = row.form_type.toLowerCase();
+
+              if (formType === "payroll") {
+                  viewUrl = `/view_payroll_pdf2/${row.form_id}/`;
+              } else if (formType === "reimburse") {
+                  viewUrl = `/view_pdf2/${row.form_id}/`;
+              } else if (formType === "address") {
+                  viewUrl = `/view_change_address_pdf3/${row.form_id}/`;
+              } else if (formType === "diploma") {
+                  viewUrl = `/view-diploma-pdf3/${row.form_id}/`;
+              }
+              
+              const stepDisplay = row.delegated ? "Delegated" : row.step_label;
+              tbody.innerHTML += `
+                  <tr>
+                      <td>${row.form_type}</td>
+                      <td>${stepDisplay}</td>
+                      <td>${row.name}</td>
+                      <td>${row.form_id}</td>
+                      <td>${row.date || "—"}</td>
+                      <td>${row.status}</td>
+                      <td><a href="${viewUrl}" target="_blank"><button>View PDF</button></a></td>
+                      <td>
+                          <select onchange="handleApprovalWithSignature(${row.id}, this.value)">
+                              <option value="">Select</option>
+                              <option value="Completed">Approve</option>
+                              <option value="Rejected">Reject</option>
+                          </select>
+                      </td>
+                      <td>
+                        <button onclick="openDelegateModal(${row.id})">Delegate</button>
+                      </td>
+                  </tr>`;
+          });
+      });
+}
+
+function updateAssignStatus(assignId, newStatus) {
+    fetch(`/api/workassign/${assignId}/`, {
         method: "PATCH",
+        credentials: "same-origin",
         headers: {
-          "X-CSRFToken": getCookie("csrftoken"),
-                              "Content-Type": "application/json"
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload)
-      })
-        .then(response => {
-          if (!response.ok) throw new Error("Status update failed");
-          return response.json();
-        })
-        .then(data => {
-          console.log("Updated form status:", data);
-          stuff(); // Refresh the table after update
-        })
-        .catch(error => {
-          console.error("Error updating form status:", error);
-        });
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Status updated.");
+        loadApprovals();
+    });
+}
+
+<!-- For live signing-->
+function handleStatusChange(id, newStatus, type) {
+    const typeKey = type.toLowerCase().split(" ")[0]; // e.g. "payroll", "reimburse", "diploma", "change"
+
+    if (newStatus === "Approved") {
+        if (typeKey === "payroll") {
+            selectedPayrollId = id;
+            signingType = "payroll";
+        } else if (typeKey === "reimburse") {
+            selectedReimburseId = id;
+            signingType = "reimburse";
+        } else if (typeKey === "diploma") {
+            selectedDiplomaId = id;
+            signingType = "diploma";
+        } else if (typeKey === "change") {
+            selectedAddressId = id;
+            signingType = "address";
+        }
+        openSignatureModal();
+        return;
     }
 
-    function logoutUser() {
-                localStorage.removeItem("access_token");
-                localStorage.removeItem("refresh_token");
-                localStorage.removeItem("user");
-                localStorage.removeItem("user_data");
-                window.location.href = "/logout/";
-        }
+    // Patch request
+    fetch(`/api/${typeKey}/${id}/`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(`Updated ${typeKey} status for ID ${id}:`, data);
+        stuff();
+    })
+    .catch(error => {
+        console.error(`Error updating ${typeKey} status:`, error);
+    });
+}
+
+let selectedReimburseId = null;
+let selectedPayrollId = null;
+let selectedDiplomaId = null;
+let selectedAddressId = null;
+let signaturePad;
+let signingType = null; // "payroll" or "reimburse"
+
+document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById("signatureCanvas");
+    signaturePad = new SignaturePad(canvas);
+});
+
+function openPayrollSignatureModal(payrollId) {
+    selectedPayrollId = payrollId;
+    signingType = "payroll";
+    document.getElementById("signatureModal").style.display = "block";
+}
+
+function openSignatureModal() {
+    document.getElementById("signatureModal").style.display = "block";
+}
+
+
+function closeSignatureModal() {
+    document.getElementById("signatureModal").style.display = "none";
+    signaturePad.clear();
+    selectedReimburseId = null;
+    selectedPayrollId = null;
+    signingType = null;
+}
+
+
+function clearSignature() {
+    signaturePad.clear();
+}
+
+function saveSignature() {
+    if (signaturePad.isEmpty()) {
+        alert("Please provide a signature before saving.");
+        return;
+    }
+
+    const signatureBase64 = signaturePad.toDataURL();
+    const today = new Date().toISOString().split('T')[0];
+
+    let payload = {
+        signatureAdmin_base64: signatureBase64,
+        approve_date: today
+    };
+
+    let url = "";
+
+    if (signingType === "approval") {
+        // get the related form from assignId first
+        fetch(`/api/workassign/${selectedAssignId}/`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.PayrollAssignment_id) {
+                url = `/api/payroll/${data.PayrollAssignment_id}/`;
+            } else if (data.ReimbursementRequest_id) {
+                url = `/api/reimburse/${data.ReimbursementRequest_id}/`;
+            } else if (data.DiplomaRequest_id) {
+                url = `/api/diploma/${data.DiplomaRequest_id}/`;
+            } else if (data.ChangeOfAddress_id) {
+                url = `/api/address/${data.ChangeOfAddress_id}/`;
+            }
+
+            return fetch(url, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+        })
+        .then(res => res.json())
+        .then(data => {
+            updateAssignStatus(selectedAssignId, "Completed"); 
+            closeSignatureModal();
+            loadApprovals();
+        })
+        .catch(err => {
+            console.error("Signature error:", err);
+        });
+
+        return;
+    }
+
+}
+
+
+function handleApprovalWithSignature(assignId, newStatus) {
+    if (newStatus === "Completed") {
+        // Open the signature modal
+        selectedAssignId = assignId; // Store the current assignment ID
+        signingType = "approval"; // Set the signing type
+        openSignatureModal();
+    } else {
+        updateAssignStatus(assignId, newStatus);
+    }
+}
 </script>
 </html>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Dashboard</title>
     <link rel="stylesheet" href="manage.css">
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 </head>
 <style>
     * {
@@ -165,10 +166,10 @@
           <ul class="menu">
             <li><a href="#dashboard" class="active">Dashboard</a></li>
             <li><a href="#employees" onclick="employeeload(); return false;">Employees</a></li>
-            <li><a href="#forms" onclick="stuff(); return false;">Forms</a></li>
+            <li><a href="#forms" onclick="stuff(); return false;">Approvals</a></li>
             <li><a href="#" onclick="logoutUser()">Logout</a></li>
           </ul>
-          <a class="fart" href="{% url 'dashboard' %}">Home</a></li>
+          <a class="fart" href="{% url 'dashboard' %}">← Back To Dashboard</a></li>
         </div>
     
         <div class="main">
@@ -229,8 +230,8 @@
                   <tr>
                     <th>Form Type</th>
                     <th>Step</th>
-                    <th>User</th>
-                    <th>User ID</th>
+                    <th>Name</th>
+                    <th>Form ID</th>
                     <th>Date</th>
                     <th>Status</th>
                     <th>PDF</th>
@@ -267,6 +268,54 @@
         </div>
       </div>
     </div>
+    <div id="delegateModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeDelegateModal()">&times;</span>
+        <h2>Delegate Task</h2>
+        <p>Select a user below to delegate this task:</p>
+    
+        <h3>Employees Table</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>USER ID</th>
+              <th>NAME</th>
+              <th>EMAIL</th>
+              <th>DEPARTMENT</th>
+              <th>ROLE</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="delegateEmployeeTableBody"></tbody>
+        </table>
+    
+        <br>
+    
+        <h3>Other Department Managers</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>USER ID</th>
+              <th>NAME</th>
+              <th>EMAIL</th>
+              <th>DEPARTMENT</th>
+              <th>ROLE</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="delegateManagerTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="signatureModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%, 0); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
+      <h3>Supervisor Signature</h3>
+      <canvas id="signatureCanvas" width="400" height="150" style="border:1px solid #000;"></canvas><br>
+      <button onclick="saveSignature()">Save</button>
+      <button onclick="clearSignature()">Clear</button>
+      <button onclick="closeSignatureModal()">Cancel</button>
+   </div>
+
 </body>
 <script>
     const links = document.querySelectorAll('.menu a');
@@ -291,6 +340,110 @@
         }
       });
     });
+    let currentDelegateAssignId = null;
+
+    function openDelegateModal(assignId) {
+      currentDelegateAssignId = assignId;
+      document.getElementById('delegateModal').style.display = 'block';
+      loadDelegateUsers(); // <-- new function
+    }
+
+    function closeDelegateModal() {
+      document.getElementById('delegateModal').style.display = 'none';
+      currentDelegateAssignId = null;
+    }
+
+    
+    async function loadDelegateUsers() {
+      const empBody = document.getElementById("delegateEmployeeTableBody");
+      const manBody = document.getElementById("delegateManagerTableBody");
+
+      empBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+      manBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+
+      const currUserData = JSON.parse(localStorage.getItem("user_data"));
+
+      // ✅ Wait for department data before continuing
+      let currUserDepartment = null;
+      await fetch(`/api/users/${currUserData.id}/`)
+        .then(response => response.json())
+        .then(data => {
+          currUserDepartment = data.role.department;
+        });
+
+      await fetch("/api/get_userLoad/")
+        .then(res => res.json())
+        .then(data => {
+          empBody.innerHTML = '';
+          data.users.forEach(user => {
+            if (user.role.role_name === "employee" && user.role.department === currUserDepartment) {
+              empBody.innerHTML += `
+                <tr>
+                  <td>${user.id}</td>
+                  <td>${user.name}</td>
+                  <td>${user.email}</td>
+                  <td>${user.role.department}</td>
+                  <td>${user.role.role_name}</td>
+                  <td><button class="btn" onclick="submitDelegateTo(${user.id})">Choose</button></td>
+                </tr>`;
+            }
+          });
+        });
+
+        await fetch("/api/get_managerLoad/")
+        .then(res => res.json())
+        .then(data => {
+          manBody.innerHTML = '';
+          data.users.forEach(user => {
+            // ✅ Skip the current user
+            if (user.id !== currUserData.id) {
+              manBody.innerHTML += `
+                <tr>
+                  <td>${user.id}</td>
+                  <td>${user.name}</td>
+                  <td>${user.email}</td>
+                  <td>${user.role.department}</td>
+                  <td>${user.role.role_name}</td>
+                  <td><button class="btn" onclick="submitDelegateTo(${user.id})">Choose</button></td>
+                </tr>`;
+            }
+          });
+        });
+      }
+    function submitDelegateTo(targetUserId) {
+      if (!currentDelegateAssignId) return alert("Missing task info.");
+
+      const userData = localStorage.getItem("user_data");
+      if (!userData) return alert("You are not logged in.");
+      const createdById = JSON.parse(userData).id;
+
+      fetch(`/api/delegate/${currentDelegateAssignId}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({
+          target_user_id: targetUserId,
+          created_by_id: createdById
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          closeDelegateModal();
+          if (data.message) {
+            alert(data.message);
+            loadApprovals();
+          } else {
+            alert("Delegation failed: " + (data.error || "Unknown error"));
+          }
+        })
+        .catch(err => {
+          console.error("Delegation error:", err);
+          alert("Error occurred while delegating.");
+        });
+    }
+
 
     document.addEventListener("DOMContentLoaded", function () {
       employeeload();
@@ -448,7 +601,7 @@
                     } else if (formType === "address") {
                         viewUrl = `/view_change_address_pdf3/${row.form_id}/`;
                     } else if (formType === "diploma") {
-                        viewUrl = `/view-diploma-pdf3/${row.form_id}/`;
+                        viewUrl = `/view_diploma_pdf3/${row.form_id}/`;
                     }
                     
                     const stepDisplay = row.delegated ? "Delegated" : row.step_label;
@@ -457,12 +610,12 @@
                             <td>${row.form_type}</td>
                             <td>${stepDisplay}</td>
                             <td>${row.name}</td>
-                            <td>${row.user_id}</td>
+                            <td>${row.form_id}</td>
                             <td>${row.date || "—"}</td>
                             <td>${row.status}</td>
                             <td><a href="${viewUrl}" target="_blank"><button>View PDF</button></a></td>
                             <td>
-                                <select onchange="updateAssignStatus(${row.id}, this.value)">
+                                <select onchange="handleApprovalWithSignature(${row.id}, this.value)">
                                     <option value="">Select</option>
                                     <option value="Completed">Approve</option>
                                     <option value="Rejected">Reject</option>
@@ -476,43 +629,6 @@
             });
       }
 
-        function openDelegateModal(assignId) {
-          const targetUserId = prompt("Enter the user ID to delegate this task to:");
-          if (!targetUserId) return;
-
-          const userData = localStorage.getItem("user_data");
-          if (!userData) {
-            alert("You are not logged in.");
-            return;
-          }
-
-          const createdById = JSON.parse(userData).id;
-
-          fetch(`/api/delegate/${assignId}/`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": getCookie("csrftoken"),
-            },
-            body: JSON.stringify({
-              target_user_id: targetUserId,
-              created_by_id: createdById
-            })
-          })
-          .then(res => res.json())
-          .then(data => {
-            if (data.message) {
-              alert(data.message);
-              loadApprovals();  // Refresh the table
-            } else {
-              alert("Delegation failed: " + (data.error || "Unknown error"));
-            }
-          })
-          .catch(err => {
-            console.error("Delegation error:", err);
-            alert("Error occurred while delegating.");
-          });
-        }
         function updateAssignStatus(assignId, newStatus) {
             fetch(`/api/workassign/${assignId}/`, {
                 method: "PATCH",
@@ -652,6 +768,151 @@ async function delegateWorkAssignment(formId, employeeId, formType) {
     console.error("Error delegating form:", error);
     alert(`Error: ${error.message}`);
   }
+}
+
+<!-- For live signing-->
+function handleStatusChange(id, newStatus, type) {
+    const typeKey = type.toLowerCase().split(" ")[0]; // e.g. "payroll", "reimburse", "diploma", "change"
+
+    if (newStatus === "Approved") {
+        if (typeKey === "payroll") {
+            selectedPayrollId = id;
+            signingType = "payroll";
+        } else if (typeKey === "reimburse") {
+            selectedReimburseId = id;
+            signingType = "reimburse";
+        } else if (typeKey === "diploma") {
+            selectedDiplomaId = id;
+            signingType = "diploma";
+        } else if (typeKey === "change") {
+            selectedAddressId = id;
+            signingType = "address";
+        }
+        openSignatureModal();
+        return;
+    }
+
+    // Patch request
+    fetch(`/api/${typeKey}/${id}/`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(`Updated ${typeKey} status for ID ${id}:`, data);
+        stuff();
+    })
+    .catch(error => {
+        console.error(`Error updating ${typeKey} status:`, error);
+    });
+}
+
+let selectedReimburseId = null;
+let selectedPayrollId = null;
+let selectedDiplomaId = null;
+let selectedAddressId = null;
+let signaturePad;
+let signingType = null; // "payroll" or "reimburse"
+
+document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById("signatureCanvas");
+    signaturePad = new SignaturePad(canvas);
+});
+
+function openPayrollSignatureModal(payrollId) {
+    selectedPayrollId = payrollId;
+    signingType = "payroll";
+    document.getElementById("signatureModal").style.display = "block";
+}
+
+function openSignatureModal() {
+    document.getElementById("signatureModal").style.display = "block";
+}
+
+
+function closeSignatureModal() {
+    document.getElementById("signatureModal").style.display = "none";
+    signaturePad.clear();
+    selectedReimburseId = null;
+    selectedPayrollId = null;
+    signingType = null;
+}
+
+
+function clearSignature() {
+    signaturePad.clear();
+}
+
+function saveSignature() {
+    if (signaturePad.isEmpty()) {
+        alert("Please provide a signature before saving.");
+        return;
+    }
+
+    const signatureBase64 = signaturePad.toDataURL();
+    const today = new Date().toISOString().split('T')[0];
+
+    let payload = {
+        signatureAdmin_base64: signatureBase64,
+        approve_date: today
+    };
+
+    let url = "";
+
+    if (signingType === "approval") {
+        // get the related form from assignId first
+        fetch(`/api/workassign/${selectedAssignId}/`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.PayrollAssignment_id) {
+                url = `/api/payroll/${data.PayrollAssignment_id}/`;
+            } else if (data.ReimbursementRequest_id) {
+                url = `/api/reimburse/${data.ReimbursementRequest_id}/`;
+            } else if (data.DiplomaRequest_id) {
+                url = `/api/diploma/${data.DiplomaRequest_id}/`;
+            } else if (data.ChangeOfAddress_id) {
+                url = `/api/address/${data.ChangeOfAddress_id}/`;
+            }
+
+            return fetch(url, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+        })
+        .then(res => res.json())
+        .then(data => {
+            updateAssignStatus(selectedAssignId, "Completed"); 
+            closeSignatureModal();
+            loadApprovals();
+        })
+        .catch(err => {
+            console.error("Signature error:", err);
+        });
+
+        return;
+    }
+}
+
+
+function handleApprovalWithSignature(assignId, newStatus) {
+    if (newStatus === "Completed") {
+        // Open the signature modal
+        selectedAssignId = assignId; // Store the current assignment ID
+        signingType = "approval"; // Set the signing type
+        openSignatureModal();
+    } else {
+        updateAssignStatus(assignId, newStatus);
+    }
 }
 </script>
 </html>

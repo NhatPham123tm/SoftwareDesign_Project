@@ -94,7 +94,7 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
                 serializer.save()
 
                 new_status = request.data.get("status")
-                print("  new_status:", new_status)
+                print(" new_status:", new_status)
                 # Mark this work assignment as done
                 if new_status in ["Completed", "Rejected"]:
             
@@ -115,7 +115,8 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
                     if new_status == "Completed":
                     # advance_to_next_workflow_step handle marking current step completed
                         if next_step:
-                            advance_to_next_workflow_step(form)
+                            #print(" let go")
+                            advance_to_next_workflow_step(form, current_step_order, workflow)
                         else:
                             form.status = "Approved"
                             form.approve_date = now().date()
