@@ -1,4 +1,4 @@
-from api.models import Workflow, WorkflowStep, work_assign, PayrollAssignment, user_accs
+from api.models import Workflow, WorkflowStep, work_assign, PayrollAssignment, user_accs, ManagerNotification
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from api.models import Workflow, WorkflowStep, roles, user_accs
@@ -321,3 +321,21 @@ def delegate_work_assign(request, assign_id):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+    
+# Notifications
+@api_view(["GET"])
+def get_manager_notifications(request):
+    user = request.user
+    notifications = ManagerNotification.objects.filter(recipient=user, is_read=False).order_by("-created_at")
+    data = [{"id": n.id, "message": n.message, "time": n.created_at.strftime("%Y-%m-%d %H:%M:%S")} for n in notifications]
+    return Response(data)
+
+@api_view(["POST"])
+def mark_notification_read(request, pk):
+    try:
+        note = ManagerNotification.objects.get(pk=pk, recipient=request.user)
+        note.is_read = True
+        note.save()
+        return Response({"message": "Notification marked as read."}, status=status.HTTP_200_OK)
+    except ManagerNotification.DoesNotExist:
+        return Response({"error": "Notification not found."}, status=status.HTTP_404_NOT_FOUND)
