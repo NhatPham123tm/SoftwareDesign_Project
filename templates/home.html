@@ -64,10 +64,18 @@
                 Welcome to our group project!
               </p>
 
-              <div class="tc tf yo zf mb">
-                <a href="/login/" class="ek jk lk gh gi hi rg ml il vc _d _l"
-                  >Sign in</a
-                >
+              <div class="tc tf yo zf mb" style="display: flex; gap: 50px;">
+                <a href="{% url 'microsoft-login' %}" class="ek jk lk gh gi hi rg ml il vc _d _l" style="display: flex; align-items: center; gap: 8px;">
+                  <img src="{% static 'pic/microsoft-5.svg' %}" alt="Microsoft logo" style="width: 24px; height: 24px;">
+                  </svg>
+                  Sign in
+                </a>
+
+                <a href="{% url 'register_page' %}" class="ek jk lk gh gi hi rg ml il vc _d _l" style="display: flex; align-items: center; gap: 8px; background-color: #002f62;">
+                  <img src="{% static 'pic/outlook-icon.svg' %}" alt="Microsoft logo" style="width: 24px; height: 24px;">
+                  </svg>
+                  Create your account
+                </a>
 
                 <span class="tc sf">
                 </span>
