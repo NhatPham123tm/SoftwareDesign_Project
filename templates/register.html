@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>Register</title>
     <link rel="stylesheet" href="{% static 'css/register.css' %}">
     <script>
@@ -195,16 +196,44 @@
                         });
 
                     } else {
-                        // Microsoft authentication flow: Set cookies for id and password before redirect
-                        document.cookie = `registerId=${id}; path=/; max-age=${60}`; // Expires in 1 mins
-                        document.cookie = `password=${password}; path=/; max-age=${60}`; // Expires in 1 mins
-                        document.cookie = `roleID=${role}; path=/; max-age=${60}`; // Expires in 1 mins
-                        window.location.href = '/login/microsoft/';
+                
+                        // change to post request instead cookies
+                        fetch("/store_register_session/", {
+                            method: "POST",
+                            credentials: "same-origin",
+                            headers: {
+                                "X-CSRFToken": getCSRFToken(),
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                id: id,
+                                password: password,
+                                roleID: role
+                            })
+                        })
+                        .then(res => {
+                            if (res.ok) {
+                                // Wait for session to save before redirecting
+                                return res.json();
+                            } else {
+                                throw new Error("Failed to store session data.");
+                            }
+                        })
+                        .then(() => {
+                            window.location.href = "/login/microsoft/";
+                        })
+                        .catch(error => {
+                            showModal("Error storing registration info. Please try again.");
+                            console.error(error);
+                        });
                     }
                 });
             });
         }
 
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
     // Function to check if UH ID is unique
         function checkUniqueId(id, callback) {
             fetch(`/check_id_exists/${id}/`, {

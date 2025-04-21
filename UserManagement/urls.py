@@ -25,6 +25,8 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path("register/", register_page, name="register_page"),
     path("api/user_register/", user_register, name="register"),
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('store_register_session/', views.store_register_session, name='store_register_session'),
     path('login/microsoft/', microsoft_login, name='microsoft-login'),
     path("api/user_login/", user_login, name="api_login"),
     path('logout/', microsoft_logout, name='microsoft-logout'),
