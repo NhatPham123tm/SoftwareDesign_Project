@@ -125,7 +125,7 @@ tbody td {
             <li><a href="#dashboard" class="active">Dashboard</a></li>
             <li><a href="#employees" onclick="employeeload(); return false;">Coworkers</a></li>
             <li><a href="#forms" onclick="stuff(); return false;">Assigments</a></li>
-            <li><a href="#">Logout</a></li>
+            <li><a href="#" onclick="logoutUser()" >Logout</a></li>
           </ul>
           <a class="fart" href="{% url 'dashboard' %}">Home</a></li>
         </div>
@@ -550,5 +550,13 @@ function handleStatusChange(formId, newStatus, formType) {
           console.error("Error updating form status:", error);
         });
     }
+
+    function logoutUser() {
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
+                localStorage.removeItem("user");
+                localStorage.removeItem("user_data");
+                window.location.href = "/logout/";
+        }
 </script>
 </html>

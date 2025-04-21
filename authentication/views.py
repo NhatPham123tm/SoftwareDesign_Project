@@ -21,15 +21,35 @@ from django.contrib.auth.hashers import make_password
 from api.serializers import UserSerializer
 from django.views.decorators.csrf import csrf_exempt
 
+def is_admin(user):
+    print(user)
+    if not user.is_authenticated:
+        return False
+    return getattr(user, 'role_id', None) == 1
+
+def is_manager(user):
+    print(user)
+    if not user.is_authenticated:
+        return False
+    return getattr(user, 'role_id', None) == 3 or getattr(user, 'role_id', None) == 4
+
+def is_employee(user):
+    print(user)
+    if not user.is_authenticated:
+        return False
+    return getattr(user, 'role_id', None) == 5 or getattr(user, 'role_id', None) == 6
+
 def merge_accs(request):
     return render(request, 'merge.html')
 
 def landing(request):
     return render(request, 'landing.html')
 
+@user_passes_test(is_manager)
 def manager(request):
      return render(request, 'manager.html')
 
+@user_passes_test(is_employee)
 def employees(request):
      return render(request, 'Employees.html')
 
@@ -58,12 +78,6 @@ def forms(request):
     past_address = address[1:] if address.count() > 1 else []
 
     return render(request, "forms.html", {'reimbursement': reimbursement,'payroll': payroll, 'past_payroll': past_payrolls, 'address': address, 'diploma': diploma, 'past_reimbursement': past_reimbursements, 'past_address': past_address, 'past_diploma':past_diploma})
-
-def is_admin(user):
-    print(user)
-    if not user.is_authenticated:
-        return False
-    return getattr(user, 'role_id', None) == 1
 
 
 @login_required
