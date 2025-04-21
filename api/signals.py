@@ -1,7 +1,7 @@
 from django.db.models.signals import post_migrate, post_save
 from django.dispatch import receiver
 from django.contrib.auth.hashers import make_password
-from api.models import roles, user_accs, permission, user_ura_accs, work_assign, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, Workflow, WorkflowStep
+from api.models import roles, user_accs, permission, user_ura_accs, work_assign, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, Workflow, WorkflowStep, ManagerNotification
 
 @receiver(post_save, sender=work_assign)
 def handle_work_assign_status(sender, instance, created, **kwargs):
@@ -21,6 +21,22 @@ def handle_work_assign_status(sender, instance, created, **kwargs):
 
     if instance.status == "Completed" and not instance.is_current_step:
         mark_chain(instance)
+
+    if not created and instance.delegated and instance.status in ["Completed", "Rejected"]:
+        assigner = instance.created_by
+        actor = instance.user
+        message = f"Assigned Work (ID #{instance.id}) was reviewed."
+
+        ManagerNotification.objects.create(
+            recipient=assigner,
+            message=message
+        )
+        
+        ManagerNotification.objects.create(
+            recipient=actor,
+            message=message
+        )
+    
 
 @receiver(post_save, sender=work_assign)
 def handle_work_assign_status2(sender, instance, created, **kwargs):

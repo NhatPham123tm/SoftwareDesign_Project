@@ -1,12 +1,13 @@
-# V4 Development Idea/ Upgrade User management + approval step
+# V4 Development: Upgrade User management + approval step
 
-![image](https://github.com/user-attachments/assets/923b303e-7fb5-4111-bd76-20d4987c9da1)
-
+![image](https://github.com/user-attachments/assets/0d23ca9c-85f0-4a88-ab25-66cad26e7434)
+![image](https://github.com/user-attachments/assets/cb9015f5-eb53-4353-b2ee-5afee5f2742e)
 
 # SoftwareDesign_Project
 team_name = Trois-Rivières
 
 # Testing accounts:
+Please use the http://localhost:8000/login/ to login with higher roles (common users and employees can only sign in using Microsoft login)
 - Admin: admin@example.com/admin123
 - Basic User: user@example.com/user123
 - Finance Manager: finmanager@example.com/manager123

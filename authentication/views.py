@@ -21,15 +21,35 @@ from django.contrib.auth.hashers import make_password
 from api.serializers import UserSerializer
 from django.views.decorators.csrf import csrf_exempt
 
+def is_admin(user):
+    print(user)
+    if not user.is_authenticated:
+        return False
+    return getattr(user, 'role_id', None) == 1
+
+def is_manager(user):
+    print(user)
+    if not user.is_authenticated:
+        return False
+    return getattr(user, 'role_id', None) == 3 or getattr(user, 'role_id', None) == 4
+
+def is_employee(user):
+    print(user)
+    if not user.is_authenticated:
+        return False
+    return getattr(user, 'role_id', None) == 5 or getattr(user, 'role_id', None) == 6
+
 def merge_accs(request):
     return render(request, 'merge.html')
 
 def landing(request):
     return render(request, 'landing.html')
 
+@user_passes_test(is_manager)
 def manager(request):
      return render(request, 'manager.html')
 
+@user_passes_test(is_employee)
 def employees(request):
      return render(request, 'Employees.html')
 
@@ -37,7 +57,7 @@ def home(request):
     return render(request, 'home.html')
 
 def login_page(request):
-    return render(request, "login.html")
+    return render(request, "default_login.html")
 
 def register_page(request):
     return render(request, "register.html")
@@ -58,12 +78,6 @@ def forms(request):
     past_address = address[1:] if address.count() > 1 else []
 
     return render(request, "forms.html", {'reimbursement': reimbursement,'payroll': payroll, 'past_payroll': past_payrolls, 'address': address, 'diploma': diploma, 'past_reimbursement': past_reimbursements, 'past_address': past_address, 'past_diploma':past_diploma})
-
-def is_admin(user):
-    print(user)
-    if not user.is_authenticated:
-        return False
-    return getattr(user, 'role_id', None) == 1
 
 
 @login_required
@@ -140,7 +154,7 @@ def user_logout(request):
     storage = messages.get_messages(request)
     storage.used = True 
     logout(request)
-    return redirect('/login')
+    return redirect('/home')
 
 @login_required
 def dashboard(request):
@@ -178,12 +192,21 @@ def microsoft_login(request):
     )
     return redirect(auth_url)
 
-# Hnadle after microsoft login
+def store_register_session(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        request.session['register_id'] = data.get('id')
+        request.session['register_password'] = data.get('password')
+        request.session['register_roleID'] = data.get('roleID')
+        return JsonResponse({"status": "ok"})
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+# Handle after microsoft login
 def microsoft_callback(request):
     """Handle Microsoft OAuth callback and issue JWT tokens."""
     if "code" not in request.GET:
         messages.error(request, "Microsoft login failed. Please try again.")
-        return redirect("/login")
+        return redirect("/home")
 
     msal_app = get_msal_app()
     token_response = msal_app.acquire_token_by_authorization_code(
@@ -195,7 +218,7 @@ def microsoft_callback(request):
     if "access_token" not in token_response:
         error_msg = token_response.get("error_description", "Unknown error")
         messages.error(request, f"Microsoft login failed: {error_msg}")
-        return redirect("/login")
+        return redirect("/home")
 
     # Fetch user details from Microsoft Graph API
     user_info = requests.get(
@@ -208,7 +231,7 @@ def microsoft_callback(request):
 
     if not email:
         messages.error(request, "Could not retrieve email from Microsoft. Login failed.")
-        return redirect("/login")
+        return redirect("/home")
 
     team = request.GET.get("state", "trois-rivieres")
     
@@ -234,31 +257,29 @@ def microsoft_callback(request):
                 user.set_password(password)  # Hash and store password
                 user.save()
     else:
-        # Retrieve 'id' and 'password' from cookies
-        id = request.COOKIES.get("registerId")
-        password = request.COOKIES.get("password")
-
+        # Retrieve 'id' and 'password' from session
+        id = request.session.get("register_id")
+        password = request.session.get("register_password")
+        roleID = request.session.get("register_roleID")
+        print(f"ID: {id}, Password: {password}, RoleID: {roleID}")
         # Check if user exists, otherwise create one
         try:
             user = user_accs.objects.get(email=email)
         except user_accs.DoesNotExist:
             # Create new user if doesn't exist
-            if user_accs.DoesNotExist:
-                if not id or not password:
-                    messages.error(request, "No account registered with this Microsoft email")
-                    return redirect('register_page')
-                
-                roleID = int(request.COOKIES.get("roleID"))
-                role_obj = roles.objects.get(id=roleID)
+            if not id or not password or not roleID:
+                messages.error(request, "No account registered with this Microsoft email")
+                return redirect('register_page')
 
-                user = user_accs.objects.create(
-                    id=id,
-                    email=email,
-                    name=name,
-                    role=role_obj,
-                )
-                user.set_password(password)  # Hash and store password
-                user.save()
+            role_obj = roles.objects.get(id=int(roleID))
+            user = user_accs.objects.create(
+                id=id,
+                email=email,
+                name=name,
+                role=role_obj,
+            )
+            user.set_password(password)
+            user.save()
 
     # Authenticate & log in user
     user.backend = "django.contrib.auth.backends.ModelBackend"
@@ -306,8 +327,9 @@ def microsoft_callback(request):
     else:
         response = redirect("/suspend")
 
-    response.delete_cookie('sessionId')
-    response.delete_cookie('password')
+    request.session.pop("register_id", None)
+    request.session.pop("register_password", None)
+    request.session.pop("register_roleID", None)
 
     # Store JWT tokens in session for frontend redirection (if necessary)
     request.session["access_token"] = access_token

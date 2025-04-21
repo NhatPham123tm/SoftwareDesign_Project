@@ -5,6 +5,13 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db.models import JSONField 
 
+# models.py
+class ManagerNotification(models.Model):
+    recipient = models.ForeignKey('user_accs', on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
 class roles(models.Model):
     ROLE_CHOICES = [
         ('admin', 'admin'),

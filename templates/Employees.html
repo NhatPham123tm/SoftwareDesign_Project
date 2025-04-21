@@ -359,7 +359,8 @@ function submitDelegateTo(targetUserId) {
 
 document.addEventListener("DOMContentLoaded", function () {
   employeeload();
-    stuff();
+  stuff();
+  checkDelegationMessages();
 });
 
 
@@ -684,6 +685,7 @@ function saveSignature() {
 
         return;
     }
+
 }
 
 
@@ -696,6 +698,39 @@ function handleApprovalWithSignature(assignId, newStatus) {
     } else {
         updateAssignStatus(assignId, newStatus);
     }
+}
+
+async function checkDelegationMessages() {
+  try {
+    const res = await fetch("/api/manager_notifications/");
+    const data = await res.json();
+
+    if (data.length > 0) {
+      const note = data[0]; // get the first unread message
+      let alertBox = document.createElement("div");
+      alertBox.style.background = "#2ecc71";
+      alertBox.style.color = "white";
+      alertBox.style.padding = "15px";
+      alertBox.style.marginBottom = "10px";
+      alertBox.style.borderRadius = "8px";
+      alertBox.innerHTML = `<strong>Notification:</strong> ${note.message}`;
+
+      const main = document.querySelector('.main');
+      main.insertBefore(alertBox, main.firstChild);
+
+      setTimeout(() => alertBox.remove(), 5000);
+
+      // Mark as read
+      await fetch(`/api/notification/${note.id}/read/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Notification fetch error:", err);
+  }
 }
 </script>
 </html>

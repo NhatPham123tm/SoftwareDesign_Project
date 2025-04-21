@@ -1,18 +1,17 @@
-from api.models import Workflow, WorkflowStep, work_assign, PayrollAssignment, user_accs
-from django.shortcuts import render, redirect, get_object_or_404
+from api.models import Workflow, WorkflowStep, work_assign, PayrollAssignment, user_accs, ManagerNotification
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from api.models import Workflow, WorkflowStep, roles, user_accs
-from django.contrib import messages
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
 from api.models import Workflow, WorkflowStep, roles, user_accs
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from api.models import work_assign, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest
+from rest_framework import status
 
 def assign_workflow_steps(form_instance):
     form_type = form_instance.__class__.__name__
@@ -404,6 +403,7 @@ def delegate_work_assign(request, assign_id):
         return Response({"error": str(e)}, status=500)
     
 
+
 @require_GET
 def form_workflow_progress(request, form_type, form_id):
     form_model_map = {
@@ -441,3 +441,22 @@ def form_workflow_progress(request, form_type, form_id):
         })
 
     return JsonResponse(result, safe=False)
+
+# Notifications
+@api_view(["GET"])
+def get_manager_notifications(request):
+    user = request.user
+    notifications = ManagerNotification.objects.filter(recipient=user, is_read=False).order_by("-created_at")
+    data = [{"id": n.id, "message": n.message, "time": n.created_at.strftime("%Y-%m-%d %H:%M:%S")} for n in notifications]
+    return Response(data)
+
+@api_view(["POST"])
+def mark_notification_read(request, pk):
+    try:
+        note = ManagerNotification.objects.get(pk=pk, recipient=request.user)
+        note.is_read = True
+        note.save()
+        return Response({"message": "Notification marked as read."}, status=status.HTTP_200_OK)
+    except ManagerNotification.DoesNotExist:
+        return Response({"error": "Notification not found."}, status=status.HTTP_404_NOT_FOUND)
+
