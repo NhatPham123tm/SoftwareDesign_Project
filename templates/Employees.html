@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employees Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 </head>
 <style>
     * {
@@ -238,6 +239,15 @@ tbody td {
         </table>
       </div>
     </div>
+
+    <div id="signatureModal" style="display:none; position:fixed; top:20%; left:50%; transform:translate(-50%, 0); background:#fff; border:1px solid #ccc; padding:20px; z-index:1000;">
+      <h3>Supervisor Signature</h3>
+      <canvas id="signatureCanvas" width="400" height="150" style="border:1px solid #000;"></canvas><br>
+      <button onclick="saveSignature()">Save</button>
+      <button onclick="clearSignature()">Clear</button>
+      <button onclick="closeSignatureModal()">Cancel</button>
+   </div>
+
 </body>
 <script>
     const links = document.querySelectorAll('.menu a');
@@ -512,7 +522,7 @@ function loadApprovals() {
                       <td>${row.status}</td>
                       <td><a href="${viewUrl}" target="_blank"><button>View PDF</button></a></td>
                       <td>
-                          <select onchange="updateAssignStatus(${row.id}, this.value)">
+                          <select onchange="handleApprovalWithSignature(${row.id}, this.value)">
                               <option value="">Select</option>
                               <option value="Completed">Approve</option>
                               <option value="Rejected">Reject</option>
@@ -543,5 +553,149 @@ function updateAssignStatus(assignId, newStatus) {
     });
 }
 
+<!-- For live signing-->
+function handleStatusChange(id, newStatus, type) {
+    const typeKey = type.toLowerCase().split(" ")[0]; // e.g. "payroll", "reimburse", "diploma", "change"
+
+    if (newStatus === "Approved") {
+        if (typeKey === "payroll") {
+            selectedPayrollId = id;
+            signingType = "payroll";
+        } else if (typeKey === "reimburse") {
+            selectedReimburseId = id;
+            signingType = "reimburse";
+        } else if (typeKey === "diploma") {
+            selectedDiplomaId = id;
+            signingType = "diploma";
+        } else if (typeKey === "change") {
+            selectedAddressId = id;
+            signingType = "address";
+        }
+        openSignatureModal();
+        return;
+    }
+
+    // Patch request
+    fetch(`/api/${typeKey}/${id}/`, {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(`Updated ${typeKey} status for ID ${id}:`, data);
+        stuff();
+    })
+    .catch(error => {
+        console.error(`Error updating ${typeKey} status:`, error);
+    });
+}
+
+let selectedReimburseId = null;
+let selectedPayrollId = null;
+let selectedDiplomaId = null;
+let selectedAddressId = null;
+let signaturePad;
+let signingType = null; // "payroll" or "reimburse"
+
+document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById("signatureCanvas");
+    signaturePad = new SignaturePad(canvas);
+});
+
+function openPayrollSignatureModal(payrollId) {
+    selectedPayrollId = payrollId;
+    signingType = "payroll";
+    document.getElementById("signatureModal").style.display = "block";
+}
+
+function openSignatureModal() {
+    document.getElementById("signatureModal").style.display = "block";
+}
+
+
+function closeSignatureModal() {
+    document.getElementById("signatureModal").style.display = "none";
+    signaturePad.clear();
+    selectedReimburseId = null;
+    selectedPayrollId = null;
+    signingType = null;
+}
+
+
+function clearSignature() {
+    signaturePad.clear();
+}
+
+function saveSignature() {
+    if (signaturePad.isEmpty()) {
+        alert("Please provide a signature before saving.");
+        return;
+    }
+
+    const signatureBase64 = signaturePad.toDataURL();
+    const today = new Date().toISOString().split('T')[0];
+
+    let payload = {
+        signatureAdmin_base64: signatureBase64,
+        approve_date: today
+    };
+
+    let url = "";
+
+    if (signingType === "approval") {
+        // get the related form from assignId first
+        fetch(`/api/workassign/${selectedAssignId}/`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.PayrollAssignment_id) {
+                url = `/api/payroll/${data.PayrollAssignment_id}/`;
+            } else if (data.ReimbursementRequest_id) {
+                url = `/api/reimburse/${data.ReimbursementRequest_id}/`;
+            } else if (data.DiplomaRequest_id) {
+                url = `/api/diploma/${data.DiplomaRequest_id}/`;
+            } else if (data.ChangeOfAddress_id) {
+                url = `/api/address/${data.ChangeOfAddress_id}/`;
+            }
+
+            return fetch(url, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+        })
+        .then(res => res.json())
+        .then(data => {
+            updateAssignStatus(selectedAssignId, "Completed"); 
+            closeSignatureModal();
+            loadApprovals();
+        })
+        .catch(err => {
+            console.error("Signature error:", err);
+        });
+
+        return;
+    }
+}
+
+
+function handleApprovalWithSignature(assignId, newStatus) {
+    if (newStatus === "Completed") {
+        // Open the signature modal
+        selectedAssignId = assignId; // Store the current assignment ID
+        signingType = "approval"; // Set the signing type
+        openSignatureModal();
+    } else {
+        updateAssignStatus(assignId, newStatus);
+    }
+}
 </script>
 </html>
