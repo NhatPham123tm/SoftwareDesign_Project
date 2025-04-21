@@ -139,10 +139,11 @@ tbody td {
             <table>
               <thead>
                   <tr>
-                      <th>Coworkers Name</th>
                       <th>Coworkers ID</th>
+                      <th>Coworkers Name</th>
                       <th>Coworkers Email</th>
                       <th>Department</th>
+                      <th>ROLE</th>
                   </tr>
               </thead>
               <tbody id="employedTableBody"></tbody>
@@ -498,13 +499,14 @@ async function userLoad() {
       data.users.forEach(user => {
         employyeeLoad = `
           <tr>
-              <td>${user.name}</td>
               <td>${user.id}</td>
+              <td>${user.name}</td>
               <td>${user.email}</td>
               <td>${user.role.department}</td>
+              <td>${user.role.role_name}</td>
           </tr>`
 
-          if(user.role.id != 1 && user.role.department == managerRole.department && user.role.id != managerRole.id) {
+          if(user.role.id != 1 && user.role.department == managerRole.department && user.role.id == managerRole.id) {
             tbody.innerHTML += employyeeLoad;
             
           }
