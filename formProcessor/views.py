@@ -81,15 +81,27 @@ def generate_pdf_and_redirect(request, instance, latex_path, dashboard_redirect=
     filled_tex_path = fill_latex_template(context, latex_path)
     
     try:
-        subprocess.run(
+        result = subprocess.run(
             ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", filled_tex_path],
-            check=True,
+            check=False,  # <- Don't raise on warnings
             stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
+
+        # log warnings
+        if result.returncode != 0:
+            print("PDF generation had issues:")
+            print(result.stdout.decode())
+            print(result.stderr.decode())
+
         if os.path.exists(paths["compiled_pdf"]):
             os.rename(paths["compiled_pdf"], paths["final_pdf"])
             instance.pdf_url = paths["relative_url"]
+            if isinstance(instance, PayrollAssignment):
+                instance.status = "Pending"
             instance.save()
+        else:
+            messages.error(request, "PDF generation failed. Please review your form and try again.")
+            return redirect('dashboard')
     except subprocess.CalledProcessError as e:
         print("PDF generation failed", e.stdout.decode(), e.stderr.decode())
 
