@@ -17,9 +17,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserURARegisterSerializer, UserURALoginSerializer
 from django.http import JsonResponse
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from api.serializers import UserSerializer
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
+from django.db.models import Q
+
 
 def is_admin(user):
     print(user)
@@ -38,6 +41,7 @@ def is_employee(user):
     if not user.is_authenticated:
         return False
     return getattr(user, 'role_id', None) == 5 or getattr(user, 'role_id', None) == 6
+
 
 def merge_accs(request):
     return render(request, 'merge.html')
@@ -241,15 +245,15 @@ def microsoft_callback(request):
         password = request.COOKIES.get("uraniumPassword")
         # Check if user exists, otherwise create one
         try:
-            user = user_ura_accs.objects.get(email=email)
-        except user_ura_accs.DoesNotExist:
+            user = user_accs.objects.get(email=email)
+        except user_accs.DoesNotExist:
             # Create new user if doesn't exist
-            if user_ura_accs.DoesNotExist:
+            if user_accs.DoesNotExist:
                 if not id or not password:
                     messages.error(request, "No account registered with this Microsoft email")
                     return redirect("http://localhost:5173/home")
             
-                user = user_ura_accs.objects.create(
+                user = user_accs.objects.create(
                     id=id,
                     email=email,
                     name=name,
@@ -429,9 +433,13 @@ def user_ura_register(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def user_ura_login(request):
-    serializer = UserURALoginSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.validated_data["user"]
+    data = request.data
+    if "cougar_id" in data:
+        user = user_accs.objects.get(id=data["cougar_id"])
+    else:
+        user = user_accs.objects.get(email=data["email"])
+    
+    if user != None and check_password(data["password"], user.password_hash):
         login(request, user)
         request.session.save()  # Explicitly save the session
         #print(f"User {user.email} logged in. Session: {request.session.session_key}")

@@ -66,12 +66,14 @@ def initialize_data(sender, **kwargs):
         return
 
     # Ensure roles exist
-    admin_role, _ = roles.objects.get_or_create(role_name="admin", level=1, department="all")
-    basic_user_role, _ = roles.objects.get_or_create(role_name="basicuser", level=99, department="all")
-    manager_role_finance, _ = roles.objects.get_or_create(role_name="manager", level=2, department="finance")
-    manager_role_registrar, _ = roles.objects.get_or_create(role_name="manager", level=2, department="registrar")
-    employee_role_finance, _ = roles.objects.get_or_create(role_name="employee", level=3, department="finance")
-    employee_role_registrar, _ = roles.objects.get_or_create(role_name="employee", level=3, department="registrar")
+    admin_role, _ = roles.objects.get_or_create(role_name="admin", level=1, department="all", subdepartment="all")
+    basic_user_role, _ = roles.objects.get_or_create(role_name="basicuser", level=99, department="all", subdepartment="all")
+    manager_role_finance, _ = roles.objects.get_or_create(role_name="manager", level=2, department="finance", subdepartment="all")
+    manager_role_registrar, _ = roles.objects.get_or_create(role_name="manager", level=2, department="registrar", subdepartment="all")
+    employee_role_finance_payroll, _ = roles.objects.get_or_create(role_name="employee", level=3, department="finance", subdepartment="payroll")
+    employee_role_finance_reimbursement, _ = roles.objects.get_or_create(role_name="employee", level=3, department="finance", subdepartment="reimbursement")
+    employee_role_registrar_address, _ = roles.objects.get_or_create(role_name="employee", level=3, department="registrar", subdepartment="address")
+    employee_role_registrar_diploma, _ = roles.objects.get_or_create(role_name="employee", level=3, department="registrar", subdepartment="diploma")
 
     # Ensure some users exist
     user_data = [
@@ -120,22 +122,44 @@ def initialize_data(sender, **kwargs):
             "is_superuser": False,
         },
         {
-            "name": "Finance Employee",
-            "email": "finemployee@example.com",
+            "name": "Finance Employee Payroll",
+            "email": "finemployeepayroll@example.com",
             "password": "employee123",
-            "role": employee_role_finance,
-            "phone_number": "7778889999",
+            "role": employee_role_finance_payroll,
+            "phone_number": "7778889919",
+            "address": "654 Finance St",
+            "status": "active",
+            "is_staff": False,
+            "is_superuser": False,
+        },
+                {
+            "name": "Finance Employee Reimbursement",
+            "email": "finemployeereimbursement@example.com",
+            "password": "employee123",
+            "role": employee_role_finance_reimbursement,
+            "phone_number": "7778889929",
             "address": "654 Finance St",
             "status": "active",
             "is_staff": False,
             "is_superuser": False,
         },
         {
-            "name": "Registrar Employee",
-            "email": "regemployee@example.com",
+            "name": "Registrar Employee Address",
+            "email": "regemployeeaddress@example.com",
             "password": "employee123",
-            "role": employee_role_registrar,
-            "phone_number": "0001112222",
+            "role": employee_role_registrar_address,
+            "phone_number": "0001112232",
+            "address": "987 Registrar Ave",
+            "status": "active",
+            "is_staff": False,
+            "is_superuser": False,
+        },
+          {
+            "name": "Registrar Employee Diploma",
+            "email": "regemployeediploma@example.com",
+            "password": "employee123",
+            "role": employee_role_registrar_diploma,
+            "phone_number": "0001114222",
             "address": "987 Registrar Ave",
             "status": "active",
             "is_staff": False,

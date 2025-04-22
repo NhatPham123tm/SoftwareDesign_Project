@@ -8,39 +8,34 @@ function getCSRFToken() {
   return match ? match[1] : null;
 }
 
-const DiplomaRequestForm = () => {
-  const location = useLocation();
-  const [message, setMessage] = useState("");
-  const userDataRaw = localStorage.getItem("userData");
-  const userData = userDataRaw ? JSON.parse(userDataRaw) : {};
-  const fullName = userData.name || "";
-  const studentID = userData.id || "";
+const ReimbursementForm = () => {
+    const location = useLocation();
+    const [message, setMessage] = useState("");
+    const userDataRaw = localStorage.getItem("userData");
+    const userData = userDataRaw ? JSON.parse(userDataRaw) : {};
+    const fullName = userData.name || "";
 
-
-  const [formData, setFormData] = useState({
-    StudentIdNumber: "",
-    name: "",
-    email: "",
-    birthDate: "",
-    phoneNumber: "",
-    degree: "",
-    major: "",
-    honors: "",
-    college: "",
-    GradDateSemester: "spring",
-    GradDateYear: "",
-    address: "",
-    date: new Date().toLocaleDateString(),
-    form_type: "DiplomaRequestForm",
-    draftId: null,
-    signature: "", 
-  });
+    const [formData, setFormData] = useState({
+        employeeName: "",
+        employeeId: "",
+        reimbursementItems: "",
+        purpose: "",
+        mealInfo: "",
+        costCenter1: "",
+        amount1: "",
+        costCenter2: "",
+        amount2: "",
+        totalReimbursement: "",
+        date: new Date().toLocaleDateString(),
+        form_type: "ReimbursementForm",
+        draftId: null,
+        signature: "", 
+    });
 
   useEffect(() => {
     setFormData(prevData => ({
       ...prevData,
       name: fullName,
-      StudentIdNumber: studentID
     }));
 
     if (location.state?.formData?.data) {
@@ -49,7 +44,7 @@ const DiplomaRequestForm = () => {
         draftId: location.state.formData.id || null,
       });
     }
-  }, [location.state, fullName, studentID]);
+  }, [location.state, fullName]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -121,199 +116,140 @@ const DiplomaRequestForm = () => {
   return (
     <div className="form-container">
       <form onSubmit={(e) => handleSubmit(e, 'submitted')}>
-        <h2>Diploma Request Form</h2>
-
+        <h2>Reimbursement Form</h2>
+  
         <label>
-          Student ID:
+          Employee Name:
           <input
             type="text"
-            name="StudentIdNumber"
-            value={formData.StudentIdNumber || ""}
+            name="employeeName"
+            value={formData.employeeName}
             onChange={handleChange}
             required
-            minLength={7}
-            maxLength={7}
-            pattern="[0-9]+" 
-            title="Please enter 7-digit number only"
           />
         </label>
-
+  
         <label>
-          Name:
+          Employee ID:
           <input
             type="text"
-            name="name"
-            value={formData.name || ""}
-            onChange={handleChange}
-            required
-            maxLength={50}
-          />
-        </label>
-
-        <label>
-          Email:
-          <input
-            type="email"
-            name="email"
-            value={formData.email || ""}
+            name="employeeId"
+            value={formData.employeeId}
             onChange={handleChange}
             required
           />
         </label>
-
+  
         <label>
-          Date of Birth:
-          <input
-            type="date"
-            name="birthDate"
-            value={formData.birthDate || ""}
-            onChange={handleChange}
-            required
-            max={new Date().toISOString().split("T")[0]}
-            title="Please enter a date before today"
-          />
-        </label>
-
-        <label>
-          Phone:
-          <input
-            type="tel"
-            name="phoneNumber"
-            value={formData.phoneNumber || ""}
-            onChange={handleChange}
-            required
-            minLength={10}
-            maxLength={10}
-            pattern="[0-9]+" 
-            title="Please enter numbers only"
-          />
-        </label>
-
-        <label>
-          Degree:
-          <select
-            type="text"
-            name="degree"
-            value={formData.degree || ""}
-            onChange={handleChange}
-            required
-            maxLength={50}>
-            <option value="" disabled>Select a Degree</option>
-            <option value="Asso">Associate</option>
-            <option value="Bach">Bachelor's</option>
-            <option value="Mast">Master's</option>
-            <option value="Doct">Doctoral</option>
-          </select>
-        </label>
-
-        <label>
-          Major:
+          Reimbursement Items:
           <input
             type="text"
-            name="major"
-            value={formData.major || ""}
+            name="reimbursementItems"
+            value={formData.reimbursementItems}
             onChange={handleChange}
             required
-            maxLength={50}
           />
         </label>
-
+  
         <label>
-          Honors (Optional):
+          Purpose:
           <input
             type="text"
-            name="honors"
-            value={formData.honors || ""}
-            onChange={handleChange}
-            maxLength={50}
-          />
-        </label>
-
-        <label>
-          College:
-          <input
-            type="text"
-            name="college"
-            value={formData.college || ""}
+            name="purpose"
+            value={formData.purpose}
             onChange={handleChange}
             required
-            maxLength={50}
           />
         </label>
-
+  
         <label>
-          Graduation Semester:
-          <select
-            name="GradDateSemester"
-            value={formData.GradDateSemester || "spring"}
-            onChange={handleChange}
-            required>
-            <option value="" disabled>Select a Semester</option>
-            <option value="spring">Spring</option>
-            <option value="summer">Summer</option>
-            <option value="fall">Fall</option>
-          </select>
-        </label>
-
-        <label>
-          Graduation Year:
+          Meal Info (if applicable):
           <input
             type="text"
-            name="GradDateYear"
-            value={formData.GradDateYear}
+            name="mealInfo"
+            value={formData.mealInfo}
             onChange={handleChange}
-            required
-            minLength={4}
-            maxLength={4}
-            pattern="[0-9]{4}"
-            title="Please enter 4-digit year"
           />
         </label>
-
+  
         <label>
-          Address:
+          Cost Center 1:
           <input
             type="text"
-            name="address"
-            value={formData.address || ""}
+            name="costCenter1"
+            value={formData.costCenter1}
             onChange={handleChange}
-            required
-            maxLength={50}
           />
         </label>
-
+  
+        <label>
+          Amount 1:
+          <input
+            type="number"
+            name="amount1"
+            value={formData.amount1}
+            onChange={handleChange}
+          />
+        </label>
+  
+        <label>
+          Cost Center 2:
+          <input
+            type="text"
+            name="costCenter2"
+            value={formData.costCenter2}
+            onChange={handleChange}
+          />
+        </label>
+  
+        <label>
+          Amount 2:
+          <input
+            type="number"
+            name="amount2"
+            value={formData.amount2}
+            onChange={handleChange}
+          />
+        </label>
+  
+        <label>
+          Total Reimbursement:
+          <input
+            type="number"
+            name="totalReimbursement"
+            value={formData.totalReimbursement}
+            onChange={handleChange}
+            required
+          />
+        </label>
+  
         <label>
           Date:
           <input
             type="text"
             name="date"
-            value={formData.date || new Date().toLocaleDateString()}
+            value={formData.date}
             onChange={handleChange}
             readOnly
           />
         </label>
-
+  
         <div className="signature-container">
           <label>Signature:</label>
           <div className="signature-box">
             <Signature initialSignature={formData.signature} onSave={handleSignatureChange} />
           </div>
         </div>
-
+  
         <div className="form-buttons">
-          <button
-            type="button"
-            onClick={(e) => handleSubmit(e, 'Draft')}
-          >
-            Save as Draft
-          </button>
+          <button type="button" onClick={(e) => handleSubmit(e, 'Draft')}>Save as Draft</button>
           <button type="submit">Submit</button>
         </div>
       </form>
-
+  
       {message && <p className="form-message">{message}</p>}
     </div>
   );
 };
 
-export default DiplomaRequestForm;
+export default ReimbursementForm;

@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Special+Gothic+Expanded+One&display=swap");
 /* frontend/src/Index.css */
 *,
 *::before,
@@ -10,7 +11,7 @@
 html,
 body {
   height: 100%; 
-  width: 100%; 
+  width: 100%;
 }
 
 body {
@@ -18,8 +19,8 @@ body {
   justify-content: center; 
   align-items: center;   
   min-height: 100vh;      
-  font-family: Arial, sans-serif;
-  background-color: #ffffff; 
+  font-family: "Montserrat", sans-serif;
+  background-color: #E1EACD; 
   overflow-y: hidden;
 }
 

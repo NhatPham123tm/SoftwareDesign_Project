@@ -13,6 +13,8 @@ const UserForms = () => {
   const formTypeNames = {
     DiplomaRequestForm: "Diploma Request",
     ChangeAddressForm: "Change of Address",
+    PayrollRequestForm: "Payroll Request",
+    ReimbursementForm: "Reimbursement Request",
   };
 
   const statusOptions = ["Draft", "Pending", "Rejected", "Approved", "Cancelled"];
@@ -44,7 +46,6 @@ const UserForms = () => {
         setMessage("Error fetching forms: " + error.message);
       }
     };
-
     fetchUserForms();
   }, []);
 

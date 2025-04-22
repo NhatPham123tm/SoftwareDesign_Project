@@ -2,12 +2,12 @@ from rest_framework import viewsets, filters
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import action
-from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, user_ura_accs, work_assign
-from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer, ChangeOfAddressSerializer, DiplomaRequestSerializer, UserURASerializer, RequestSerializer, WorkAssignSerializer
+from .models import user_accs, roles, permission, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, user_ura_accs, work_assign, Delegation
+from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PayrollAssignmentSerializer, ReimbursementRequestSerializer, ChangeOfAddressSerializer, DiplomaRequestSerializer, UserURASerializer, RequestSerializer, WorkAssignSerializer, DelegationSerializer
 import os
 import base64
 import requests
-from .models import Request
+from .models import Request, Q
 from .serializers import RequestSerializer
 from django.shortcuts import get_object_or_404
 from django_tex.shortcuts import render_to_pdf
@@ -34,6 +34,7 @@ from django.utils.dateparse import parse_datetime
 from workflow.views import advance_to_next_workflow_step
 from django.utils.timezone import now
 from rest_framework.decorators import permission_classes
+
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = roles.objects.all()
@@ -427,8 +428,10 @@ class RequestSubmitView(APIView):
         status_value = form_data.get("status", "draft")
         signature_data = form_data.get('signature')
         signature_file = None
+
         if signature_data:
             signature_file = self._convert_base64_to_image(signature_data)
+
         try:
             request_instance = Request.objects.create(
                 user=user,
@@ -437,12 +440,13 @@ class RequestSubmitView(APIView):
                 data=form_data,
                 signature=signature_file
             )
-            
-            return self._process_request(request, request_instance, status_value)
-            
+            request_instance.assigned_to = request_instance.assignable()
         except Exception as e:
             return Response({"error": f"Failed to save the request: {str(e)}"}, 
-                           status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return self._process_request(request, request_instance, status_value)
+
 
     def put(self, request, pk=None):
         if not request.data:
@@ -492,8 +496,12 @@ class RequestSubmitView(APIView):
             template_name = "pdf_templates/diploma_template.tex"
             if request_instance.form_type == "ChangeAddressForm":
                 template_name = "pdf_templates/change_address_template.tex"
+            elif request_instance.form_type == "ReimbursementForm":
+                template_name = "pdf_templates/reimbursement_template.tex"
+            elif request_instance.form_type == "PayrollRequestForm":
+                template_name = "pdf_templates/payroll_template.tex"
             context = request_instance.data
-            
+
             try:
                 pdf_path = self.generate_pdf(request, template_name, context, request_instance)
                 if not pdf_path:
@@ -580,23 +588,41 @@ class IsAdminUserRole(BasePermission):
         return request.user.is_authenticated and getattr(request.user, 'role_id', None) == 1
     
 class AdminRequestsView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUserRole]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         submitted_requests = Request.objects.exclude(status='Draft')
         serializer = RequestSerializer(submitted_requests, many=True)
         return Response(serializer.data)
 
+# Only allow people to view delegators they can delegate to
+class UsersDelegationView(APIView):
+    def get(self, request):
+        user = request.user
+        users = user_accs.objects.filter(role__in=user.role.delegatable_roles()).filter(~Q(id=user.id))
+        serializer = UserURASerializer(users, many=True)
+        return Response(serializer.data)
+
 class RequestApprovalView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUserRole]
+    permission_classes = [IsAuthenticated]
     def put(self, request, pk):
         req = get_object_or_404(Request, id=pk)
         new_status = request.data.get("status")
+        user = request.user
         if new_status not in ['approved', 'rejected']:
             return Response(
                 {"error": "Invalid status. Must be 'approved' or 'rejected'."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+        history_entry = {
+            "changed_by": user.name,
+            "status": new_status,
+            "timestamp": now().isoformat()
+        }
+
+        if not req.status_history:
+            req.status_history = []
+
+        req.status_history.append(history_entry)
         if new_status == "rejected":
             reason = request.data.get("reason_for_return", "")
             req.reason_for_return = reason
@@ -647,6 +673,10 @@ class RequestApprovalView(APIView):
             template_name = "pdf_templates/diploma_template_admin.tex"
             if request_instance.form_type == "ChangeAddressForm":
                 template_name = "pdf_templates/change_address_template_admin.tex"
+            elif request_instance.form_type == "ReimbursementForm":
+                template_name = "pdf_templates/reimbursement_template.tex"
+            elif request_instance.form_type == "PayrollRequestForm":
+                template_name = "pdf_templates/payroll_template.tex"
             context = request_instance.data
 
             try:
@@ -761,3 +791,53 @@ def delegate_work_assignment(request):
 def get_work_assignments(request):
     assignments = list(work_assign.objects.all().values())
     return JsonResponse(assignments, safe=False)
+    
+
+class DelegateWork(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, *args, **kwargs):
+        request_data = request.data
+
+        if 'request' not in request_data or 'delegatee' not in request_data:
+            return Response({"detail": "Request ID and delegatee are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        request_id = request_data['request']
+        delegatee_id = request_data['delegatee']
+        
+        request_form = get_object_or_404(Request, id=request_id)
+
+        request_form.assigned_to_id = delegatee_id
+        request_form.save()
+
+        if request_form.delegate_history is None:
+            request_form.delegate_history = []
+
+        request_form.delegate_history.append({
+            "delegated_to": user_accs.objects.get(id=delegatee_id).name if user_accs.objects.filter(id=delegatee_id).exists() else "Unknown User",
+            "delegator": request.user.name,
+            "timestamp": now().isoformat()
+        })
+
+        request_form.save()
+        delegation = Delegation.objects.create(
+            request=request_form,
+            delegator=request.user,
+            delegatee_id=delegatee_id
+        )
+
+        delegation.save()
+
+        serializer = DelegationSerializer(delegation)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class DelegatedRequestsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        requests = Request.objects.filter(assigned_to=user_accs.objects.get(id=user.id))
+
+        serializer = RequestSerializer(requests, many=True)
+        return Response(serializer.data)
+
