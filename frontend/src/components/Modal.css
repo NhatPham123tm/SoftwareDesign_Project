@@ -29,16 +29,16 @@
 }
 
 .modal-content {
-    position: fixed;
-    top: 50%;
+    position: absolute;
+    top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
     line-height: 1.5;
-    background: #E1EACD;
+    background: #f1f1f1;
     padding: 15px 30px;
     border-radius: 5px;
+    max-width: 350px;
     min-width: 350px;
-    width: 25vw;
 }
 
 .close-modal {

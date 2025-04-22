@@ -86,12 +86,6 @@ const Header = () => {
             <li>
               <NavLink to="/diplomaRequestForm">Request Diploma</NavLink>
             </li>
-            <li>
-              <NavLink to="/reimbursementForm">Request Reimbursement</NavLink>
-            </li>
-            <li>
-              <NavLink to="/payrollRequestForm">Payroll Request</NavLink>
-            </li>
             {Number(auth?.role) === 1 && (
               <li>
                 <NavLink to="/admin/requests">Admin</NavLink>
