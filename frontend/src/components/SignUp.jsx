@@ -8,6 +8,16 @@ const axiosInstance = axios.create({
   withCredentials: true, // send session cookies
 });
 
+const handleMicrosoftLogin = async () => {
+  try {
+    const team = "uranium"; // or "trois-rivieres"
+    const res = await axiosInstance.get(`/login/microsoft/?team=${team}`);
+    window.location.href = res.data.auth_url;
+  } catch (error) {
+    console.error("Microsoft login failed:", error);
+  }
+};
+
 export default function Signup() {
   const [id, setId] = useState('');
   const [name, setName] = useState('');
@@ -40,7 +50,8 @@ export default function Signup() {
     document.cookie = `uraniumPassword=${password}; path=/; max-age=${60}`;
 
     if (microsoftAuth) {
-      window.location.href = '/login/microsoft/';
+      handleMicrosoftLogin()
+      //window.location.href = '/login/microsoft/';
       return;
     }
 

@@ -29,22 +29,23 @@ export default function Login() {
     setIsLoading(true);
   
     if (!email || !password) {
-      setError('Please enter both email and password');
+      setError('Please enter both email/Cougar ID and password');
       setIsLoading(false);
       return;
     }
   
     try {
       await axiosInstance.get('/csrf/'); // fetch CSRF token for using session
-      const res = await axiosInstance.post(
-        '/uranium_login/',
-        { email, password },
+      let cougarId = /^[0-9]{7}$/.test(email);
+      const field = cougarId ? { cougar_id: email, password } : { email, password };
+      const res = await axiosInstance.post('/uranium_login/', field,
         {
           headers: {
             'X-CSRFToken': getCSRFToken(),
           },
         }
       );
+
   
       const { access_token, refresh_token, user } = res.data;
   
@@ -105,10 +106,10 @@ export default function Login() {
           <input
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="Email"
+            placeholder="Email or Cougar ID"
             className="input-field"
             required
-            type="email"
+            type="text"
           />
           <input
             value={password}

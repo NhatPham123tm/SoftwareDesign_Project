@@ -523,7 +523,7 @@ class AdminRequestsView(APIView):
 class UsersDelegationView(APIView):
     def get(self, request):
         user = request.user
-        users = user_ura_accs.objects.filter(role__in=user.role.delegatable_roles()).filter(~Q(id=user.id))
+        users = user_accs.objects.filter(role__in=user.role.delegatable_roles()).filter(~Q(id=user.id))
         serializer = UserURASerializer(users, many=True)
         return Response(serializer.data)
 
@@ -715,7 +715,7 @@ class DelegateWork(APIView):
             request_form.delegate_history = []
 
         request_form.delegate_history.append({
-            "delegated_to": user_ura_accs.objects.get(id=delegatee_id).name if user_ura_accs.objects.filter(id=delegatee_id).exists() else "Unknown User",
+            "delegated_to": user_accs.objects.get(id=delegatee_id).name if user_accs.objects.filter(id=delegatee_id).exists() else "Unknown User",
             "delegator": request.user.name,
             "timestamp": now().isoformat()
         })
@@ -737,7 +737,7 @@ class DelegatedRequestsView(APIView):
 
     def get(self, request):
         user = request.user
-        requests = Request.objects.filter(assigned_to=user_ura_accs.objects.get(id=user.id))
+        requests = Request.objects.filter(assigned_to=user_accs.objects.get(id=user.id))
 
         serializer = RequestSerializer(requests, many=True)
         return Response(serializer.data)
