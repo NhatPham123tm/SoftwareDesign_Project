@@ -9,96 +9,17 @@
 .box-container {
   text-align: center;
   padding: 20px;
-  background-color: #BAD8B6;
+  background-color: #bedcf5;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 40vh;
-  margin-left: 40vw;
-  margin-right: 40vw;
 }
 
 .box h2 {
   font-size: 24px;
   margin-bottom: 10px;
-  margin-top: auto;
 }
 
 .box p {
   font-size: 18px;
   color: #f00; 
-}
-
-.history-modal h4 {
-  margin-top: 20px;
-  color: #333;
-}
-
-.history-modal ul {
-  list-style-type: none;
-  padding-left: 0;
-}
-
-.history-modal li {
-  margin-bottom: 15px;
-  background-color: #f7f7f7;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.history-tabs {
-  display: flex;
-  margin-bottom: 20px;
-}
-
-.history-tabs button {
-  padding: 10px 20px;
-  margin-right: 10px;
-  border: 1px solid #ccc;
-  background-color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  border-radius: 4px;
-}
-
-.history-tabs button:hover {
-  background-color: #f0f0f0;
-}
-
-.history-tabs button.active {
-  background-color: green;
-  color: white;
-}
-
-.history-content {
-  padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-
-.history-list {
-  max-height: 300px;
-  overflow-y: scroll;
-  padding-right: 10px;
-}
-
-.toggle-btn {
-  padding: 8px 16px;
-  border: 1px solid #ccc;
-  background-color: #f4f4f4;
-  cursor: pointer;
-  margin-right: 8px;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-  font-family: "Montserrat", sans-serif;
-}
-
-.toggle-btn:hover {
-  background-color: #e0e0e0;
-}
-
-.toggle-btn.active {
-  background-color: #4caf50;
-  color: white;
-  border-color: #4caf50;
 }

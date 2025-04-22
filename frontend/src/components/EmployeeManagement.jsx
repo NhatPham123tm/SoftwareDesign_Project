@@ -52,7 +52,7 @@ const EmployeeManagement = () => {
     };
 
     const handleSubmit = (id) => {
-        fetch(`http://localhost:8000/api/users/${id}/`, {
+        fetch(`http://localhost:8000/api/ura/${id}/`, {
             method: "PATCH",
             credentials: "include",
             headers: {
@@ -70,7 +70,7 @@ const EmployeeManagement = () => {
 
     const fetchEmployees = async () => {
         try {
-            const response = await fetch("http://localhost:8000/api/users", {
+            const response = await fetch("http://localhost:8000/api/ura", {
                 method: "GET",
                 credentials: "include",
                 headers: {
@@ -81,7 +81,7 @@ const EmployeeManagement = () => {
 
         if (response.ok) {
             const data = await response.json();
-            const Employees = data.filter(user => user.role.role_name !== "");
+            const Employees = data.filter(user => user.role.role_name !== "basicuser");
             setEmployees(Employees);
             setFilteredEmployees(Employees);
         }             
@@ -129,41 +129,26 @@ const EmployeeManagement = () => {
         <div className="admin-view-container">
              <Modal modal={modal} setModal={setModal}>
                 { employee !== null &&
-                <div className="form-container">
+                <div>
                     <h2>Edit Employee</h2>
-                    <label>
-                        Name:
-                        <input name="name" placeholder="Name" value={form.name} onChange={handleInputChange} />
-                    </label>
-                    <label>
-                        Email:
-                        <input name="email" placeholder="Email" value={form.email} onChange={handleInputChange} />
-                    </label>
-                    <label>
-                        Status:
-                        <select name="status" value={form.status} onChange={handleInputChange}>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="banned">Banned</option>
-                        </select>
-                    </label>
-                    <label>
-                        Role:
-                        <select name="role_name" value={form.role_name} onChange={handleInputChange}>
-                            <option value="basicuser">Basic User</option>
-                            <option value="admin">Admin</option>
-                            <option value="manager">Manager</option>
-                            <option value="employee">Employee</option>
-                        </select>
-                    </label>
-                    <label>
-                        Department:
-                        <select name="role_department" value={form.role_department} onChange={handleInputChange}>
+                    <input name="name" placeholder="Name" value={form.name} onChange={handleInputChange} />
+                    <input name="email" placeholder="Email" value={form.email} onChange={handleInputChange} />
+                    <select name="status" value={form.status} onChange={handleInputChange}>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="banned">Banned</option>
+                    </select>
+                    <select name="role_name" value={form.role_name} onChange={handleInputChange}>
+                        <option value="basicuser">Basic User</option>
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                        <option value="employee">Employee</option>
+                    </select>
+                    <select name="role_department" value={form.role_department} onChange={handleInputChange}>
                         <option value="all">All</option>
                         <option value="finance">Finance</option>
                         <option value="registrar">Registrar</option>
                     </select>
-                    </label>
                     <button className="approve-btn" onClick={() => handleSubmit(employee.id)}>
                         Update User
                     </button>
@@ -226,7 +211,6 @@ const EmployeeManagement = () => {
                             <th>Status</th>
                             <th>Role</th>
                             <th>Department</th>
-                            <th>Subdepartment</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -238,12 +222,11 @@ const EmployeeManagement = () => {
                                 <td>{employee.status}</td>
                                 <td>{employee.role.role_name}</td>
                                 <td>{employee.role.department}</td>
-                                <td>{employee.role.subdepartment == "all" ? ("") : ( employee.role.subdepartment )}</td>
                                 <td>
                                     <div>
                                         <button onClick={() => toggleModal(employee)}>Edit</button>
                                     </div>
-                                    <button className="reject-btn" onClick={() => handleDelete(employee.id)}>Delete</button>
+                                    <button onClick={() => handleDelete(employee.id)}>Delete</button>
                                 </td>
                             </tr>
                         ))}

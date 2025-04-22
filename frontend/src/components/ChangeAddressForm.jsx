@@ -267,10 +267,9 @@ const ChangeAddressForm = () => {
         </div>
 
         <div className="form-buttons">
-          <button type="button" className="form-btn" onClick={(e) => handleSubmit(e, 'Draft')}>
+          <button type="button" className="draft-btn" onClick={(e) => handleSubmit(e, 'Draft')}>
             Save as Draft
           </button>
-          <button type="submit">Submit</button>
         </div>
       </form>
 

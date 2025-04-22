@@ -3,7 +3,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group, Permission
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.db.models import JSONField, Q
+from django.db.models import JSONField 
 
 # models.py
 class ManagerNotification(models.Model):
@@ -26,19 +26,9 @@ class roles(models.Model):
         ('registrar', 'registrar'),
     ]
 
-    # only useful for employees, admins and managers are all
-    SUBDEPARTMENT_CHOICES = [
-        ('all', 'all'),
-        ('payroll', 'payroll'),
-        ('reimbursement', 'reimbursement'),
-        ('address', 'address'),
-        ('diploma', 'diploma'),
-    ]
-
     role_name = models.CharField(max_length=30, choices=ROLE_CHOICES)
     level = models.IntegerField(default=99)  # 0 for admin, 99 for user, 1->98 for other roles
     department = models.CharField(max_length=30, choices=DEPARTMENT_CHOICES, default='all')
-    subdepartment = models.CharField(max_length=30, choices=SUBDEPARTMENT_CHOICES, default='all')
     # Only admin and basic user can be in 'all' departments
     # Employee and manager can be in specific departments
 
@@ -52,18 +42,6 @@ class roles(models.Model):
                 existing_admins = existing_admins.exclude(pk=self.pk)
             if existing_admins.exists():
                 raise ValidationError("There can only be one admin role (level=0).")
-    
-    # Employees can only delegate to employees of same subdepartment or managers of same department
-    # Managers can only delegate to managers of same department or admins
-    def delegatable_roles(self):
-        if(self.role_name == "employee"):
-            return roles.objects.filter((Q(role_name="manager") & Q(department=self.department)) | (Q(role_name="employee") & Q(subdepartment=self.subdepartment)))
-        elif(self.role_name == "manager"):
-            return roles.objects.filter((Q(role_name="manager") & Q(department=self.department)) | Q(role_name="admin"))
-        elif(self.role_name == "admin"):
-            return roles.objects.filter((Q(role_name="manager")) | Q(role_name="employee"))
-        else:
-            return []
 
     def save(self, *args, **kwargs):
         self.full_clean()  # Triggers the clean() method
@@ -488,51 +466,9 @@ class Request(models.Model):
     pdf = models.FileField(upload_to='diploma_pdfs/', null=True, blank=True)
     signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
     admin_signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
-    assigned_to = models.ForeignKey(user_accs, related_name="assigned_to_user", on_delete=models.CASCADE, null=True, blank=True)
-    delegate_history = JSONField(default=list, blank=True, null=True)
-    status_history = JSONField(default=list, blank=True, null=True)
-    
-    def assignable(self):
-        if(self.form_type == "DiplomaRequestForm"):
-            assigned = user_accs.objects.filter((Q(role__role_name="employee") & Q(role__subdepartment="diploma"))).filter(~Q(id=self.user.id)).first()
-            if not assigned:
-                assigned = user_accs.objects.filter((Q(role__role_name="manager") & Q(role__department="registrar"))).filter(~Q(id=self.user.id)).first()
-            if not assigned:
-                assigned = user_accs.objects.filter((Q(role__role_name="admin"))).filter(~Q(id=self.user.id)).first()
-            return assigned
-        elif(self.form_type == "ChangeAddressForm"):
-            assigned = user_accs.objects.filter((Q(role__role_name="employee") & Q(role__subdepartment="address"))).filter(~Q(id=self.user.id)).first()
-            if not assigned:
-                assigned = user_accs.objects.filter((Q(role__role_name="manager") & Q(role__department="registrar"))).filter(~Q(id=self.user.id)).first()
-            if not assigned:
-                assigned = user_accs.objects.filter((Q(role__role_name="admin"))).filter(~Q(id=self.user.id)).first()
-            return assigned
-        elif(self.form_type == "PayrollRequestForm"):
-            assigned = user_accs.objects.filter((Q(role__role_name="employee") & Q(role__subdepartment="payroll"))).filter(~Q(id=self.user.id)).first()
-            if not assigned:
-                assigned = user_accs.objects.filter((Q(role__role_name="manager") & Q(role__department="finance"))).filter(~Q(id=self.user.id)).first()
-            if not assigned:
-                assigned = user_accs.objects.filter((Q(role__role_name="admin"))).filter(~Q(id=self.user.id)).first()
-            return assigned
-        elif(self.form_type == "ReimbursementForm"):
-            assigned = user_accs.objects.filter((Q(role__role_name="employee") & Q(role__subdepartment="reimbursement"))).filter(~Q(id=self.user.id)).first()
-            if not assigned:
-                assigned = user_accs.objects.filter((Q(role__role_name="manager") & Q(role__department="finance"))).filter(~Q(id=self.user.id)).first()
-            if not assigned:
-                assigned = user_accs.objects.filter((Q(role__role_name="admin"))).filter(~Q(id=self.user.id)).first()
-            return assigned
-        else:
-            return None
 
     def get_status_display(self):
         return dict(self.STATUS_CHOICES).get(self.status, self.status)
-    
-    def delegator(self):
-        delegation = Delegation.objects.filter(request=self).last()
-        if(delegation is None):
-            return None
-        
-        return delegation.delegator
     
     def __str__(self):
         return f"{self.id} ({self.employee_name})"
@@ -545,15 +481,6 @@ class Request(models.Model):
                 name='unique_pending_form_request_per_user'
             )
         ]
-        
-class Delegation(models.Model):
-    request = models.ForeignKey(Request, on_delete=models.CASCADE, related_name='delegations')
-    delegator = models.ForeignKey(user_accs, on_delete=models.CASCADE, related_name='delegations_made')
-    delegatee = models.ForeignKey(user_accs, on_delete=models.CASCADE, related_name='delegations_received')
-    created_at = models.DateTimeField(default=timezone.now)
-
-    def __str__(self):
-        return f"{self.delegator} delegated to {self.delegatee} for request {self.request.id}"
 
 
 class ChangeOfAddress(models.Model):
