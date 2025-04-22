@@ -52,7 +52,7 @@ const EmployeeManagement = () => {
     };
 
     const handleSubmit = (id) => {
-        fetch(`http://localhost:8000/api/ura/${id}/`, {
+        fetch(`http://localhost:8000/api/users/${id}/`, {
             method: "PATCH",
             credentials: "include",
             headers: {
@@ -70,7 +70,7 @@ const EmployeeManagement = () => {
 
     const fetchEmployees = async () => {
         try {
-            const response = await fetch("http://localhost:8000/api/ura", {
+            const response = await fetch("http://localhost:8000/api/users", {
                 method: "GET",
                 credentials: "include",
                 headers: {
