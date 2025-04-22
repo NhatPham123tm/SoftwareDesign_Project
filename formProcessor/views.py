@@ -1,10 +1,8 @@
 import os, time
 from PIL import Image
-import io
 import subprocess
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import FileResponse, HttpResponse
-from .forms import PayrollForm
 from .forms import ReimbursementStep1Form, ReimbursementStep2Form, ReimbursementStep3Form,PayrollStep1Form, PayrollStep2Form, PayrollStep3Form, PayrollStep4Form, PayrollStep5Form, PayrollStep6Form, PayrollStep7Form, PayrollStep8Form, PayrollStep9Form, PayrollStep10Form, ChangeAddressStep1Form, ChangeAddressStep2Form, ChangeAddressStep3Form, DiplomaStep1Form, DiplomaStep2Form
 from api.models import ReimbursementRequest, PayrollAssignment, ChangeOfAddress, DiplomaRequest
 import re
@@ -13,9 +11,8 @@ from authentication.views import dashboard
 from django.contrib import messages
 from django.conf import settings
 import datetime
-from django.utils.html import escape
 import base64
-from django.core.files.base import ContentFile
+from workflow.views import assign_workflow_steps, advance_to_next_workflow_step
 
 # utility functions for latex and pdf
 def escape_latex(value):
@@ -84,21 +81,36 @@ def generate_pdf_and_redirect(request, instance, latex_path, dashboard_redirect=
     filled_tex_path = fill_latex_template(context, latex_path)
     
     try:
-        subprocess.run(
+        result = subprocess.run(
             ["pdflatex", "-interaction=nonstopmode", "-output-directory", "output", filled_tex_path],
-            check=True,
+            check=False,  # <- Don't raise on warnings
             stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
+
+        # log warnings
+        if result.returncode != 0:
+            print("PDF generation had issues:")
+            print(result.stdout.decode())
+            print(result.stderr.decode())
+
         if os.path.exists(paths["compiled_pdf"]):
             os.rename(paths["compiled_pdf"], paths["final_pdf"])
             instance.pdf_url = paths["relative_url"]
+            if isinstance(instance, PayrollAssignment):
+                instance.status = "Pending"
             instance.save()
+        else:
+            messages.error(request, "PDF generation failed. Please review your form and try again.")
+            return redirect('dashboard')
     except subprocess.CalledProcessError as e:
         print("PDF generation failed", e.stdout.decode(), e.stderr.decode())
 
     for path in sig_paths:
         if os.path.exists(path):
             os.remove(path)
+            
+    # Assign workflow steps (flag as system-generated)
+    assign_workflow_steps(instance)
 
     if dashboard_redirect:
         messages.success(request, "Form submitted successfully.")
@@ -158,7 +170,7 @@ def generate_pdf_from_form_id(request, form_id, ModelClass, latex_template_path,
     if hasattr(instance, "pdf_url"):
         instance.pdf_url = pdf_url
         instance.save()
-
+    
     #messages.success(request, f"PDF generated successfully.")
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
@@ -197,6 +209,8 @@ def handle_form_pdf_response(request, form_instance, template_name):
 
 #-----------------------------------------------------------------------------------
 # Reimbursement section
+
+# For some reason, if using handle_form_pdf_response function, reimbursement won't save pdf link so I keep it the long way
 def generate_reimbursement_pdf(request, reimbursement_id):
     """ Generates PDF from saved reimbursement form data """
     LATEX_TEMPLATE_PATH = "latexform/reimburse.tex"
@@ -258,6 +272,9 @@ def generate_reimbursement_pdf(request, reimbursement_id):
         os.remove(signature_output_path_user)
     if os.path.exists(signature_output_path_admin):
         os.remove(signature_output_path_admin)
+
+    # Assign workflow steps (flag as system-generated)
+    assign_workflow_steps(reimbursement)
 
     messages.success(request, f"Form submitted successfully!")
     return redirect(dashboard)
@@ -536,6 +553,9 @@ def payroll_step10(request, payroll_id):
 @login_required
 def payroll_review(request, payroll_id):
     payroll = get_object_or_404(PayrollAssignment, id=payroll_id, user=request.user)
+    if payroll.status != "Pending":
+        payroll.status = "Pending"
+        payroll.save()
     return generate_pdf_and_redirect(request, payroll, "latexform/payroll-assignment.tex")
    
 @login_required

@@ -30,13 +30,17 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.http import JsonResponse
 from authentication.views import is_admin
 from rest_framework.permissions import BasePermission
+from django.utils.dateparse import parse_datetime
+from workflow.views import advance_to_next_workflow_step
 from django.utils.timezone import now
+from rest_framework.decorators import permission_classes
 
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = roles.objects.all()
     serializer_class = RoleSerializer
 
+@permission_classes([IsAuthenticated])
 class WorkAssignViewSet(viewsets.ModelViewSet):
     queryset = work_assign.objects.all()
     serializer_class = WorkAssignSerializer
@@ -60,17 +64,88 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except work_assign.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
-    # Partially Update by ID (PATCH)
+        
     def partial_update(self, request, *args, **kwargs):
         try:
-            user = work_assign.objects.get(id=kwargs['pk'])
-            serializer = WorkAssignSerializer(user, data=request.data, partial=True) 
+            assignment = work_assign.objects.get(id=kwargs['pk'])
+
+            # Preserve simple PATCH updates
+            if "status" not in request.data:
+                serializer = WorkAssignSerializer(assignment, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            # Extended logic for step completion (if status is set to Completed or Rejected)
+            if assignment.user != request.user:
+                return Response({'detail': 'Not authorized.'}, status=403)
+
+            if not assignment.is_current_step:
+                return Response({'detail': 'This step is already completed.'}, status=403)
+
+            # Clean request: map "Rejected" to "Completed" for validation
+            mutable_data = request.data.copy()
+            raw_status = mutable_data.get("status")
+            if raw_status == "Rejected":
+                mutable_data["status"] = "Completed"
+
+            serializer = WorkAssignSerializer(assignment, data=mutable_data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+                new_status = request.data.get("status")
+                print(" new_status:", new_status)
+                # Mark this work assignment as done
+                if new_status in ["Completed", "Rejected"]:
+            
+                    # Identify the actual form instance (DiplomaRequest, etc.)
+                    form = (
+                        assignment.PayrollAssignment_id or
+                        assignment.ReimbursementRequest_id or
+                        assignment.ChangeOfAddress_id or
+                        assignment.DiplomaRequest_id
+                    )
+                    if assignment.step is None:
+                        return Response({"detail": "Workflow step is not assigned."}, status=400)
+
+                    workflow = assignment.step.workflow
+                    current_step_order = assignment.step.step_order
+                    next_step = workflow.steps.filter(step_order__gt=current_step_order).order_by("step_order").first()
+                    print("  next_step found:", next_step)
+                    if new_status == "Completed":
+                    # advance_to_next_workflow_step handle marking current step completed
+                        if next_step:
+                            #print(" let go")
+                            advance_to_next_workflow_step(form, current_step_order, workflow)
+                        else:
+                            form.status = "Approved"
+                            form.approve_date = now().date()
+                            form.save()
+                    elif new_status == "Rejected":
+                        # This stays manual — we reject immediately
+                        assignment.status = "Completed"
+                        assignment.is_current_step = False
+                        assignment.save()
+                        form.status = "Rejected"
+                        form.approve_date = now().date()
+                        form.save()
+                        # Clean up all future steps
+                        work_assign.objects.filter(
+                            status="Pending",
+                            step__step_order__gt=assignment.step.step_order,
+                            PayrollAssignment_id=form if form.__class__.__name__ == "PayrollAssignment" else None,
+                            ReimbursementRequest_id=form if form.__class__.__name__ == "ReimbursementRequest" else None,
+                            ChangeOfAddress_id=form if form.__class__.__name__ == "ChangeOfAddress" else None,
+                            DiplomaRequest_id=form if form.__class__.__name__ == "DiplomaRequest" else None,
+                        ).update(is_current_step=False, status="Cancelled")
+
+                return Response(WorkAssignSerializer(assignment).data)
+
+            return Response(serializer.errors, status=400)
         except work_assign.DoesNotExist:
-            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Assignment not found.'}, status=404)
+        
     # Delete a User by ID (DELETE)
     def destroy(self, request, *args, **kwargs):
         try:
@@ -664,26 +739,50 @@ class RequestApprovalView(APIView):
             return None
         
 def delegate_work_assignment(request):
-    original_id = request.POST.get('original_id')
-    new_assignee_id = request.POST.get('new_assignee_id')
+    form_id = request.POST.get('form_id')
+    employee_id = request.POST.get('employee_id')
+    form_type = request.POST.get('form_type')
 
     try:
-        original = get_object_or_404(work_assign, id=original_id)
-        new_assignee = get_object_or_404(user_accs, id=new_assignee_id)
+        new_assignee = get_object_or_404(user_accs, id=employee_id)
 
-        delegated = work_assign(
-            user=new_assignee,
-            created_by=request.user,
-            deadline=original.deadline,
-            status='Pending',
-            ChangeOfAddress_id=original.ChangeOfAddress_id,
-            DiplomaRequest_id=original.DiplomaRequest_id,
-            PayrollAssignment_id=original.PayrollAssignment_id,
-            ReimbursementRequest_id=original.ReimbursementRequest_id,
-        )
+        form_field = None
+        if form_type == 'Payroll':
+            form_field = 'PayrollAssignment_id_id'
+        elif form_type == 'Reimbursement':
+            form_field = 'ReimbursementRequest_id_id'
+        elif form_type == 'Change of Address':
+            form_field = 'ChangeOfAddress_id_id'
+        elif form_type == 'Diploma Request':
+            form_field = 'DiplomaRequest_id_id'
+        else:
+            return JsonResponse({'error': 'Invalid form type'}, status=400)
 
-        delegated.save()
-        return JsonResponse({'message': 'Work reassigned successfully.'})
+        # Check if this user already has a work_assign row
+        user_assignments = work_assign.objects.filter(user=new_assignee)
+
+        updated = False
+        for assignment in user_assignments:
+            # If the field is empty (None), assign the form ID here
+            if getattr(assignment, form_field) is None:
+                setattr(assignment, form_field, form_id)
+                assignment.status = 'Pending'
+                assignment.save()
+                updated = True
+                break
+
+        if not updated:
+            # Create a new assignment row with this form ID
+            new_assignment = work_assign(
+                user=new_assignee,
+                created_by=request.user,
+                status='Pending',
+                **{form_field: form_id}
+            )
+            new_assignment.save()
+            return JsonResponse({'message': 'New work assignment created for user.'})
+        else:
+            return JsonResponse({'message': 'Existing assignment updated with new form.'})
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
@@ -741,3 +840,4 @@ class DelegatedRequestsView(APIView):
 
         serializer = RequestSerializer(requests, many=True)
         return Response(serializer.data)
+

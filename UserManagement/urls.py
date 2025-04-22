@@ -1,16 +1,18 @@
 from django.contrib import admin
 from django.urls import path, include
 from authentication.views import home  # Import the home view
-from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, reset_password,suspend, get_auth_data, forms, check_id_exists, check_email_exists, landing, user_ura_register, user_ura_login, merge_accounts, merge_accs, manager, employees
+from authentication.views import microsoft_callback, dashboard, user_login, register_page ,microsoft_login,microsoft_logout, login_page, user_register, basicuser, adminpage, get_userLoad, get_managerLoad, reset_password,suspend, get_auth_data, forms, check_id_exists, check_email_exists, landing, user_ura_register, user_ura_login, merge_accounts, merge_accs, manager, employees
 from authentication import views
 from django.contrib.auth import views as auth_views
-from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_payroll_pdf2, view_payroll_pdf3, change_address_step1, change_address_step2, change_address_step3, diploma_step1, diploma_step2, delete_address, delete_diploma, generate_change_address_pdf, generate_diploma_pdf
+from formProcessor.views import reimbursement_step1, reimbursement_step2, reimbursement_step3, generate_reimbursement_pdf, delete_reimbursement, view_payroll_pdf2, view_payroll_pdf3, change_address_step1, change_address_step2, change_address_step3, diploma_step1, diploma_step2, delete_address, delete_diploma, generate_change_address_pdf, generate_diploma_pdf, view_reimbursement_pdf, view_reimbursement_pdf2, view_reimbursement_pdf3
 from formProcessor.views import (
     payroll_step1, payroll_step2, payroll_step3, payroll_step4,
     payroll_step5, payroll_step6, payroll_step7, payroll_step8,
     payroll_step9, payroll_step10, payroll_review, delete_payroll, view_payroll_pdf,
     view_change_address_pdf, view_diploma_pdf, view_change_address_pdf3, view_diploma_pdf3
 )
+
+from workflow.views import workflow_steps, workflow_list_create, delete_workflow, delete_workflow_step, my_work_assignments, delegate_work_assign, get_manager_notifications, mark_notification_read, form_workflow_progress, my_completed_work_assignments
 from api.views import get_csrf_token, delegate_work_assignment, get_work_assignments
 from django.conf import settings
 from django.conf.urls.static import static
@@ -24,6 +26,8 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path("register/", register_page, name="register_page"),
     path("api/user_register/", user_register, name="register"),
+    path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
+    path('store_register_session/', views.store_register_session, name='store_register_session'),
     path('login/microsoft/', microsoft_login, name='microsoft-login'),
     path("api/user_login/", user_login, name="api_login"),
     path('logout/', microsoft_logout, name='microsoft-logout'),
@@ -34,6 +38,7 @@ urlpatterns = [
     path('reset_password/', reset_password, name='reset_password'),
     path('adminpage/', adminpage, name='adminpage'),
     path('api/get_userLoad/', get_userLoad, name='get_userLoad'),
+    path('api/get_managerLoad/', get_managerLoad, name='get_managerLoad'),
     path('suspend/', suspend, name='suspend'),
     path("api/microsoft-login/", get_auth_data, name="microsoft-login-json"),
     path("api/uranium_login/", user_ura_login, name="uranium_login"),
@@ -48,6 +53,9 @@ urlpatterns = [
     path('reimbursement/step3/<int:reimbursement_id>/', reimbursement_step3, name='reimbursement_step3'),
     path('generate_reimbursement_pdf/<int:reimbursement_id>/', generate_reimbursement_pdf, name='generate_reimbursement_pdf'),
     path('reimbursement/delete/<int:reimbursement_id>/', delete_reimbursement, name='delete_reimbursement'),
+    path('view_pdf/', view_reimbursement_pdf, name='view_pdf'),
+    path('view_pdf2/<int:user_id>/', view_reimbursement_pdf2, name='view_pdf2'),
+    path('view_pdf3/<int:form_id>/', view_reimbursement_pdf3, name='view_pdf3'),
 
     # payroll
     path('payroll/step1/', payroll_step1, name='payroll_step1'),
@@ -85,6 +93,20 @@ urlpatterns = [
     path("api/csrf/", get_csrf_token),
     path('accounts/', include('allauth.urls')),
     path('manager/', manager, name='manager'),
+
+    path("api/workflows/", workflow_list_create),
+    path("api/workflows/<int:workflow_id>/steps/", workflow_steps),
+    path("api/workflows/<int:workflow_id>/delete/", delete_workflow),
+    path("api/workflow-steps/<int:step_id>/delete/", delete_workflow_step),
+    path('api/form_workflow_progress/<str:form_type>/<int:form_id>/', form_workflow_progress, name='form_workflow_progress'),
     path('employees/', employees, name='employees'),
+
+    path("api/my_work/", my_work_assignments),
+    path("api/my_completed_work/", my_completed_work_assignments),
+    path('api/delegate/<int:assign_id>/', delegate_work_assign, name='delegate_work_assign'),
+
+    path("api/notification/<int:pk>/read/", mark_notification_read, name="mark_notification_read"),
+    path('api/manager_notifications/', get_manager_notifications, name='get_manager_notifications'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

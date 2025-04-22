@@ -16,10 +16,12 @@
             <h3>Admin Panel</h3>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="#dashboard" class="active">Summary</a></li>
-            <li><a href="#users" onclick="userLoad(); return false;">Users</a></li>
-            <li><a href="#forms" onclick="stuff(); return false;">Forms</a></li>
-            <li><a href="#" onclick=logoutUser() id="logoutBtn">Logout</a></li>
+            <li><a href="#dashboard" onclick="showTab('dashboard'); return false;" class="active">Summary</a></li>
+            <li><a href="#users" onclick="showTab('users'); userLoad(); return false;">Users</a></li>
+            <li><a href="#forms" onclick="showTab('forms'); stuff(); return false;">Forms</a></li>
+            <li><a href="#workflow" onclick="showTab('workflow'); loadWorkflow(); return false;">Workflow Manager</a></li>
+            <li><a href="#approvals" onclick="loadApprovals(); return false;">My Approvals</a></li>
+            <li><a href="#workassign" onclick="loadAllWorkAssigns(); return false;">Work Assign</a></li>
         </ul>
         <a href="" id="userLink">← Back to Dashboard</a>
     </div>
@@ -217,7 +219,91 @@
                 </div>
             </div>
         </div>
+        
+        <div class="part" id="workflow" style="display:none;">
+            <div class="container">
+                <h2>Workflow Manager</h2>
+                <div class="workflow-header">
+                    <label for="workflowName">Workflow Name:</label>
+                    <input type="text" id="workflowName">
+                    <label for="workflowFormType">Form Type:</label>
+                    <select id="workflowFormType">
+                        <option value="PayrollAssignment">PayrollAssignment</option>
+                        <option value="ReimbursementRequest">ReimbursementRequest</option>
+                        <option value="ChangeOfAddress">ChangeOfAddress</option>
+                        <option value="DiplomaRequest">DiplomaRequest</option>
+                    </select>
+                    <button class="btn-primary" onclick="createWorkflow()">Create</button>
+                </div>
+        
+                <hr>
+                <h3>Existing Workflows</h3>
+                <div id="workflowList"></div>
+            </div>
+        </div>
 
+        <div class="part" id="approvals" style="display:none;">
+            <div class="container">
+                <h2>My work Assignments</h2>
+                <div id="workflowProgressStats" style="display: flex; gap: 10px; margin-bottom: 20px;"></div>
+                <table style="margin-bottom: 80px;">
+                    <thead>
+                        <tr>
+                            <th>Form Type</th>
+                            <th>Step</th>
+                            <th>User</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>PDF</th>
+                            <th>Action</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvalTableBody"></tbody>
+                </table>
+
+                <h2>Completed Assignments</h3>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;"></div>
+                <table>
+                    <thead>
+                        <tr>
+                        <th>Form Type</th>
+                        <th>Step</th>
+                        <th>User</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>PDF</th>
+                        <th>Progress</th>
+                        </tr>
+                    </thead>
+                <tbody id="completedApprovalTableBody"></tbody>
+                </table>
+
+            </div>
+        </div>
+        
+
+        <div class="part" id="workassign" style="display:none;">
+            <div class="container">
+              <h2>All Current Work Assignments</h2>
+              <div id="workStats" style="display: flex; gap: 100px; margin-bottom: 20px;">
+                <div class="stat-card"><strong>Total</strong><br><span id="totalAssignments">0</span></div>
+                <div class="stat-card"><strong>Current</strong><br><span id="currentAssignments">0</span></div>
+                <div class="stat-card"><strong>Completed</strong><br><span id="completedAssignments">0</span></div>
+                <div class="stat-card"><strong>Pending</strong><br><span id="pendingAssignments">0</span></div>
+                <div class="stat-card"><strong>Cancelled</strong><br><span id="cancelledAssignments">0</span></div>
+              </div>
+              <div id="groupedWorkAssigns"></div>
+            </div>
+        </div>
+
+        <!-- Workflow Timeline Modal -->
+        <div id="timelineModal" class="modal-overlay" style="display: none;">
+            <div class="modal-content">
+            <span class="modal-close" onclick="closeTimelineModal()">&times;</span>
+            <div id="workflowTimelineModal">Loading...</div>
+            </div>
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{% static 'js/admin.js' %}" defer></script>
@@ -320,7 +406,7 @@ function stuff() {
                         <td>${form.name || form.employee_name}</td>
                         <td>${date}</td>
                         <td>${form.employee_id || form.user || "N/A"}</td>
-                        <td><a href="${viewUrl}" target="_blank">Open PDF</a></td>
+                        <td><a href="${viewUrl}" target="_blank"><button>Open PDF</button></a></td>
                         <td>${formType}</td>
                         <td>
                             <p>${form.status}</p>
@@ -586,7 +672,25 @@ function stuff() {
 
 
         function deleteForm(id, type) {
-            const url = type === 'payroll' ? `/api/payroll/${id}/` : `/api/reimburse/${id}/`;
+            let url = "";
+
+            switch (type) {
+                case 'payroll':
+                    url = `/api/payroll/${id}/`;
+                    break;
+                case 'reimburse':
+                    url = `/api/reimburse/${id}/`;
+                    break;
+                case 'address':
+                    url = `/api/address/${id}/`;
+                    break;
+                case 'diploma':
+                    url = `/api/diploma/${id}/`;
+                    break;
+                default:
+                    console.error(`Unknown form type: ${type}`);
+                    return;
+            }
 
             if (confirm("Are you sure you want to delete this form?")) {
                 fetch(url, {
@@ -609,7 +713,525 @@ function stuff() {
                 });
             }
         }
+
+        function getCookie(name) {
+            const cookieValue = document.cookie.split('; ').find(row => row.startsWith(name + '='));
+            return cookieValue ? decodeURIComponent(cookieValue.split('=')[1]) : null;
+        }
+
+        function userLoad() {
+            fetch("/api/userLoad/")
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("userTableBody");
+                    tbody.innerHTML = "";
+                    data.forEach(user => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${user.name}</td>
+                                <td>${user.email}</td>
+                                <td>${user.status}</td>
+                                <td>${user.role}</td>
+                                <td><button onclick="openEditPanel(${user.id})">Edit</button></td>
+                                <td><button onclick="deleteUser(${user.id})">Delete</button></td>
+                            </tr>`;
+                    });
+                });
+        }
     </script>
     
+    <!-- For workflow management-->
+    <script>
+        function loadWorkflow() {
+            document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
+            document.getElementById('workflow').style.display = 'block';
+
+            fetch("/api/workflows/")
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById("workflowList");
+                    const formTypeDropdown = document.getElementById("workflowFormType");
+
+                    list.innerHTML = "";
+
+                    // Reset all options first
+                    Array.from(formTypeDropdown.options).forEach(opt => {
+                        opt.disabled = false;
+                        opt.textContent = opt.value;  // reset text
+                    });
+
+                    // Process existing workflows
+                    const usedFormTypes = data.map(wf => wf.form_type);
+                    usedFormTypes.forEach(formType => {
+                        const option = Array.from(formTypeDropdown.options).find(opt => opt.value === formType);
+                        if (option) {
+                            option.disabled = true;
+                            option.textContent += " (used)";
+                        }
+                    });
+
+                    // Render workflow list
+                    data.forEach(wf => {
+                        list.innerHTML += `
+                            <div class="workflow-card">
+                                <strong>${wf.name}</strong> (${wf.form_type})
+                                <button class="btn-primary" onclick="showSteps(${wf.id})">Manage Steps</button>
+                                <button class="del-button" onclick="deleteWorkflow(${wf.id})" ;">Delete</button>
+                                <div id="steps_${wf.id}"></div>
+                            </div>`;
+                    });
+                });
+        }
+        
+        function createWorkflow() {
+            const name = document.getElementById("workflowName").value;
+            const formType = document.getElementById("workflowFormType").value;
+        
+            fetch("/api/workflows/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ name: name, form_type: formType })
+            })
+            .then(r => r.json())
+            .then(data => {
+                loadWorkflow();
+                alert("Workflow created!");
+            });
+        }
+        
+        function showSteps(workflowId) {
+            Promise.all([
+                fetch("/api/roles/").then(res => res.json()),
+                fetch("/api/get_userLoad/").then(res => res.json()),
+                fetch(`/api/workflows/${workflowId}/steps/`).then(res => res.json())
+            ]).then(([roles, users, steps]) => {
+                const roleOptions = roles.map(
+                role => `<option value="${role.id}">${role.role_name} (${role.department})</option>`
+                ).join("");
+
+                const userOptions = users.users.map(
+                user => `<option value="${user.id}">${user.name} - ${user.email}</option>`
+                ).join("");
+
+                const div = document.getElementById(`steps_${workflowId}`);
+                div.innerHTML = `
+                <div class="workflow-card">
+
+                    <h4> Add Workflow Step</h4>
+                    <form onsubmit="addStep(event, ${workflowId})" class="step-form">
+
+                    <div class="form-section">
+                        <label>Step Order:</label>
+                        <input type="number" id="stepOrder_${workflowId}" required>
+
+                        <label>Step Label:</label>
+                        <input type="text" id="stepLabel_${workflowId}" required>
+                    </div>
+
+                    <div class="form-section">
+                        <label>Assign to Role:</label>
+                        <select id="stepRole_${workflowId}">
+                        <option value="">-- Select Role --</option>
+                        ${roleOptions}
+                        </select>
+
+                        <label>Or assign to Specific User:</label>
+                        <select id="stepUser_${workflowId}">
+                        <option value="">-- Select User --</option>
+                        ${userOptions}
+                        </select>
+                    </div>
+
+                    <div class="form-section">
+                        <label>Department:</label>
+                        <input type="text" id="stepDept_${workflowId}" readonly>
+
+                        <button type="submit" class="btn-primary" style="margin-top: 24px;">Add Step</button>
+                    </div>
+                    </form>
+
+                    <h4 style="margin-top: 30px;"> Current Steps</h4>
+                    <div class="step-cards">
+                    ${steps.map(s => `
+                        <div class="step-card">
+                        <div class="step-header">
+                            <strong>Step ${s.step_order}:</strong> ${s.label}
+                        </div>
+                        <div class="step-details">
+                            Assigned to: <strong>${s.user_name || `${s.role_name} (${s.department || '—'})`}</strong>
+                        </div>
+                        <div class="step-actions">
+                            <button class="del-button" onclick="deleteStep(${s.id}, ${workflowId})">🗑 Delete</button>
+                        </div>
+                        </div>
+                    `).join("")}
+                    </div>
+
+                </div>
+                `;
+                const roleSelect = document.getElementById(`stepRole_${workflowId}`);
+                const deptInput = document.getElementById(`stepDept_${workflowId}`);
+                const userSelect = document.getElementById(`stepUser_${workflowId}`);
+
+                roleSelect.addEventListener("change", () => {
+                const selectedRoleId = roleSelect.value;
+                const selectedRole = roles.find(r => r.id == selectedRoleId);
+
+                if (selectedRole) {
+                    deptInput.value = selectedRole.department;
+                } else {
+                    deptInput.value = "";
+                }
+                });
+            
+                roleSelect.addEventListener("change", () => {
+                if (roleSelect.value) {
+                    userSelect.value = "";  // Clear user selection
+                }
+                });
+
+                userSelect.addEventListener("change", () => {
+                if (userSelect.value) {
+                    roleSelect.value = "";  // Clear role selection
+                    // also clear department field
+                    document.getElementById(`stepDept_${workflowId}`).value = "";
+                }
+                });
+            });
+            }
+        
+            function addStep(e, workflowId) {
+                e.preventDefault();
+
+                const step_order = document.getElementById(`stepOrder_${workflowId}`).value;
+                const label = document.getElementById(`stepLabel_${workflowId}`).value;
+                const role_id = document.getElementById(`stepRole_${workflowId}`).value;
+                const user_id = document.getElementById(`stepUser_${workflowId}`).value;
+                const department = document.getElementById(`stepDept_${workflowId}`).value;
+
+                fetch(`/api/workflows/${workflowId}/steps/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        step_order,
+                        label,
+                        role_id: role_id || null,
+                        user_id: user_id || null,
+                        department
+                    })
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        // Try parsing JSON error
+                        return res.json().then(data => {
+                            alert(data.detail || "Error adding step. Step order must be unique.");
+                            throw new Error("Step insert failed");  // stops next .then()
+                        }).catch(() => {
+                            alert("Server error. Possible duplicate step order or bad data.");
+                            throw new Error("Non-JSON error");
+                        });
+                    }
+                    return res.json();
+                })
+                .then(() => showSteps(workflowId))
+                .catch(error => {
+                    console.error(" Step creation failed:", error);
+                });
+            }
+
+
+        function deleteWorkflow(id) {
+            if (!confirm("Are you sure you want to delete this workflow?")) return;
+
+            fetch(`/api/workflows/${id}/delete/`, {
+                method: "DELETE",
+                headers: { "X-CSRFToken": getCookie("csrftoken") }
+            })
+            .then(r => r.json())
+            .then(data => {
+                alert("Workflow deleted.");
+                loadWorkflow();
+            });
+        }
+
+        function deleteStep(stepId, workflowId) {
+            if (!confirm("Are you sure you want to delete this step?")) return;
+
+            fetch(`/api/workflow-steps/${stepId}/delete/`, {
+                method: "DELETE",
+                headers: { "X-CSRFToken": getCookie("csrftoken") }
+            })
+            .then(r => r.json())
+            .then(data => {
+                showSteps(workflowId); // reload the step list
+            });
+        }
+
+        function showTab(tabId) {
+            // Hide all sections
+            document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
+
+            // Remove active class from all menu links
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+
+            // Show selected section
+            const section = document.getElementById(tabId);
+            if (section) {
+                section.style.display = 'block';
+                section.classList.add('active');
+            }
+
+            // Highlight the active menu link
+            const link = document.querySelector(`.sidebar-menu a[href="#${tabId}"]`);
+            if (link) {
+                link.classList.add('active');
+            }
+        }
+        
+        function loadApprovals() {
+            document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
+            document.getElementById('approvals').style.display = 'block';
+
+            const currentTbody = document.getElementById("approvalTableBody");
+            const completedTbody = document.getElementById("completedApprovalTableBody");
+            currentTbody.innerHTML = "";
+            completedTbody.innerHTML = "";
+
+            Promise.all([
+                fetch("/api/my_work/").then(res => res.json()),
+                fetch("/api/my_completed_work/").then(res => res.json())
+            ])
+            .then(([activeData, completedData]) => {
+                // Render current step assignments
+                activeData.forEach(row => {
+                const viewUrl = generateViewUrl(row.form_type.toLowerCase(), row.form_id);
+                currentTbody.innerHTML += `
+                    <tr>
+                    <td>${row.form_type}</td>
+                    <td>${row.step_label}</td>
+                    <td>${row.name}</td>
+                    <td>${row.date || "—"}</td>
+                    <td>${row.status}</td>
+                    <td><a href="${viewUrl}" target="_blank"><button class="bts">View PDF</button></a></td>
+                    <td>
+                        <select onchange="updateAssignStatus(${row.id}, this.value)">
+                        <option value="">Select</option>
+                        <option value="Completed">Approve</option>
+                        <option value="Rejected">Reject</option>
+                        </select>
+                    </td>
+                    <td><button onclick="openTimelineModal('${row.form_type}', ${row.form_id})" class="btn-primary">View progress</button></td>
+                    </tr>`;
+                });
+
+                // Render completed step assignments
+                completedData.forEach(row => {
+                const viewUrl = generateViewUrl(row.form_type.toLowerCase(), row.form_id);
+                completedTbody.innerHTML += `
+                    <tr>
+                    <td>${row.form_type}</td>
+                    <td>${row.step_label}</td>
+                    <td>${row.name}</td>
+                    <td>${row.date || "—"}</td>
+                    <td>${row.status}</td>
+                    <td><a href="${viewUrl}" target="_blank"><button class="bts">View PDF</button></a></td>
+                    <td><button onclick="openTimelineModal('${row.form_type}', ${row.form_id})" class="btn-primary">View progress</button></td>
+                    </tr>`;
+                });
+            });
+            }
+
+            function generateViewUrl(formType, formId) {
+                if (formType === "payroll") return `/view_payroll_pdf2/${formId}/`;
+                if (formType === "reimburse") return `/view_pdf2/${formId}/`;
+                if (formType === "address") return `/view_change_address_pdf3/${formId}/`;
+                if (formType === "diploma") return `/view-diploma-pdf3/${formId}/`;
+                return "#";
+            }   
+
+        
+            async function loadTimeline(formType, formId) {
+                const container = document.getElementById("workflowTimelineModal");
+                container.innerHTML = "Loading timeline...";
+
+                const res = await fetch(`/api/form_workflow_progress/${formType}/${formId}/`);
+                const steps = await res.json();
+
+                if (!Array.isArray(steps)) {
+                    container.innerHTML = "No timeline data.";
+                    return;
+                }
+
+                container.innerHTML = `
+                    <h3>Workflow Progress</h3>
+                    <div class="timeline">
+                    ${steps.map((step, index) => {
+                        let statusClass = "step-pending";
+                        if (step.is_current_step) statusClass = "step-current";
+                        else if (step.status === "Completed") statusClass = "step-completed";
+                        else if (step.status === "Cancelled") statusClass = "step-cancelled";
+
+                        return `
+
+                        <div class="timeline-step ${statusClass}">
+                            <div class="step-circle">${index + 1}</div>
+                            <div class="timeline-label">${step.user_name || step.role_name || "—"}</div>
+                            <div class="timeline-label">${step.status|| "—"}</div>
+                        </div>
+                        `;
+                    }).join('')}
+                    </div>
+                `;
+                }
+                function openTimelineModal(formType, formId) {
+                    document.getElementById("timelineModal").style.display = "flex";
+                    loadTimeline(formType, formId);
+                    }
+
+                    function closeTimelineModal() {
+                    document.getElementById("timelineModal").style.display = "none";
+                    }
+
+                function updateAssignStatus(assignId, newStatus) {
+                    fetch(`/api/workassign/${assignId}/`, {
+                        method: "PATCH",
+                        credentials: "same-origin",
+                        headers: {
+                            "X-CSRFToken": getCookie("csrftoken"),
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert("Status updated.");
+                        loadApprovals();
+                    });
+                }
+        </script>
+        
+        <script>
+            async function loadAllWorkAssigns() {
+                document.querySelectorAll('.part').forEach(p => p.style.display = 'none');
+                document.getElementById('workassign').style.display = 'block';
+
+                const [assigns, users] = await Promise.all([
+                    fetch('/api/workassign/').then(res => res.json()),
+                    fetch('/api/users/').then(res => res.json())
+                ]);
+
+                const userMap = Object.fromEntries(users.map(u => [u.id, u.name]));
+
+                const grouped = {};
+                let current = 0, completed = 0, cancelled = 0, pending = 0;
+
+                assigns.forEach(item => {
+                    let key = "Unknown";
+                    let formId = null;
+                    if (item.PayrollAssignment_id) {
+                    key = `Payroll-${item.PayrollAssignment_id}`;
+                    formId = item.PayrollAssignment_id;
+                    } else if (item.ReimbursementRequest_id) {
+                    key = `Reimburse-${item.ReimbursementRequest_id}`;
+                    formId = item.ReimbursementRequest_id;
+                    } else if (item.ChangeOfAddress_id) {
+                    key = `Address-${item.ChangeOfAddress_id}`;
+                    formId = item.ChangeOfAddress_id;
+                    } else if (item.DiplomaRequest_id) {
+                    key = `Diploma-${item.DiplomaRequest_id}`;
+                    formId = item.DiplomaRequest_id;
+                    }
+
+                    if (!grouped[key]) grouped[key] = [];
+                    grouped[key].push({ ...item, formId });
+
+                    if (item.is_current_step) current++;
+                    if (item.status === "Completed") completed++;
+                    if (item.status === "Cancelled") cancelled++;
+                    if (item.status === "Pending") pending++;
+                });
+
+                const sortedGroupKeys = Object.keys(grouped).sort((a, b) => {
+                    const [typeA, idA] = a.split('-');
+                    const [typeB, idB] = b.split('-');
+                    if (typeA === typeB) return Number(idA) - Number(idB);
+                    return typeA.localeCompare(typeB);
+                });
+
+                const container = document.getElementById("groupedWorkAssigns");
+                container.innerHTML = "";
+
+                sortedGroupKeys.forEach(key => {
+                    const items = grouped[key];
+                    const formType = key.split('-')[0];
+                    const formId = key.split('-')[1];
+
+                    const groupTable = `
+                    <h3>${formType} (Form ID: ${formId})</h3>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Step</th>
+                            <th>Status</th>
+                            <th>Is Current</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        ${items.map(item => `
+                            <tr>
+                            <td>${item.id}</td>
+                            <td>${userMap[item.user] || "—"}</td>
+                            <td>${item.step || "—"}</td>
+                            <td>${item.status}</td>
+                            <td>${item.is_current_step ? '✅' : '❌'}</td>
+                            <td><button class="del-button" onclick="deleteWorkAssign(${item.id})">Delete</button></td>
+                            </tr>
+                        `).join('')}
+                        </tbody>
+                    </table>
+                    <hr />
+                    `;
+
+                    container.innerHTML += groupTable;
+                });
+
+                document.getElementById("totalAssignments").textContent = assigns.length;
+                document.getElementById("currentAssignments").textContent = current;
+                document.getElementById("completedAssignments").textContent = completed;
+                document.getElementById("pendingAssignments").textContent = pending;
+                document.getElementById("cancelledAssignments").textContent = cancelled;
+                }
+
+
+                function deleteWorkAssign(id) {
+                if (confirm("Are you sure you want to delete this work assignment?")) {
+                    fetch(`/api/workassign/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                    })
+                    .then(res => {
+                    if (res.ok) {
+                        alert("Deleted successfully.");
+                        loadAllWorkAssigns();
+                    } else {
+                        alert("Failed to delete assignment.");
+                    }
+                    });
+                }
+                }
+    </script>
+
+
 </body>
 </html>

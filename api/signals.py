@@ -1,7 +1,63 @@
-from django.db.models.signals import post_migrate
+from django.db.models.signals import post_migrate, post_save
 from django.dispatch import receiver
 from django.contrib.auth.hashers import make_password
-from api.models import roles, user_accs, permission, user_ura_accs
+from api.models import roles, user_accs, permission, user_ura_accs, work_assign, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, Workflow, WorkflowStep, ManagerNotification
+
+@receiver(post_save, sender=work_assign)
+def handle_work_assign_status(sender, instance, created, **kwargs):
+    # Step 1: ensure is_current_step = False if status is Completed
+    if instance.status == "Completed" and instance.is_current_step:
+        instance.is_current_step = False
+        instance.save(update_fields=["is_current_step"])
+
+    # Step 2: recursively complete all delegated-to tasks
+    def mark_chain(assign):
+        delegated = assign.delegated
+        if delegated and (delegated.status != "Completed" or delegated.is_current_step):
+            delegated.status = "Completed"
+            delegated.is_current_step = False
+            delegated.save()
+            mark_chain(delegated)
+
+    if instance.status == "Completed" and not instance.is_current_step:
+        mark_chain(instance)
+
+    if not created and instance.delegated and instance.status in ["Completed", "Rejected"]:
+        assigner = instance.created_by
+        actor = instance.user
+        message = f"Assigned Work (ID #{instance.id}) was reviewed."
+
+        ManagerNotification.objects.create(
+            recipient=assigner,
+            message=message
+        )
+        
+        ManagerNotification.objects.create(
+            recipient=actor,
+            message=message
+        )
+    
+
+@receiver(post_save, sender=work_assign)
+def handle_work_assign_status2(sender, instance, created, **kwargs):
+    # Step 1: Ensure is_current_step is False if Completed
+    if instance.status == "Completed" and instance.is_current_step:
+        instance.is_current_step = False
+        instance.save(update_fields=["is_current_step"])
+
+    # Step 2: Recursively complete all tasks that delegated FROM this one
+    def mark_delegated_chain(assign):
+        for child in assign.delegated_tasks.all():  # delegated FROM this assign
+            if child.status != "Completed" or child.is_current_step:
+                child.status = "Completed"
+                child.is_current_step = False
+                child.save()
+                mark_delegated_chain(child)
+
+    # If already completed and not current, check for delegated chain
+    if instance.status == "Completed" and not instance.is_current_step:
+        mark_delegated_chain(instance)
+
 
 @receiver(post_migrate)
 def initialize_data(sender, **kwargs):
@@ -151,3 +207,59 @@ def initialize_data(sender, **kwargs):
     for role_name, permission_detail in permission_data:
         role = roles.objects.get(role_name=role_name)
         permission.objects.get_or_create(role=role, permission_detail=permission_detail)
+
+    default_workflows = [
+        {
+            "form_type": "PayrollAssignment",
+            "workflow_name": "Payroll Workflow",
+            "label": "Initial Payroll Approval",
+            "role": manager_role_finance,
+            "department": "finance",
+        },
+        {
+            "form_type": "ReimbursementRequest",
+            "workflow_name": "Reimbursement Workflow",
+            "label": "Initial Reimbursement Approval",
+            "role": manager_role_finance,
+            "department": "finance",
+        },
+        {
+            "form_type": "ChangeOfAddress",
+            "workflow_name": "Address Change Workflow",
+            "label": "Initial Address Approval",
+            "role": manager_role_registrar,
+            "department": "registrar",
+        },
+        {
+            "form_type": "DiplomaRequest",
+            "workflow_name": "Diploma Approval Workflow",
+            "label": "Initial Diploma Approval",
+            "role": manager_role_registrar,
+            "department": "registrar",
+        },
+    ]
+
+    for wf in default_workflows:
+    # Check if a workflow with this form_type already exists
+        existing_workflow = Workflow.objects.filter(form_type=wf["form_type"]).first()
+        
+        if existing_workflow:
+            workflow = existing_workflow
+            print(f"Workflow already exists for {wf['form_type']}: {workflow.name}")
+        else:
+            workflow = Workflow.objects.create(
+                name=wf["workflow_name"],
+                form_type=wf["form_type"]
+            )
+            print(f"Created workflow: {workflow.name}")
+
+        # Only add a step if none exists yet
+        if not WorkflowStep.objects.filter(workflow=workflow).exists():
+            WorkflowStep.objects.create(
+                workflow=workflow,
+                step_order=1,
+                label=wf["label"],
+                role=wf["role"],
+                department=wf["department"]
+            )
+            print(f"Created step for {wf['form_type']} → {wf['role'].role_name}")

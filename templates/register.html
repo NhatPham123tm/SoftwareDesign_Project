@@ -4,8 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>Register</title>
     <link rel="stylesheet" href="{% static 'css/register.css' %}">
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            toggleMicrosoftAuth();  // Force run on page load if auto-checked
+
+            const messages = JSON.parse('{{ messages_json|escapejs }}');  // Existing code
+            messages.forEach(msg => showModal(msg));
+        });
+    </script>
 </head>
 <body>
     <div class="container">
@@ -15,11 +24,11 @@
                 <label for="id">UH ID:</label>
                 <input type="text" id="id" placeholder="7 digits" required>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="passwordGroup">
                 <label for="password">Password:</label>
                 <input type="password" id="password" placeholder="Min 7 characters" required minlength="7">
             </div>
-            <div class="form-group">
+            <div class="form-group" id="retypePasswordGroup">
                 <label for="retypePassword">Confirm Password:</label>
                 <input type="password" id="retypePassword" required>
             </div>
@@ -31,16 +40,16 @@
                     <option value="6">Registrar Employee</option>
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="nameGroup">
                 <label for="name">Name:</label>
                 <input type="text" id="name" required>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="emailGroup">
                 <label for="user_email">Email:</label>
                 <input type="email" id="user_email" required>
             </div>
             <div class="microsoft-auth-group">
-                <input type="checkbox" id="microsoftAuth" onclick="toggleMicrosoftAuth()">
+                <input type="checkbox" id="microsoftAuth" onclick="toggleMicrosoftAuth()" checked disabled>
                 <label for="microsoftAuth">Link with Microsoft</label>
             </div>
             <button type="button" id="submitButton" onclick="nextStep()">Submit</button>
@@ -80,12 +89,38 @@
             document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
         }
 
+        function generateRandomPassword(length = 12) {
+            const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+";
+            let password = "";
+            for (let i = 0, n = charset.length; i < length; ++i) {
+                password += charset.charAt(Math.floor(Math.random() * n));
+            }
+            return password;
+        }
+
         // Toggle function for Microsoft authentication
         function toggleMicrosoftAuth() {
             const isChecked = document.getElementById('microsoftAuth').checked;
-            document.getElementById('name').disabled = isChecked;
-            document.getElementById('user_email').disabled = isChecked;
+
+            // Hide input sections
+            document.getElementById('passwordGroup').style.display = isChecked ? 'none' : 'block';
+            document.getElementById('retypePasswordGroup').style.display = isChecked ? 'none' : 'block';
+            document.getElementById('nameGroup').style.display = isChecked ? 'none' : 'block';
+            document.getElementById('emailGroup').style.display = isChecked ? 'none' : 'block';
             document.getElementById('submitButton').textContent = isChecked ? "Continue with Microsoft" : "Submit";
+
+            if (isChecked) {
+                const generatedPassword = generateRandomPassword();
+                document.getElementById('password').value = generatedPassword;
+                document.getElementById('retypePassword').value = generatedPassword;
+                document.getElementById('password').readOnly = true;
+                document.getElementById('retypePassword').readOnly = true;
+            } else {
+                document.getElementById('password').value = '';
+                document.getElementById('retypePassword').value = '';
+                document.getElementById('password').readOnly = false;
+                document.getElementById('retypePassword').readOnly = false;
+            }
         }
 
         // Function to handle registration or Microsoft login
@@ -161,16 +196,44 @@
                         });
 
                     } else {
-                        // Microsoft authentication flow: Set cookies for id and password before redirect
-                        document.cookie = `registerId=${id}; path=/; max-age=${60}`; // Expires in 1 mins
-                        document.cookie = `password=${password}; path=/; max-age=${60}`; // Expires in 1 mins
-                        document.cookie = `roleID=${role}; path=/; max-age=${60}`; // Expires in 1 mins
-                        window.location.href = '/login/microsoft/';
+                
+                        // change to post request instead cookies
+                        fetch("/store_register_session/", {
+                            method: "POST",
+                            credentials: "same-origin",
+                            headers: {
+                                "X-CSRFToken": getCSRFToken(),
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                id: id,
+                                password: password,
+                                roleID: role
+                            })
+                        })
+                        .then(res => {
+                            if (res.ok) {
+                                // Wait for session to save before redirecting
+                                return res.json();
+                            } else {
+                                throw new Error("Failed to store session data.");
+                            }
+                        })
+                        .then(() => {
+                            window.location.href = "/login/microsoft/";
+                        })
+                        .catch(error => {
+                            showModal("Error storing registration info. Please try again.");
+                            console.error(error);
+                        });
                     }
                 });
             });
         }
 
+        function getCSRFToken() {
+            return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        }
     // Function to check if UH ID is unique
         function checkUniqueId(id, callback) {
             fetch(`/check_id_exists/${id}/`, {
@@ -218,7 +281,7 @@
 
             // Redirect to login page if the registration was successful
             if (modalMessage === 'User registered successfully!') {
-                window.location.href = '/login/';
+                window.location.href = '/home/';
             }
         }
 
