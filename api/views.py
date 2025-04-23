@@ -34,6 +34,7 @@ from django.utils.dateparse import parse_datetime
 from workflow.views import advance_to_next_workflow_step
 from django.utils.timezone import now
 from rest_framework.decorators import permission_classes
+from workflow.views import assign_workflow_steps
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = roles.objects.all()
@@ -103,7 +104,8 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
                         assignment.PayrollAssignment_id or
                         assignment.ReimbursementRequest_id or
                         assignment.ChangeOfAddress_id or
-                        assignment.DiplomaRequest_id
+                        assignment.DiplomaRequest_id or
+                        assignment.Request_id
                     )
                     if assignment.step is None:
                         return Response({"detail": "Workflow step is not assigned."}, status=400)
@@ -137,6 +139,7 @@ class WorkAssignViewSet(viewsets.ModelViewSet):
                             ReimbursementRequest_id=form if form.__class__.__name__ == "ReimbursementRequest" else None,
                             ChangeOfAddress_id=form if form.__class__.__name__ == "ChangeOfAddress" else None,
                             DiplomaRequest_id=form if form.__class__.__name__ == "DiplomaRequest" else None,
+                            Request_id=form if form.__class__.__name__ == "Request" else None,
                         ).update(is_current_step=False, status="Cancelled")
 
                 return Response(WorkAssignSerializer(assignment).data)
@@ -420,8 +423,9 @@ class RequestSubmitView(APIView):
     def post(self, request):
         if not request.data:
             return Response({"error": "No data provided."}, status=status.HTTP_400_BAD_REQUEST)
-
+        print("Request data:", request)
         form_data = request.data
+        user_name = form_data.get("name")
         form_type = form_data.get("form_type")
         user = request.user
         status_value = form_data.get("status", "draft")
@@ -432,11 +436,14 @@ class RequestSubmitView(APIView):
         try:
             request_instance = Request.objects.create(
                 user=user,
+                employee_name=user_name,
                 status=status_value,
                 form_type=form_type,
                 data=form_data,
                 signature=signature_file
             )
+            print(user)
+            assign_workflow_steps(request_instance)
             
             return self._process_request(request, request_instance, status_value)
             
@@ -591,7 +598,7 @@ class AdminRequestsView(APIView):
         return Response(serializer.data)
 
 class RequestApprovalView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUserRole]
+    permission_classes = [IsAuthenticated]
     def put(self, request, pk):
         req = get_object_or_404(Request, id=pk)
         new_status = request.data.get("status")

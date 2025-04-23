@@ -104,6 +104,7 @@ class Workflow(models.Model):
         ('ReimbursementRequest', 'ReimbursementRequest'),
         ('ChangeOfAddress', 'ChangeOfAddress'),
         ('DiplomaRequest', 'DiplomaRequest'),
+        ('Request', 'Request'),
     ]
     
     name = models.CharField(max_length=100, unique=True)
@@ -149,6 +150,7 @@ class work_assign(models.Model):
     ReimbursementRequest_id = models.ForeignKey('ReimbursementRequest', on_delete=models.CASCADE, null=True, blank=True)
     ChangeOfAddress_id = models.ForeignKey('ChangeOfAddress', on_delete=models.CASCADE, null=True, blank=True)
     DiplomaRequest_id = models.ForeignKey('DiplomaRequest', on_delete=models.CASCADE, null=True, blank=True)
+    Request_id = models.ForeignKey('Request', on_delete=models.CASCADE, null=True, blank=True)
     created_by = models.ForeignKey('user_accs', on_delete=models.CASCADE, null=True, blank=True, related_name='created_tasks')
     deadline = models.DateTimeField(null=True, blank=True)
     step = models.ForeignKey(WorkflowStep, on_delete=models.SET_NULL, null=True, blank=True)
@@ -458,7 +460,7 @@ class Request(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     employee_name = models.CharField(max_length=100, blank=True, null=True)
     employee_id = models.CharField(max_length=50, blank=True, null=True) 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Draft')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Draft')
     #user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
     reason_for_return = models.TextField(blank=True, null=True)
     data = JSONField(blank=True, null=True)
@@ -466,6 +468,7 @@ class Request(models.Model):
     pdf = models.FileField(upload_to='diploma_pdfs/', null=True, blank=True)
     signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
     admin_signature = models.ImageField(upload_to='signatures/', null=True, blank=True)
+    signatureAdmin_base64 = models.TextField(null=True, blank=True)
 
     def get_status_display(self):
         return dict(self.STATUS_CHOICES).get(self.status, self.status)

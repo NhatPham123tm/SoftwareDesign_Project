@@ -10,13 +10,13 @@ from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
-from api.models import work_assign, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest
+from api.models import work_assign, PayrollAssignment, ReimbursementRequest, ChangeOfAddress, DiplomaRequest, Request
 from rest_framework import status
 
 def assign_workflow_steps(form_instance):
     form_type = form_instance.__class__.__name__
     user = form_instance.user
-
+    print('workflow user:', user)
     # Get the workflow matching this form type
     try:
         workflow = Workflow.objects.get(form_type=form_type)
@@ -32,11 +32,12 @@ def assign_workflow_steps(form_instance):
             # Direct assignment to a specific user
             work_assign.objects.create(
                 user=step.user,
-                created_by=user,
+                created_by=user if form_type != "Request" else None,
                 PayrollAssignment_id=form_instance if form_type == "PayrollAssignment" else None,
                 ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
                 ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
                 DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
+                Request_id=form_instance if form_type == "Request" else None,
                 step=step,
                 is_current_step=is_current,
                 system_generated=True,
@@ -56,10 +57,12 @@ def assign_workflow_steps(form_instance):
                     ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
                     ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
                     DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
+                    Request_id=form_instance if form_type == "Request" else None,
                     step=step,
                     is_current_step=is_current,
                     system_generated=True,
                 )
+                
 
 def advance_to_next_workflow_step(form_instance, current_step_order, workflow):
     print(f"Advancing workflow for {form_instance} at step {current_step_order} in workflow {workflow}")
@@ -85,9 +88,9 @@ def assign_workflow_steps_for_step(form_instance, step):
         ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
         ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
         DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
+        Request_id=form_instance if form_type == "Request" else None,
         is_current_step=False
-    ).delete()
-
+    )
     if step.user:
         work_assign.objects.create(
             user=step.user,
@@ -99,6 +102,7 @@ def assign_workflow_steps_for_step(form_instance, step):
             ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
             ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
             DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
+            Request_id=form_instance if form_type == "Request" else None,
         )
 
     elif step.role:
@@ -116,6 +120,7 @@ def assign_workflow_steps_for_step(form_instance, step):
                 ReimbursementRequest_id=form_instance if form_type == "ReimbursementRequest" else None,
                 ChangeOfAddress_id=form_instance if form_type == "ChangeOfAddress" else None,
                 DiplomaRequest_id=form_instance if form_type == "DiplomaRequest" else None,
+                Request_id=form_instance if form_type == "Request" else None,
             )
 
 @api_view(["GET", "POST"])
@@ -227,7 +232,7 @@ def my_work_assignments(request):
 
     assignments = work_assign.objects.filter(user=user_obj, is_current_step=True).select_related(
         'step', 'PayrollAssignment_id', 'ReimbursementRequest_id',
-        'ChangeOfAddress_id', 'DiplomaRequest_id'
+        'ChangeOfAddress_id', 'DiplomaRequest_id', 'Request_id'
     )
 
     data = []
@@ -251,7 +256,7 @@ def my_work_assignments(request):
             form = a.ReimbursementRequest_id
             form_type = "Reimburse"
             form_id = form.id
-            name = form.employee_name
+            name = form.name
             date = form.today_date
             pdf_url = form.pdf_url
             userID = form.user.id
@@ -274,6 +279,15 @@ def my_work_assignments(request):
             pdf_url = form.pdf_url
             userID = form.user.id
 
+        elif hasattr(a, "Request_id") and a.Request_id:
+            form = a.Request_id
+            form_type = "Request"
+            form_id = form.id
+            name = form.employee_name
+            date = form.created_at
+            pdf_url = form.pdf.url if form.pdf else None
+            userID = form.user.id
+
         data.append({
             "id": a.id,
             "form_type": form_type,
@@ -286,6 +300,7 @@ def my_work_assignments(request):
             "status": a.status,
             "delegated": a.delegated.id if a.delegated else None,
         })
+
     return Response(data)
 
 @api_view(["GET"])
@@ -302,7 +317,7 @@ def my_completed_work_assignments(request):
         status="Completed"
     ).select_related(
         'step', 'PayrollAssignment_id', 'ReimbursementRequest_id',
-        'ChangeOfAddress_id', 'DiplomaRequest_id'
+        'ChangeOfAddress_id', 'DiplomaRequest_id', 'Request_id'
     )
 
     data = []
@@ -349,37 +364,56 @@ def my_completed_work_assignments(request):
             pdf_url = form.pdf_url
             userID = form.user.id
 
-        data.append({
-            "id": a.id,
-            "form_type": form_type,
-            "form_id": form_id,
-            "name": name,
-            "user_id": userID,
-            "date": date,
-            "step_label": a.step.label if a.step else "—",
-            "pdf_url": pdf_url,
-            "status": a.status,
-            "delegated": a.delegated.id if a.delegated else None,
-        })
+        elif hasattr(a, "Request_id") and a.Request_id:
+            form = a.Request_id
+            form_type = "Request"
+            form_id = form.id
+            name = form.employee_name
+            date = form.created_at
+            pdf_url = form.pdf.url if form.pdf else None
+            userID = form.user.id
+
+        if form_type:
+            data.append({
+                "id": a.id,
+                "form_type": form_type,
+                "form_id": form_id,
+                "name": name,
+                "user_id": userID,
+                "date": date,
+                "step_label": a.step.label if a.step else "—",
+                "pdf_url": pdf_url,
+                "status": a.status,
+                "delegated": a.delegated.id if a.delegated else None,
+            })
 
     return Response(data)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def delegate_work_assign(request, assign_id):
-
     data = request.data
     target_user_id = data.get("target_user_id")
-    created_by_id = data.get("created_by_id")  
+    created_by_id = data.get("created_by_id")
 
     if not target_user_id or not created_by_id:
         return Response({"error": "target_user_id and created_by_id are required."}, status=400)
 
     original = get_object_or_404(work_assign, pk=assign_id)
+
+    if not original.is_current_step:
+        return Response({"error": "Only current steps can be delegated."}, status=400)
+
     target_user = get_object_or_404(user_accs, pk=target_user_id)
     created_by = get_object_or_404(user_accs, pk=created_by_id)
 
     try:
+        # Deactivate the original assignment
+        original.is_current_step = False
+        original.status = "Delegated"
+        original.save()
+
+        # Create a new delegated assignment
         new_assign = work_assign.objects.create(
             user=target_user,
             created_by=created_by,
@@ -387,13 +421,14 @@ def delegate_work_assign(request, assign_id):
             ReimbursementRequest_id=original.ReimbursementRequest_id,
             ChangeOfAddress_id=original.ChangeOfAddress_id,
             DiplomaRequest_id=original.DiplomaRequest_id,
-            deadline=original.deadline,
             step=original.step,
+            deadline=original.deadline,
             is_current_step=True,
             status="Pending",
             system_generated=False,
-            delegated=original
+            delegated=original  # Keep link to original
         )
+
         return Response({
             "message": "Delegation successful.",
             "new_assign_id": new_assign.id
@@ -411,6 +446,7 @@ def form_workflow_progress(request, form_type, form_id):
         "Reimburse": ReimbursementRequest,
         "Address": ChangeOfAddress,
         "Diploma": DiplomaRequest,
+        "Request": Request,  
     }
 
     model = form_model_map.get(form_type)
@@ -422,10 +458,9 @@ def form_workflow_progress(request, form_type, form_id):
     except model.DoesNotExist:
         return JsonResponse({"error": "Form not found."}, status=404)
 
-    # Use actual model name to filter correctly
-    filter_kwargs = {
-        f"{model.__name__}_id": form_instance
-    }
+    # Dynamically construct the filter key (e.g. PayrollAssignment_id, Request_id, etc.)
+    filter_key = f"{model.__name__}_id"
+    filter_kwargs = {filter_key: form_instance}
 
     assignments = work_assign.objects.filter(**filter_kwargs).select_related("step", "user", "step__role")
 
