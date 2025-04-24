@@ -125,15 +125,29 @@
 
     .modal-content {
       background-color: white;
-      margin: 10% auto;
-      padding: 25px;
-      border-radius: 10px;
-      width: 60%;
-      max-width: 800px;
-      max-height: 80vh;
+      margin: 5vh auto;
+      padding: 30px;
+      border-radius: 12px;
+      width: 100vw;              /* increase to nearly full width */
+      min-width: 1200px;
+      min-height: 70vh;
+      max-height: 90vh;
+      overflow-x: auto;
       overflow-y: auto;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
     }
 
+    .modal-content table {
+      width: 100%;
+      table-layout: auto;
+      word-break: break-word;
+    }
+
+    .modal-content td, .modal-content th {
+      white-space: normal;      /* allow wrapping */
+      word-break: break-word;   /* break long emails or text */
+    }
+    
     .btn {
       background-color: #2c3e50;
       color: white;
