@@ -256,7 +256,7 @@ def my_work_assignments(request):
             form = a.ReimbursementRequest_id
             form_type = "Reimburse"
             form_id = form.id
-            name = form.name
+            name = form.employee_name
             date = form.today_date
             pdf_url = form.pdf_url
             userID = form.user.id
@@ -265,7 +265,7 @@ def my_work_assignments(request):
             form = a.ChangeOfAddress_id
             form_type = "Address"
             form_id = form.id
-            name = form.name
+            name = form.employee_name
             date = form.date_submitted
             pdf_url = form.pdf_url
             userID = form.user.id
@@ -274,7 +274,7 @@ def my_work_assignments(request):
             form = a.DiplomaRequest_id
             form_type = "Diploma"
             form_id = form.id
-            name = form.name
+            name = form.employee_name
             date = form.date_submitted
             pdf_url = form.pdf_url
             userID = form.user.id
@@ -408,11 +408,6 @@ def delegate_work_assign(request, assign_id):
     created_by = get_object_or_404(user_accs, pk=created_by_id)
 
     try:
-        # Deactivate the original assignment
-        original.is_current_step = False
-        original.status = "Delegated"
-        original.save()
-
         # Create a new delegated assignment
         new_assign = work_assign.objects.create(
             user=target_user,
