@@ -26,7 +26,7 @@ const AdminView = () => {
     ChangeAddressForm: "Change of Address",
     PayrollRequestForm: "Payroll Request",
     ReimbursementForm: "Reimbursement Request",
-  };
+  }
   
   function getCSRFToken() {
     const match = document.cookie.match(/csrftoken=([^;]+)/);

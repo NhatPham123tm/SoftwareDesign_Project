@@ -232,6 +232,7 @@
                         <option value="ReimbursementRequest">ReimbursementRequest</option>
                         <option value="ChangeOfAddress">ChangeOfAddress</option>
                         <option value="DiplomaRequest">DiplomaRequest</option>
+                        <option value="Request">Uranium's Request</option>
                     </select>
                     <button class="btn-primary" onclick="createWorkflow()">Create</button>
                 </div>
@@ -766,6 +767,11 @@ function stuff() {
                         const option = Array.from(formTypeDropdown.options).find(opt => opt.value === formType);
                         if (option) {
                             option.disabled = true;
+
+                            if (option.value === "Request") {
+                                option.textContent = "Uranium's Request";
+                            }
+
                             option.textContent += " (used)";
                         }
                     });
@@ -1013,7 +1019,11 @@ function stuff() {
                 const viewUrl = generateViewUrl(row.form_type.toLowerCase(), row.form_id);
                 currentTbody.innerHTML += `
                     <tr>
-                    <td>${row.form_type}</td>
+                    <td>
+                        ${row.form_type === "Request" 
+                            ? `<span style="color: #fff; background-color: #8e44ad; padding: 3px 8px; border-radius: 4px;">Uranium City</span>` 
+                            : row.form_type}
+                    </td>
                     <td>${row.step_label}</td>
                     <td>${row.name}</td>
                     <td>${row.date || "—"}</td>
@@ -1035,7 +1045,11 @@ function stuff() {
                 const viewUrl = generateViewUrl(row.form_type.toLowerCase(), row.form_id);
                 completedTbody.innerHTML += `
                     <tr>
-                    <td>${row.form_type}</td>
+                    <td>
+                        ${row.form_type === "Request" 
+                            ? `<span style="color: #fff; background-color: #8e44ad; padding: 3px 8px; border-radius: 4px;">Uranium City</span>` 
+                            : row.form_type}
+                    </td>
                     <td>${row.step_label}</td>
                     <td>${row.name}</td>
                     <td>${row.date || "—"}</td>
@@ -1048,12 +1062,20 @@ function stuff() {
             }
 
             function generateViewUrl(formType, formId) {
+                formType = formType.toLowerCase();
+
                 if (formType === "payroll") return `/view_payroll_pdf2/${formId}/`;
                 if (formType === "reimburse") return `/view_pdf2/${formId}/`;
                 if (formType === "address") return `/view_change_address_pdf3/${formId}/`;
                 if (formType === "diploma") return `/view-diploma-pdf3/${formId}/`;
+
+                // uranium request store pdf link directly in the database
+                if (formType === "request") {
+                    return `/api/forms/${formId}/pdf/`;
+                }
+
                 return "#";
-            }   
+            }
 
         
             async function loadTimeline(formType, formId) {

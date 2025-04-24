@@ -263,3 +263,21 @@ def initialize_data(sender, **kwargs):
                 department=wf["department"]
             )
             print(f"Created step for {wf['form_type']} → {wf['role'].role_name}")
+
+    workflow, created = Workflow.objects.get_or_create(
+        name="Uranium's Request Workflow",
+        form_type="Request"
+    )
+    if created:
+        print("Created default workflow for Uranium Request")
+
+    # Create default step for the Request workflow
+    if not WorkflowStep.objects.filter(workflow=workflow).exists():
+        WorkflowStep.objects.create(
+            workflow=workflow,
+            step_order=1,
+            label="Initial Request Review",
+            role=admin_role,
+            department="all"
+        )
+        print("Created default step for Request assigned to admin")
