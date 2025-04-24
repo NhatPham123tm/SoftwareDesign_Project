@@ -392,28 +392,19 @@ def my_completed_work_assignments(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def delegate_work_assign(request, assign_id):
+
     data = request.data
     target_user_id = data.get("target_user_id")
-    created_by_id = data.get("created_by_id")
+    created_by_id = data.get("created_by_id")  
 
     if not target_user_id or not created_by_id:
         return Response({"error": "target_user_id and created_by_id are required."}, status=400)
 
     original = get_object_or_404(work_assign, pk=assign_id)
-
-    if not original.is_current_step:
-        return Response({"error": "Only current steps can be delegated."}, status=400)
-
     target_user = get_object_or_404(user_accs, pk=target_user_id)
     created_by = get_object_or_404(user_accs, pk=created_by_id)
 
     try:
-        # Deactivate the original assignment
-        original.is_current_step = False
-        original.status = "Delegated"
-        original.save()
-
-        # Create a new delegated assignment
         new_assign = work_assign.objects.create(
             user=target_user,
             created_by=created_by,
@@ -421,14 +412,13 @@ def delegate_work_assign(request, assign_id):
             ReimbursementRequest_id=original.ReimbursementRequest_id,
             ChangeOfAddress_id=original.ChangeOfAddress_id,
             DiplomaRequest_id=original.DiplomaRequest_id,
-            step=original.step,
             deadline=original.deadline,
+            step=original.step,
             is_current_step=True,
             status="Pending",
             system_generated=False,
-            delegated=original  # Keep link to original
+            delegated=original
         )
-
         return Response({
             "message": "Delegation successful.",
             "new_assign_id": new_assign.id
